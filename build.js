@@ -7,6 +7,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const SRC = path.join(__dirname, 'src');
 const DIST = path.join(__dirname, 'dist');
@@ -60,9 +61,16 @@ function build() {
 
   const js = vendorJS + '\n\n' + appJS;
 
+  // Version string: short git hash + build timestamp
+  let gitHash = 'dev';
+  try { gitHash = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim(); } catch {}
+  const buildTime = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '').slice(0, 16);
+  const version = `v${gitHash} @ ${buildTime}`;
+
   // Inject into template
   html = html.replace('/* __CSS__ */', css);
   html = html.replace('/* __JS__ */', js);
+  html = html.replace('/* __VERSION__ */', version);
 
   // Ensure dist/ exists
   fs.mkdirSync(DIST, { recursive: true });
