@@ -47,6 +47,18 @@ function waitForICE(timeout = 5000) {
   });
 }
 
+// Pack SDP into a base64url string (used for both QR and text codes)
+function packSDPToCode(sdp, type) {
+  const packed = SDP.pack(sdp, type);
+  return SDP.toBase64(packed);
+}
+
+// Unpack a base64url code back to SDP
+function unpackCodeToSDP(code) {
+  const data = SDP.fromBase64(code);
+  return SDP.unpack(data);
+}
+
 // Copy text to clipboard with visual feedback
 async function copyToClipboard(text, btnEl) {
   try {
@@ -55,7 +67,6 @@ async function copyToClipboard(text, btnEl) {
     btnEl.textContent = 'Copied!';
     setTimeout(() => btnEl.textContent = orig, 1500);
   } catch {
-    // Fallback: select the text input
     const input = btnEl.previousElementSibling;
     if (input && input.tagName === 'INPUT') {
       input.select();
@@ -78,16 +89,12 @@ async function startHost() {
   await pc.setLocalDescription(offer);
   await waitForICE();
 
-  const packed = SDP.pack(pc.localDescription.sdp, 'offer');
-  const textCode = SDP.toBase64(packed);
-  console.log(`SDP packed to ${packed.length} bytes (QR version ${QR.chooseVersion(packed.length)})`);
+  const code = packSDPToCode(pc.localDescription.sdp, 'offer');
+  console.log(`Connection code: ${code.length} chars`);
 
-  // Show QR code
-  const qrData = QR.encode(packed);
-  QR.render(document.getElementById('qr-offer'), qrData, 6);
-
-  // Show text code for copy/paste fallback
-  document.getElementById('host-offer-text').value = textCode;
+  // QR contains the same base64url string as the text code
+  QR.render(document.getElementById('qr-offer'), QR.encode(code), 6);
+  document.getElementById('host-offer-text').value = code;
 
   document.getElementById('host-qr-status').innerHTML =
     `<div class="status-dot connected"></div><span>QR ready! Waiting for other player...</span>`;
@@ -95,8 +102,7 @@ async function startHost() {
 
 async function hostStartScan() {
   const videoEl = document.getElementById('host-video');
-  const scannerEl = document.getElementById('host-scanner');
-  scannerEl.classList.remove('hidden');
+  document.getElementById('host-scanner').classList.remove('hidden');
 
   if (!scannerReady) {
     showScanError('host-scanner', 'Camera scanning not available. Use text code below.');
@@ -124,8 +130,7 @@ function showScanError(containerId, msg) {
 
 async function processAnswerCode(code) {
   try {
-    const data = SDP.fromBase64(code);
-    const { sdp } = SDP.unpack(data);
+    const { sdp } = unpackCodeToSDP(code);
     await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp }));
   } catch (e) {
     console.error('Invalid answer:', e);
@@ -168,8 +173,7 @@ async function startJoinScan() {
 
 async function processOfferCode(code) {
   try {
-    const data = SDP.fromBase64(code);
-    const { sdp } = SDP.unpack(data);
+    const { sdp } = unpackCodeToSDP(code);
 
     setupPeerConnection();
     pc.ondatachannel = (e) => setupDataChannel(e.channel);
@@ -180,15 +184,11 @@ async function processOfferCode(code) {
     await pc.setLocalDescription(answer);
     await waitForICE();
 
-    const packed = SDP.pack(pc.localDescription.sdp, 'answer');
-    const textCode = SDP.toBase64(packed);
+    const answerCode = packSDPToCode(pc.localDescription.sdp, 'answer');
 
-    // Show response QR
     showScreen('screen-guest-qr');
-    QR.render(document.getElementById('qr-answer'), QR.encode(packed), 6);
-
-    // Show text code for copy/paste
-    document.getElementById('guest-answer-text').value = textCode;
+    QR.render(document.getElementById('qr-answer'), QR.encode(answerCode), 6);
+    document.getElementById('guest-answer-text').value = answerCode;
   } catch (e) {
     console.error('Invalid offer:', e);
     document.getElementById('guest-scan-status').innerHTML =

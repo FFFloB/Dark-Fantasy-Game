@@ -10,6 +10,12 @@ const path = require('path');
 
 const SRC = path.join(__dirname, 'src');
 const DIST = path.join(__dirname, 'dist');
+const NODE_MODULES = path.join(__dirname, 'node_modules');
+
+// Vendor libraries to inline before our code
+const VENDOR_FILES = [
+  path.join(NODE_MODULES, 'qrcode-generator', 'dist', 'qrcode.js'),
+];
 
 // JS files in load order (dependencies first)
 const JS_FILES = [
@@ -37,13 +43,22 @@ function build() {
     .map(f => fs.readFileSync(path.join(SRC, f), 'utf8'))
     .join('\n');
 
-  // Bundle JS
-  const js = JS_FILES
+  // Bundle JS — vendor libs first, then our code
+  const vendorJS = VENDOR_FILES
+    .map(f => {
+      const content = fs.readFileSync(f, 'utf8');
+      return `// --- vendor: ${path.basename(f)} ---\n${content}`;
+    })
+    .join('\n\n');
+
+  const appJS = JS_FILES
     .map(f => {
       const content = fs.readFileSync(path.join(SRC, f), 'utf8');
       return `// --- ${f} ---\n${content}`;
     })
     .join('\n\n');
+
+  const js = vendorJS + '\n\n' + appJS;
 
   // Inject into template
   html = html.replace('/* __CSS__ */', css);

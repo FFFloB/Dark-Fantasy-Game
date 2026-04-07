@@ -1,0 +1,27 @@
+{
+  "name": "dark-fantasy-game",
+  "version": "1.0.0",
+  "description": "",
+  "main": "build.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FFFloB/Dark-Fantasy-Game.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/FFFloB/Dark-Fantasy-Game/issues"
+  },
+  "homepage": "https://github.com/FFFloB/Dark-Fantasy-Game#readme",
+  "dependencies": {
+    "qrcode-generator": "^2.0.4"
+  }
+}
