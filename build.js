@@ -45,9 +45,10 @@ function build() {
     .join('\n');
 
   // Bundle JS — vendor libs first, then our code
+  // Escape </script> in vendor code to prevent premature tag closure
   const vendorJS = VENDOR_FILES
     .map(f => {
-      const content = fs.readFileSync(f, 'utf8');
+      const content = fs.readFileSync(f, 'utf8').replace(/<\/script>/gi, '<\\/script>');
       return `// --- vendor: ${path.basename(f)} ---\n${content}`;
     })
     .join('\n\n');
@@ -67,10 +68,10 @@ function build() {
   const buildTime = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '').slice(0, 16);
   const version = `v${gitHash} @ ${buildTime}`;
 
-  // Inject into template
-  html = html.replace('/* __CSS__ */', css);
-  html = html.replace('/* __JS__ */', js);
-  html = html.replace('/* __VERSION__ */', version);
+  // Inject into template (use split/join to avoid $ replacement issues in .replace())
+  html = html.split('/* __CSS__ */').join(css);
+  html = html.split('/* __JS__ */').join(js);
+  html = html.split('/* __VERSION__ */').join(version);
 
   // Ensure dist/ exists
   fs.mkdirSync(DIST, { recursive: true });
