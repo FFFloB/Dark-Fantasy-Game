@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#0a0a0f">
+<link rel="manifest" href="manifest.json">
+<title>Ashen Bond</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg-dark: #0a0a0f;
+  --bg-mid: #12111a;
+  --bg-panel: #1a1826;
+  --border: #2a2640;
+  --text: #c8c0d8;
+  --text-dim: #6b6480;
+  --accent: #b8860b;
+  --accent-glow: #d4a024;
+  --ember: #c4501a;
+  --teal: #2a7a7a;
+  --purple: #6a3a8a;
+  --success: #2a8a4a;
+  --danger: #8a2a2a;
+}
+
+body {
+  background: var(--bg-dark);
+  color: var(--text);
+  font-family: 'Courier New', monospace;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+}
+
+#app {
+  width: 100%;
+  max-width: 500px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+h1 { font-size: 1.8em; color: var(--accent); text-shadow: 0 0 20px rgba(184,134,11,0.3); letter-spacing: 0.15em; text-transform: uppercase; }
+.subtitle { color: var(--text-dim); font-size: 0.85em; letter-spacing: 0.3em; text-transform: uppercase; margin-top: -8px; }
+.panel { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 4px; padding: 20px; width: 100%; }
+.panel h2 { color: var(--accent); font-size: 1em; letter-spacing: 0.1em; margin-bottom: 12px; text-transform: uppercase; }
+
+button {
+  background: var(--bg-mid); color: var(--text); border: 1px solid var(--border);
+  padding: 12px 24px; font-family: 'Courier New', monospace; font-size: 0.95em;
+  cursor: pointer; letter-spacing: 0.05em; transition: all 0.2s; width: 100%; margin-bottom: 8px;
+}
+button:hover { border-color: var(--accent); color: var(--accent); }
+button:active { background: var(--accent); color: var(--bg-dark); }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+button.primary { border-color: var(--accent); color: var(--accent); }
+button.small { width: auto; padding: 8px 16px; font-size: 0.85em; }
+
+input { background: var(--bg-dark); color: var(--text); border: 1px solid var(--border); padding: 10px; font-family: 'Courier New', monospace; font-size: 0.9em; width: 100%; outline: none; margin-bottom: 10px; border-radius: 2px; }
+input:focus { border-color: var(--accent); }
+
+.status { display: flex; align-items: center; gap: 8px; padding: 10px; font-size: 0.85em; color: var(--text-dim); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-dim); flex-shrink: 0; }
+.status-dot.connecting { background: var(--accent); animation: pulse 1.5s infinite; }
+.status-dot.connected { background: var(--success); }
+.status-dot.error { background: var(--danger); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.log { background: var(--bg-dark); border: 1px solid var(--border); padding: 10px; height: 150px; overflow-y: auto; font-size: 0.8em; color: var(--text-dim); margin-top: 10px; }
+.log-entry { padding: 2px 0; border-bottom: 1px solid rgba(42,38,64,0.5); }
+.log-entry.system { color: var(--accent); }
+.log-entry.error { color: var(--ember); }
+.log-entry.success { color: var(--success); }
+.log-entry.peer { color: var(--teal); }
+
+.chat-area { display: flex; gap: 8px; margin-top: 10px; }
+.chat-area input { flex: 1; margin-bottom: 0; }
+.chat-area button { width: auto; margin-bottom: 0; padding: 10px 16px; }
+
+.hidden { display: none !important; }
+.divider { width: 100%; height: 1px; background: var(--border); margin: 5px 0; }
+.step-label { color: var(--text-dim); font-size: 0.8em; margin-bottom: 8px; letter-spacing: 0.05em; }
+
+#game-canvas { width: 100%; aspect-ratio: 1; background: var(--bg-dark); border: 1px solid var(--border); image-rendering: pixelated; }
+
+.role-badge { display: inline-block; padding: 3px 10px; font-size: 0.75em; letter-spacing: 0.1em; text-transform: uppercase; border-radius: 2px; margin-bottom: 10px; }
+.role-badge.host { background: rgba(184,134,11,0.15); color: var(--accent); border: 1px solid var(--accent); }
+.role-badge.guest { background: rgba(42,122,122,0.15); color: var(--teal); border: 1px solid var(--teal); }
+
+.qr-container { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 10px 0; }
+.qr-container canvas { background: #fff; border-radius: 4px; image-rendering: pixelated; }
+
+.viewfinder { position: relative; width: 100%; max-width: 320px; aspect-ratio: 1; margin: 10px auto; overflow: hidden; border-radius: 4px; border: 2px solid var(--accent); }
+.viewfinder video { width: 100%; height: 100%; object-fit: cover; }
+.viewfinder-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; border: 40px solid rgba(10,10,15,0.7); pointer-events: none; }
+.viewfinder-corner { position: absolute; width: 20px; height: 20px; pointer-events: none; }
+.viewfinder-corner.tl { top: 30px; left: 30px; border-top: 2px solid var(--accent); border-left: 2px solid var(--accent); }
+.viewfinder-corner.tr { top: 30px; right: 30px; border-top: 2px solid var(--accent); border-right: 2px solid var(--accent); }
+.viewfinder-corner.bl { bottom: 30px; left: 30px; border-bottom: 2px solid var(--accent); border-left: 2px solid var(--accent); }
+.viewfinder-corner.br { bottom: 30px; right: 30px; border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent); }
+
+.code-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.code-row input { flex: 1; margin-bottom: 0; font-size: 0.75em; }
+.code-row button { width: auto; margin-bottom: 0; }
+
+.or-divider { display: flex; align-items: center; gap: 10px; width: 100%; color: var(--text-dim); font-size: 0.8em; margin: 8px 0; }
+.or-divider::before, .or-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.ember-bg { position: fixed; top:0;left:0;right:0;bottom:0; pointer-events: none; z-index: -1; overflow: hidden; }
+.ember-particle { position: absolute; width: 2px; height: 2px; background: var(--ember); border-radius: 50%; opacity: 0; animation: float-up 4s ease-in infinite; }
+@keyframes float-up { 0%{opacity:0;transform:translateY(0) translateX(0)} 10%{opacity:0.6} 90%{opacity:0.2} 100%{opacity:0;transform:translateY(-100vh) translateX(30px)} }
+
+</style>
+</head>
+<body>
+
+<div class="ember-bg" id="embers"></div>
+
+<div id="app">
+
+  <!-- ===== TITLE SCREEN ===== -->
+  <div id="screen-title">
+    <h1>Ashen Bond</h1>
+    <p class="subtitle">A tale of two souls</p>
+    <div class="divider"></div>
+    <div class="panel">
+      <button id="btn-host" class="primary" onclick="startHost()">Host Game</button>
+      <button id="btn-join" onclick="startJoinScan()">Join Game</button>
+    </div>
+  </div>
+
+  <!-- ===== HOST: SHOW QR ===== -->
+  <div id="screen-host-qr" class="hidden">
+    <h1>Ashen Bond</h1>
+    <p class="subtitle">Hosting</p>
+    <div class="panel">
+      <span class="role-badge host">Host — The Hollow Knight</span>
+      <h2>Step 1 — Share your code</h2>
+      <p class="step-label">Let the other player scan this QR, or copy the text code</p>
+      <div class="qr-container">
+        <canvas id="qr-offer" width="1" height="1"></canvas>
+        <div class="status" id="host-qr-status">
+          <div class="status-dot connecting"></div>
+          <span>Generating connection code...</span>
+        </div>
+      </div>
+      <div class="code-row">
+        <input type="text" id="host-offer-text" readonly placeholder="Generating...">
+        <button class="small" id="btn-copy-host" onclick="copyHostCode()">Copy</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <h2>Step 2 — Get their response</h2>
+      <p class="step-label">Scan their response QR, or paste their code</p>
+      <button onclick="hostStartScan()">Open Camera to Scan</button>
+
+      <div id="host-scanner" class="hidden">
+        <div class="viewfinder">
+          <video id="host-video" autoplay playsinline muted></video>
+          <div class="viewfinder-overlay"></div>
+          <div class="viewfinder-corner tl"></div>
+          <div class="viewfinder-corner tr"></div>
+          <div class="viewfinder-corner bl"></div>
+          <div class="viewfinder-corner br"></div>
+        </div>
+      </div>
+
+      <div class="or-divider">or</div>
+      <input type="text" id="input-answer" placeholder="Paste their response code here..." autocomplete="off" spellcheck="false">
+      <button onclick="acceptAnswerText()">Connect</button>
+    </div>
+  </div>
+
+  <!-- ===== GUEST: SCAN HOST QR ===== -->
+  <div id="screen-guest-scan" class="hidden">
+    <h1>Ashen Bond</h1>
+    <p class="subtitle">Joining</p>
+    <div class="panel">
+      <span class="role-badge guest">Guest — The Pale Whisper</span>
+      <h2>Get the host's code</h2>
+      <p class="step-label">Scan their QR or paste their text code</p>
+
+      <div class="viewfinder">
+        <video id="guest-video" autoplay playsinline muted></video>
+        <div class="viewfinder-overlay"></div>
+        <div class="viewfinder-corner tl"></div>
+        <div class="viewfinder-corner tr"></div>
+        <div class="viewfinder-corner bl"></div>
+        <div class="viewfinder-corner br"></div>
+      </div>
+
+      <div class="status" id="guest-scan-status">
+        <div class="status-dot connecting"></div>
+        <span>Looking for QR code...</span>
+      </div>
+
+      <div class="or-divider">or paste code</div>
+      <input type="text" id="input-offer" placeholder="Paste host's code here..." autocomplete="off" spellcheck="false">
+      <button onclick="joinWithText()">Connect</button>
+    </div>
+  </div>
+
+  <!-- ===== GUEST: SHOW RESPONSE QR ===== -->
+  <div id="screen-guest-qr" class="hidden">
+    <h1>Ashen Bond</h1>
+    <p class="subtitle">Joining</p>
+    <div class="panel">
+      <span class="role-badge guest">Guest — The Pale Whisper</span>
+      <h2>Share this back to the host</h2>
+      <p class="step-label">Let them scan this QR, or copy the text code</p>
+      <div class="qr-container">
+        <canvas id="qr-answer" width="1" height="1"></canvas>
+      </div>
+      <div class="code-row">
+        <input type="text" id="guest-answer-text" readonly placeholder="Generating...">
+        <button class="small" id="btn-copy-guest" onclick="copyGuestCode()">Copy</button>
+      </div>
+      <div class="status" id="guest-qr-status">
+        <div class="status-dot connecting"></div>
+        <span>Waiting for host to enter your code...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CONNECTED ===== -->
+  <div id="screen-connected" class="hidden">
+    <h1>Ashen Bond</h1>
+    <p class="subtitle" id="role-label">Connected</p>
+    <div class="panel">
+      <div class="status">
+        <div class="status-dot connected" id="conn-dot"></div>
+        <span id="conn-status">Connected — ready to play</span>
+      </div>
+      <canvas id="game-canvas" width="480" height="480"></canvas>
+      <div class="log" id="message-log"></div>
+      <div class="chat-area">
+        <input type="text" id="chat-input" placeholder="Send a message..." onkeydown="if(event.key==='Enter')sendChat()">
+        <button onclick="sendChat()">Send</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// --- js/qr.js ---
+// ============================================================
+//  QR CODE GENERATOR — Minimal, self-contained, byte mode
+//  Supports versions 1-15, EC level M
+// ============================================================
+
+const QR = (() => {
+  // GF(256) tables — primitive polynomial 0x11d
+  const EXP = new Uint8Array(512), LOG = new Uint8Array(256);
+  let x = 1;
+  for (let i = 0; i < 255; i++) { EXP[i] = x; LOG[x] = i; x = ((x << 1) ^ (x & 128 ? 0x11d : 0)) & 0xff; }
+  for (let i = 255; i < 512; i++) EXP[i] = EXP[i - 255];
+
+  function gfMul(a, b) { return a && b ? EXP[LOG[a] + LOG[b]] : 0; }
+
+  // Reed-Solomon: generate EC codewords
+  function rsEncode(data, ecLen) {
+    let gen = [1];
+    for (let i = 0; i < ecLen; i++) {
+      const ng = new Array(gen.length + 1).fill(0);
+      for (let j = 0; j < gen.length; j++) {
+        ng[j] ^= gen[j];
+        ng[j + 1] ^= gfMul(gen[j], EXP[i]);
+      }
+      gen = ng;
+    }
+    const rem = new Uint8Array(ecLen);
+    for (let i = 0; i < data.length; i++) {
+      const c = data[i] ^ rem[0];
+      rem.copyWithin(0, 1); rem[ecLen - 1] = 0;
+      if (c) for (let j = 0; j < ecLen; j++) rem[j] ^= gfMul(gen[j + 1], c);
+    }
+    return rem;
+  }
+
+  // EC table for M level: [ecPerBlock, numBlocks1, dataPerBlock1, numBlocks2, dataPerBlock2]
+  const EC_M = [
+    [10, 1, 16, 0, 0], // V1
+    [16, 1, 28, 0, 0], // V2
+    [26, 1, 44, 0, 0], // V3
+    [18, 2, 32, 0, 0], // V4
+    [24, 2, 43, 0, 0], // V5
+    [16, 4, 27, 0, 0], // V6
+    [18, 4, 31, 0, 0], // V7
+    [22, 2, 38, 2, 39], // V8
+    [22, 3, 36, 2, 37], // V9
+    [26, 4, 43, 1, 44], // V10
+    [30, 1, 50, 4, 51], // V11
+    [22, 6, 36, 2, 37], // V12
+    [22, 8, 37, 1, 38], // V13
+    [24, 4, 40, 5, 41], // V14
+    [24, 5, 41, 5, 42], // V15
+  ];
+
+  // Alignment pattern positions per version
+  const ALIGN = [
+    [], [6,18], [6,22], [6,26], [6,30], [6,34],
+    [6,22,38], [6,24,42], [6,26,46], [6,28,50], [6,30,54],
+    [6,32,58], [6,34,62], [6,26,46,66], [6,26,48,70]
+  ];
+
+  // Data capacity in bytes for byte mode, M level
+  function dataCapacity(ver) {
+    const ec = EC_M[ver - 1];
+    const totalDataCW = ec[1] * ec[2] + ec[3] * ec[4];
+    const ccBits = ver <= 9 ? 8 : 16;
+    return Math.floor((totalDataCW * 8 - 4 - ccBits) / 8);
+  }
+
+  function chooseVersion(dataLen) {
+    for (let v = 1; v <= 15; v++) {
+      if (dataCapacity(v) >= dataLen) return v;
+    }
+    throw new Error('Data too large for QR (max ~412 bytes)');
+  }
+
+  function encodeData(bytes, ver) {
+    const ec = EC_M[ver - 1];
+    const totalDataCW = ec[1] * ec[2] + ec[3] * ec[4];
+    const ccBits = ver <= 9 ? 8 : 16;
+
+    const bits = [];
+    function pushBits(val, len) { for (let i = len - 1; i >= 0; i--) bits.push((val >> i) & 1); }
+
+    pushBits(0b0100, 4); // Byte mode
+    pushBits(bytes.length, ccBits);
+    for (const b of bytes) pushBits(b, 8);
+
+    const maxBits = totalDataCW * 8;
+    for (let i = 0; i < 4 && bits.length < maxBits; i++) bits.push(0);
+    while (bits.length % 8) bits.push(0);
+
+    let padIdx = 0;
+    while (bits.length < maxBits) { pushBits(padIdx % 2 === 0 ? 0xEC : 0x11, 8); padIdx++; }
+
+    const codewords = [];
+    for (let i = 0; i < bits.length; i += 8) {
+      codewords.push(bits.slice(i, i + 8).reduce((a, b) => (a << 1) | b, 0));
+    }
+
+    // Split into blocks and add EC
+    const blocks = [], ecBlocks = [];
+    let offset = 0;
+    for (let g = 0; g < 2; g++) {
+      const count = g === 0 ? ec[1] : ec[3];
+      const size = g === 0 ? ec[2] : ec[4];
+      if (!count) continue;
+      for (let b = 0; b < count; b++) {
+        const blockData = codewords.slice(offset, offset + size);
+        blocks.push(blockData);
+        ecBlocks.push(Array.from(rsEncode(new Uint8Array(blockData), ec[0])));
+        offset += size;
+      }
+    }
+
+    // Interleave
+    const result = [];
+    const maxBlockLen = Math.max(...blocks.map(b => b.length));
+    for (let i = 0; i < maxBlockLen; i++)
+      for (const block of blocks) if (i < block.length) result.push(block[i]);
+    for (let i = 0; i < ec[0]; i++)
+      for (const ecBlock of ecBlocks) result.push(ecBlock[i]);
+
+    return result;
+  }
+
+  function createMatrix(ver) {
+    const size = ver * 4 + 17;
+    const matrix = Array.from({ length: size }, () => new Int8Array(size));
+    const reserved = Array.from({ length: size }, () => new Uint8Array(size));
+
+    function setModule(r, c, black) {
+      if (r >= 0 && r < size && c >= 0 && c < size) {
+        matrix[r][c] = black ? 1 : -1;
+        reserved[r][c] = 1;
+      }
+    }
+
+    function finderPattern(row, col) {
+      for (let dr = -1; dr <= 7; dr++) {
+        for (let dc = -1; dc <= 7; dc++) {
+          const r = row + dr, c = col + dc;
+          if (r < 0 || r >= size || c < 0 || c >= size) continue;
+          const inOuter = dr >= 0 && dr <= 6 && dc >= 0 && dc <= 6;
+          const inInner = dr >= 2 && dr <= 4 && dc >= 2 && dc <= 4;
+          const onBorder = dr === 0 || dr === 6 || dc === 0 || dc === 6;
+          setModule(r, c, inInner || (inOuter && onBorder));
+        }
+      }
+    }
+
+    finderPattern(0, 0);
+    finderPattern(0, size - 7);
+    finderPattern(size - 7, 0);
+
+    if (ver >= 2) {
+      const pos = ALIGN[ver - 1];
+      for (const r of pos) {
+        for (const c of pos) {
+          if (r <= 8 && c <= 8) continue;
+          if (r <= 8 && c >= size - 8) continue;
+          if (r >= size - 8 && c <= 8) continue;
+          for (let dr = -2; dr <= 2; dr++) {
+            for (let dc = -2; dc <= 2; dc++) {
+              setModule(r + dr, c + dc, Math.abs(dr) === 2 || Math.abs(dc) === 2 || (dr === 0 && dc === 0));
+            }
+          }
+        }
+      }
+    }
+
+    // Timing patterns
+    for (let i = 8; i < size - 8; i++) {
+      if (!reserved[6][i]) setModule(6, i, i % 2 === 0);
+      if (!reserved[i][6]) setModule(i, 6, i % 2 === 0);
+    }
+
+    // Dark module
+    setModule(size - 8, 8, true);
+
+    // Reserve format info areas
+    for (let i = 0; i < 8; i++) {
+      if (!reserved[8][i]) reserved[8][i] = 1;
+      if (!reserved[8][size - 1 - i]) reserved[8][size - 1 - i] = 1;
+      if (!reserved[i][8]) reserved[i][8] = 1;
+      if (!reserved[size - 1 - i][8]) reserved[size - 1 - i][8] = 1;
+    }
+    reserved[8][8] = 1;
+
+    if (ver >= 7) {
+      for (let i = 0; i < 6; i++)
+        for (let j = 0; j < 3; j++) {
+          reserved[i][size - 11 + j] = 1;
+          reserved[size - 11 + j][i] = 1;
+        }
+    }
+
+    return { matrix, reserved, size };
+  }
+
+  function placeData(m, reserved, size, data) {
+    const bits = [];
+    for (const cw of data) for (let i = 7; i >= 0; i--) bits.push((cw >> i) & 1);
+
+    let bitIdx = 0, upward = true;
+    for (let right = size - 1; right >= 1; right -= 2) {
+      if (right === 6) right = 5;
+      const rows = upward ? [...Array(size).keys()].reverse() : [...Array(size).keys()];
+      for (const row of rows) {
+        for (const col of [right, right - 1]) {
+          if (col < 0 || col >= size || reserved[row][col]) continue;
+          m[row][col] = (bitIdx < bits.length && bits[bitIdx]) ? 1 : -1;
+          bitIdx++;
+        }
+      }
+      upward = !upward;
+    }
+  }
+
+  const MASKS = [
+    (r, c) => (r + c) % 2 === 0,
+    (r, c) => r % 2 === 0,
+    (r, c) => c % 3 === 0,
+    (r, c) => (r + c) % 3 === 0,
+    (r, c) => (Math.floor(r / 2) + Math.floor(c / 3)) % 2 === 0,
+    (r, c) => (r * c) % 2 + (r * c) % 3 === 0,
+    (r, c) => ((r * c) % 2 + (r * c) % 3) % 2 === 0,
+    (r, c) => ((r + c) % 2 + (r * c) % 3) % 2 === 0,
+  ];
+
+  function applyMask(matrix, reserved, size, maskIdx) {
+    const m = matrix.map(row => Int8Array.from(row));
+    for (let r = 0; r < size; r++)
+      for (let c = 0; c < size; c++)
+        if (!reserved[r][c] && MASKS[maskIdx](r, c))
+          m[r][c] = m[r][c] === 1 ? -1 : 1;
+    return m;
+  }
+
+  function penaltyScore(m, size) {
+    let score = 0;
+    for (let r = 0; r < size; r++) {
+      let count = 1;
+      for (let c = 1; c < size; c++) {
+        if (m[r][c] === m[r][c - 1]) count++; else { if (count >= 5) score += count - 2; count = 1; }
+      }
+      if (count >= 5) score += count - 2;
+    }
+    for (let c = 0; c < size; c++) {
+      let count = 1;
+      for (let r = 1; r < size; r++) {
+        if (m[r][c] === m[r - 1][c]) count++; else { if (count >= 5) score += count - 2; count = 1; }
+      }
+      if (count >= 5) score += count - 2;
+    }
+    for (let r = 0; r < size - 1; r++)
+      for (let c = 0; c < size - 1; c++) {
+        const v = m[r][c];
+        if (v === m[r][c + 1] && v === m[r + 1][c] && v === m[r + 1][c + 1]) score += 3;
+      }
+    return score;
+  }
+
+  // Format info bits for M level (mask 0-7)
+  const FORMAT_BITS = [0x5412, 0x5125, 0x5E7C, 0x5B4B, 0x45F9, 0x40CE, 0x4F97, 0x4AA0];
+
+  const VERSION_BITS = [0,0,0,0,0,0, 0x07C94, 0x085BC, 0x09A99, 0x0A4D3, 0x0BBF6, 0x0C762, 0x0D847, 0x0E60D, 0x0F928];
+
+  function addFormatInfo(m, size, maskIdx) {
+    const bits = FORMAT_BITS[maskIdx];
+    const p1 = [[8,0],[8,1],[8,2],[8,3],[8,4],[8,5],[8,7],[8,8],[7,8],[5,8],[4,8],[3,8],[2,8],[1,8],[0,8]];
+    const p2 = [[size-1,8],[size-2,8],[size-3,8],[size-4,8],[size-5,8],[size-6,8],[size-7,8],[8,size-8],[8,size-7],[8,size-6],[8,size-5],[8,size-4],[8,size-3],[8,size-2],[8,size-1]];
+    for (let i = 0; i < 15; i++) {
+      const bit = (bits >> i) & 1;
+      m[p1[i][0]][p1[i][1]] = bit ? 1 : -1;
+      m[p2[i][0]][p2[i][1]] = bit ? 1 : -1;
+    }
+  }
+
+  function addVersionInfo(m, size, ver) {
+    if (ver < 7) return;
+    const bits = VERSION_BITS[ver - 1];
+    for (let i = 0; i < 18; i++) {
+      const bit = (bits >> i) & 1;
+      const r = Math.floor(i / 3), c = size - 11 + (i % 3);
+      m[r][c] = bit ? 1 : -1;
+      m[c][r] = bit ? 1 : -1;
+    }
+  }
+
+  function encode(data) {
+    const bytes = typeof data === 'string' ? new TextEncoder().encode(data) : data;
+    const ver = chooseVersion(bytes.length);
+    const codewords = encodeData(bytes, ver);
+    const { matrix, reserved, size } = createMatrix(ver);
+    placeData(matrix, reserved, size, codewords);
+
+    let bestMask = 0, bestScore = Infinity, bestMatrix = null;
+    for (let mask = 0; mask < 8; mask++) {
+      const masked = applyMask(matrix, reserved, size, mask);
+      addFormatInfo(masked, size, mask);
+      addVersionInfo(masked, size, ver);
+      const score = penaltyScore(masked, size);
+      if (score < bestScore) { bestScore = score; bestMask = mask; bestMatrix = masked; }
+    }
+    return { matrix: bestMatrix, size, version: ver };
+  }
+
+  function render(canvas, qrData, scale = 8) {
+    const { matrix, size } = qrData;
+    const quiet = 4;
+    const total = size + quiet * 2;
+    canvas.width = total * scale;
+    canvas.height = total * scale;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#000000';
+    for (let r = 0; r < size; r++)
+      for (let c = 0; c < size; c++)
+        if (matrix[r][c] === 1)
+          ctx.fillRect((c + quiet) * scale, (r + quiet) * scale, scale, scale);
+  }
+
+  return { encode, render, dataCapacity, chooseVersion };
+})();
+
+
+// --- js/sdp.js ---
+// ============================================================
+//  SDP COMPRESSION — Pack/unpack WebRTC SDP into minimal binary
+// ============================================================
+
+const SDP = (() => {
+  function extractField(sdp, field) {
+    const re = new RegExp('a=' + field + ':(.+?)[\r\n]');
+    const m = sdp.match(re);
+    return m ? m[1].trim() : '';
+  }
+
+  function extractCandidates(sdp) {
+    const candidates = [];
+    const re = /a=candidate:(\S+)\s+(\d+)\s+(\w+)\s+(\d+)\s+([\d.]+)\s+(\d+)\s+typ\s+(\w+)/g;
+    let m;
+    while ((m = re.exec(sdp)) !== null) {
+      if (m[5].includes(':')) continue; // skip IPv6
+      candidates.push({
+        foundation: m[1],
+        component: parseInt(m[2]),
+        transport: m[3],
+        priority: parseInt(m[4]),
+        ip: m[5],
+        port: parseInt(m[6]),
+        type: m[7]
+      });
+    }
+    return candidates;
+  }
+
+  function pack(sdp, type) {
+    const ufrag = extractField(sdp, 'ice-ufrag');
+    const pwd = extractField(sdp, 'ice-pwd');
+    const fpLine = extractField(sdp, 'fingerprint');
+    const setup = extractField(sdp, 'setup');
+    const candidates = extractCandidates(sdp);
+
+    const fpHex = fpLine.split(' ')[1] || '';
+    const fpBytes = fpHex.split(':').map(h => parseInt(h, 16));
+    const setupVal = { actpass: 0, active: 1, passive: 2 }[setup] || 0;
+
+    const parts = [];
+    // Byte 0: flags
+    parts.push((type === 'offer' ? 0 : 1) | (setupVal << 1) | (Math.min(candidates.length, 31) << 3));
+
+    // ufrag
+    const ufragBytes = new TextEncoder().encode(ufrag);
+    parts.push(ufragBytes.length);
+    for (const b of ufragBytes) parts.push(b);
+
+    // pwd
+    const pwdBytes = new TextEncoder().encode(pwd);
+    parts.push(pwdBytes.length);
+    for (const b of pwdBytes) parts.push(b);
+
+    // fingerprint (32 bytes)
+    for (let i = 0; i < 32; i++) parts.push(fpBytes[i] || 0);
+
+    // candidates
+    for (const c of candidates) {
+      const ipParts = c.ip.split('.').map(Number);
+      for (const p of ipParts) parts.push(p);
+      parts.push((c.port >> 8) & 0xff);
+      parts.push(c.port & 0xff);
+      parts.push((c.priority >> 24) & 0xff);
+      parts.push((c.priority >> 16) & 0xff);
+      parts.push((c.priority >> 8) & 0xff);
+      parts.push(c.priority & 0xff);
+      parts.push({ host: 0, srflx: 1, relay: 2 }[c.type] || 0);
+    }
+
+    return new Uint8Array(parts);
+  }
+
+  function unpack(data) {
+    let i = 0;
+    const flags = data[i++];
+    const type = (flags & 1) ? 'answer' : 'offer';
+    const setupVal = (flags >> 1) & 3;
+    const numCandidates = (flags >> 3) & 31;
+    const setup = ['actpass', 'active', 'passive'][setupVal];
+
+    const ufragLen = data[i++];
+    const ufrag = new TextDecoder().decode(data.slice(i, i + ufragLen)); i += ufragLen;
+    const pwdLen = data[i++];
+    const pwd = new TextDecoder().decode(data.slice(i, i + pwdLen)); i += pwdLen;
+
+    const fpBytes = data.slice(i, i + 32); i += 32;
+    const fp = 'sha-256 ' + Array.from(fpBytes).map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(':');
+
+    const candidates = [];
+    for (let c = 0; c < numCandidates; c++) {
+      const ip = `${data[i]}.${data[i+1]}.${data[i+2]}.${data[i+3]}`; i += 4;
+      const port = (data[i] << 8) | data[i+1]; i += 2;
+      const priority = (data[i] << 24) | (data[i+1] << 16) | (data[i+2] << 8) | data[i+3]; i += 4;
+      const cType = ['host', 'srflx', 'relay'][data[i++]] || 'host';
+      candidates.push({ ip, port, priority: priority >>> 0, type: cType });
+    }
+
+    let sdp = 'v=0\r\n';
+    sdp += 'o=- 1 1 IN IP4 0.0.0.0\r\n';
+    sdp += 's=-\r\n';
+    sdp += 't=0 0\r\n';
+    sdp += 'a=group:BUNDLE 0\r\n';
+    sdp += 'a=msid-semantic: WMS\r\n';
+    sdp += 'm=application 9 UDP/DTLS/SCTP webrtc-datachannel\r\n';
+    sdp += 'c=IN IP4 0.0.0.0\r\n';
+    sdp += `a=ice-ufrag:${ufrag}\r\n`;
+    sdp += `a=ice-pwd:${pwd}\r\n`;
+    sdp += 'a=ice-options:trickle\r\n';
+    sdp += `a=fingerprint:${fp}\r\n`;
+    sdp += `a=setup:${setup}\r\n`;
+    sdp += 'a=mid:0\r\n';
+    sdp += 'a=sctp-port:5000\r\n';
+    sdp += 'a=max-message-size:262144\r\n';
+
+    for (let c = 0; c < candidates.length; c++) {
+      const cand = candidates[c];
+      sdp += `a=candidate:${c + 1} 1 udp ${cand.priority} ${cand.ip} ${cand.port} typ ${cand.type}\r\n`;
+    }
+
+    return { sdp, type };
+  }
+
+  function toBase64(data) {
+    let binary = '';
+    for (const b of data) binary += String.fromCharCode(b);
+    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  function fromBase64(str) {
+    const b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = b64 + '=='.slice(0, (4 - b64.length % 4) % 4);
+    const binary = atob(padded);
+    const data = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) data[i] = binary.charCodeAt(i);
+    return data;
+  }
+
+  return { pack, unpack, toBase64, fromBase64 };
+})();
+
+
+// --- js/scanner.js ---
+// ============================================================
+//  QR SCANNER — BarcodeDetector API with camera
+// ============================================================
+
+const Scanner = (() => {
+  let stream = null;
+  let detector = null;
+  let scanning = false;
+  let animFrame = null;
+
+  async function init() {
+    if ('BarcodeDetector' in window) {
+      const formats = await BarcodeDetector.getSupportedFormats();
+      if (formats.includes('qr_code')) {
+        detector = new BarcodeDetector({ formats: ['qr_code'] });
+        return true;
+      }
+    }
+    return false;
+  }
+
+  async function startCamera(videoEl) {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 640 } }
+      });
+      videoEl.srcObject = stream;
+      await videoEl.play();
+      return true;
+    } catch (e) {
+      console.error('Camera access denied:', e);
+      return false;
+    }
+  }
+
+  function stopCamera(videoEl) {
+    scanning = false;
+    if (animFrame) cancelAnimationFrame(animFrame);
+    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+    if (videoEl) videoEl.srcObject = null;
+  }
+
+  async function scan(videoEl, onResult) {
+    if (!detector) return;
+    scanning = true;
+
+    const tick = async () => {
+      if (!scanning) return;
+      if (videoEl.readyState >= 2) {
+        try {
+          const results = await detector.detect(videoEl);
+          if (results.length > 0) {
+            scanning = false;
+            stopCamera(videoEl);
+            onResult(results[0].rawValue);
+            return;
+          }
+        } catch (e) { /* ignore detection errors */ }
+      }
+      animFrame = requestAnimationFrame(tick);
+    };
+    tick();
+  }
+
+  return { init, startCamera, stopCamera, scan };
+})();
+
+
+// --- js/renderer.js ---
+// ============================================================
+//  TEST SCENE RENDERER (placeholder — will become full game renderer)
+// ============================================================
+
+function drawTestScene() {
+  const canvas = document.getElementById('game-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  ctx.fillStyle = '#0a0a0f';
+  ctx.fillRect(0, 0, W, H);
+
+  const TILE = 24;
+  const COLS = Math.floor(W / TILE), ROWS = Math.floor(H / TILE);
+  const room = generateTestRoom(COLS, ROWS);
+
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      const px = x * TILE, py = y * TILE;
+      if (room[y][x] === 1) {
+        ctx.fillStyle = '#1a1826';
+        ctx.fillRect(px, py, TILE, TILE);
+        ctx.strokeStyle = '#2a2640';
+        ctx.strokeRect(px + 0.5, py + 0.5, TILE - 1, TILE - 1);
+      } else {
+        ctx.fillStyle = '#12111a';
+        ctx.fillRect(px, py, TILE, TILE);
+        if ((x + y) % 3 === 0) {
+          ctx.fillStyle = 'rgba(42, 38, 64, 0.3)';
+          ctx.fillRect(px + 2, py + 2, TILE - 4, TILE - 4);
+        }
+      }
+    }
+  }
+
+  const kp = { x: 8, y: 10 }, wp = { x: 11, y: 10 };
+  drawCharacter(ctx, kp.x * TILE, kp.y * TILE, TILE, '#b8860b', '#d4a024');
+  drawCharacter(ctx, wp.x * TILE, wp.y * TILE, TILE, '#2a7a7a', '#4ac0c0');
+
+  // Fog of war
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      const d1 = Math.hypot(x - kp.x, y - kp.y);
+      const d2 = Math.hypot(x - wp.x, y - wp.y);
+      const dist = Math.min(d1, d2);
+      if (dist > 3) {
+        ctx.fillStyle = `rgba(10,10,15,${Math.min(0.85, (dist - 3) * 0.15)})`;
+        ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+      }
+    }
+  }
+
+  ctx.fillStyle = 'rgba(10,10,15,0.7)';
+  ctx.fillRect(0, H / 2 - 40, W, 80);
+  ctx.fillStyle = '#b8860b';
+  ctx.font = '20px "Courier New", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('\u2014 CONNECTION ESTABLISHED \u2014', W / 2, H / 2 - 8);
+  ctx.fillStyle = '#6b6480';
+  ctx.font = '12px "Courier New", monospace';
+  ctx.fillText('The Athenaeum awaits...', W / 2, H / 2 + 18);
+}
+
+function drawCharacter(ctx, x, y, size, dark, light) {
+  const cx = x + size / 2, cy = y + size / 2, r = size * 0.35;
+  const grad = ctx.createRadialGradient(cx, cy, r * 0.5, cx, cy, r * 2);
+  grad.addColorStop(0, dark + '40');
+  grad.addColorStop(1, 'transparent');
+  ctx.fillStyle = grad;
+  ctx.fillRect(x - size, y - size, size * 3, size * 3);
+  ctx.fillStyle = dark;
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = light;
+  ctx.beginPath(); ctx.arc(cx - r * 0.2, cy - r * 0.2, r * 0.4, 0, Math.PI * 2); ctx.fill();
+}
+
+function generateTestRoom(cols, rows) {
+  const room = [];
+  for (let y = 0; y < rows; y++) {
+    room[y] = [];
+    for (let x = 0; x < cols; x++) {
+      if (x === 0 || x === cols - 1 || y === 0 || y === rows - 1) { room[y][x] = 1; }
+      else if (x >= 4 && x <= 15 && y >= 4 && y <= 15) {
+        if (x === 4 || x === 15 || y === 4 || y === 15) {
+          room[y][x] = ((x === 10 && (y === 4 || y === 15)) || ((x === 4 || x === 15) && y === 10)) ? 0 : 1;
+        } else { room[y][x] = 0; }
+        if ((x === 7 || x === 12) && (y === 7 || y === 12)) room[y][x] = 1;
+      }
+      else {
+        if ((x === 10 && y < 4) || (x === 10 && y > 15)) room[y][x] = 0;
+        else if ((y === 10 && x < 4) || (y === 10 && x > 15)) room[y][x] = 0;
+        else if (x >= 2 && x <= 3 && y >= 9 && y <= 11) room[y][x] = 0;
+        else if (x >= 16 && x <= 17 && y >= 9 && y <= 11) room[y][x] = 0;
+        else if (y >= 2 && y <= 3 && x >= 9 && x <= 11) room[y][x] = 0;
+        else if (y >= 16 && y <= 17 && x >= 9 && x <= 11) room[y][x] = 0;
+        else room[y][x] = 1;
+      }
+    }
+  }
+  return room;
+}
+
+
+// --- js/messaging.js ---
+// ============================================================
+//  MESSAGING & CHAT
+// ============================================================
+
+function sendData(data) {
+  if (dataChannel && dataChannel.readyState === 'open') {
+    dataChannel.send(JSON.stringify(data));
+  }
+}
+
+function handleMessage(data) {
+  switch (data.type) {
+    case 'chat':
+      logMessage(`${role === 'host' ? 'Pale Whisper' : 'Hollow Knight'}: ${data.message}`, 'peer');
+      break;
+    case 'system':
+      logMessage(data.message, 'system');
+      break;
+    case 'game-state':
+      break;
+    case 'game-action':
+      break;
+  }
+}
+
+function sendChat() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  logMessage(`${role === 'host' ? 'Hollow Knight' : 'Pale Whisper'} (you): ${msg}`, 'peer');
+  sendData({ type: 'chat', message: msg });
+  input.value = '';
+}
+
+function logMessage(text, type = '') {
+  const log = document.getElementById('message-log');
+  if (!log) return;
+  const entry = document.createElement('div');
+  entry.className = 'log-entry ' + type;
+  const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  entry.textContent = `[${time}] ${text}`;
+  log.appendChild(entry);
+  log.scrollTop = log.scrollHeight;
+}
+
+
+// --- js/connection.js ---
+// ============================================================
+//  WebRTC CONNECTION MANAGER
+// ============================================================
+
+let role = null;
+let pc = null;
+let dataChannel = null;
+let connected = false;
+let scannerReady = false;
+
+const rtcConfig = {
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' }
+  ]
+};
+
+function showScreen(id) {
+  document.querySelectorAll('#app > div').forEach(el => el.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+function setupPeerConnection() {
+  pc = new RTCPeerConnection(rtcConfig);
+  pc.oniceconnectionstatechange = () => {
+    const s = pc.iceConnectionState;
+    if (s === 'connected' || s === 'completed') onConnected();
+    if (s === 'disconnected' || s === 'failed') onDisconnected();
+  };
+  return pc;
+}
+
+function setupDataChannel(channel) {
+  dataChannel = channel;
+  dataChannel.onopen = () => onConnected();
+  dataChannel.onclose = () => onDisconnected();
+  dataChannel.onmessage = (e) => handleMessage(JSON.parse(e.data));
+}
+
+function waitForICE(timeout = 5000) {
+  return new Promise((resolve) => {
+    if (pc.iceGatheringState === 'complete') return resolve();
+    const timer = setTimeout(resolve, timeout);
+    pc.onicegatheringstatechange = () => {
+      if (pc.iceGatheringState === 'complete') { clearTimeout(timer); resolve(); }
+    };
+  });
+}
+
+// Copy text to clipboard with visual feedback
+async function copyToClipboard(text, btnEl) {
+  try {
+    await navigator.clipboard.writeText(text);
+    const orig = btnEl.textContent;
+    btnEl.textContent = 'Copied!';
+    setTimeout(() => btnEl.textContent = orig, 1500);
+  } catch {
+    // Fallback: select the text input
+    const input = btnEl.previousElementSibling;
+    if (input && input.tagName === 'INPUT') {
+      input.select();
+      input.setSelectionRange(0, 99999);
+    }
+  }
+}
+
+// --- HOST ---
+
+async function startHost() {
+  role = 'host';
+  showScreen('screen-host-qr');
+
+  setupPeerConnection();
+  const channel = pc.createDataChannel('game', { ordered: true });
+  setupDataChannel(channel);
+
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  await waitForICE();
+
+  const packed = SDP.pack(pc.localDescription.sdp, 'offer');
+  const textCode = SDP.toBase64(packed);
+  console.log(`SDP packed to ${packed.length} bytes (QR version ${QR.chooseVersion(packed.length)})`);
+
+  // Show QR code
+  const qrData = QR.encode(packed);
+  QR.render(document.getElementById('qr-offer'), qrData, 6);
+
+  // Show text code for copy/paste fallback
+  document.getElementById('host-offer-text').value = textCode;
+
+  document.getElementById('host-qr-status').innerHTML =
+    `<div class="status-dot connected"></div><span>QR ready! Waiting for other player...</span>`;
+}
+
+async function hostStartScan() {
+  const videoEl = document.getElementById('host-video');
+  const scannerEl = document.getElementById('host-scanner');
+  scannerEl.classList.remove('hidden');
+
+  if (!scannerReady) {
+    showScanError('host-scanner', 'Camera scanning not available. Use text code below.');
+    return;
+  }
+
+  const camOK = await Scanner.startCamera(videoEl);
+  if (!camOK) {
+    showScanError('host-scanner', 'Camera access denied. Use text code below.');
+    return;
+  }
+  Scanner.scan(videoEl, (result) => processAnswerCode(result));
+}
+
+function showScanError(containerId, msg) {
+  const el = document.getElementById(containerId);
+  const existing = el.querySelector('.scan-error');
+  if (existing) existing.remove();
+  const div = document.createElement('div');
+  div.className = 'scan-error';
+  div.style.cssText = 'color: var(--ember); font-size: 0.85em; padding: 10px; text-align: center;';
+  div.textContent = msg;
+  el.appendChild(div);
+}
+
+async function processAnswerCode(code) {
+  try {
+    const data = SDP.fromBase64(code);
+    const { sdp } = SDP.unpack(data);
+    await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp }));
+  } catch (e) {
+    console.error('Invalid answer:', e);
+    alert('Invalid response code. Check the code and try again.');
+  }
+}
+
+function acceptAnswerText() {
+  const input = document.getElementById('input-answer').value.trim();
+  if (input) processAnswerCode(input);
+}
+
+function copyHostCode() {
+  const input = document.getElementById('host-offer-text');
+  const btn = document.getElementById('btn-copy-host');
+  copyToClipboard(input.value, btn);
+}
+
+// --- GUEST ---
+
+async function startJoinScan() {
+  role = 'guest';
+  showScreen('screen-guest-scan');
+
+  if (!scannerReady) {
+    document.getElementById('guest-scan-status').innerHTML =
+      `<div class="status-dot error"></div><span>Camera scanning not available — paste the host's code below</span>`;
+    return;
+  }
+
+  const videoEl = document.getElementById('guest-video');
+  const camOK = await Scanner.startCamera(videoEl);
+  if (!camOK) {
+    document.getElementById('guest-scan-status').innerHTML =
+      `<div class="status-dot error"></div><span>Camera access denied — paste the host's code below</span>`;
+    return;
+  }
+  Scanner.scan(videoEl, (result) => processOfferCode(result));
+}
+
+async function processOfferCode(code) {
+  try {
+    const data = SDP.fromBase64(code);
+    const { sdp } = SDP.unpack(data);
+
+    setupPeerConnection();
+    pc.ondatachannel = (e) => setupDataChannel(e.channel);
+
+    await pc.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp }));
+
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    await waitForICE();
+
+    const packed = SDP.pack(pc.localDescription.sdp, 'answer');
+    const textCode = SDP.toBase64(packed);
+
+    // Show response QR
+    showScreen('screen-guest-qr');
+    QR.render(document.getElementById('qr-answer'), QR.encode(packed), 6);
+
+    // Show text code for copy/paste
+    document.getElementById('guest-answer-text').value = textCode;
+  } catch (e) {
+    console.error('Invalid offer:', e);
+    document.getElementById('guest-scan-status').innerHTML =
+      `<div class="status-dot error"></div><span>Invalid code — check and try again</span>`;
+  }
+}
+
+function joinWithText() {
+  const input = document.getElementById('input-offer').value.trim();
+  if (input) processOfferCode(input);
+}
+
+function copyGuestCode() {
+  const input = document.getElementById('guest-answer-text');
+  const btn = document.getElementById('btn-copy-guest');
+  copyToClipboard(input.value, btn);
+}
+
+// --- EVENTS ---
+
+function onConnected() {
+  if (connected) return;
+  connected = true;
+
+  Scanner.stopCamera(document.getElementById('host-video'));
+  Scanner.stopCamera(document.getElementById('guest-video'));
+
+  showScreen('screen-connected');
+  document.getElementById('role-label').textContent =
+    role === 'host' ? 'The Hollow Knight' : 'The Pale Whisper';
+
+  logMessage('Connection established.', 'success');
+  logMessage(`You are: ${role === 'host' ? 'The Hollow Knight' : 'The Pale Whisper'}`, 'system');
+  logMessage('The bond between two souls is forged...', 'system');
+
+  drawTestScene();
+
+  sendData({
+    type: 'system',
+    message: `${role === 'host' ? 'The Hollow Knight' : 'The Pale Whisper'} has arrived.`
+  });
+}
+
+function onDisconnected() {
+  connected = false;
+  const dot = document.getElementById('conn-dot');
+  const status = document.getElementById('conn-status');
+  if (dot) dot.className = 'status-dot error';
+  if (status) status.textContent = 'Disconnected — refresh to reconnect';
+  logMessage('Connection lost.', 'error');
+}
+
+
+// --- js/init.js ---
+// ============================================================
+//  INITIALIZATION
+// ============================================================
+
+// Ember particles
+(function () {
+  const c = document.getElementById('embers');
+  for (let i = 0; i < 15; i++) {
+    const e = document.createElement('div');
+    e.className = 'ember-particle';
+    e.style.left = Math.random() * 100 + '%';
+    e.style.bottom = '-10px';
+    e.style.animationDelay = Math.random() * 4 + 's';
+    e.style.animationDuration = (3 + Math.random() * 3) + 's';
+    c.appendChild(e);
+  }
+})();
+
+// Register service worker for PWA / offline support
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').then(reg => {
+    console.log('Service worker registered');
+  }).catch(err => {
+    console.log('Service worker not available (file:// mode?):', err.message);
+  });
+}
+
+// Init QR scanner
+Scanner.init().then(ok => {
+  scannerReady = ok;
+  if (!ok) console.log('BarcodeDetector not available — text fallback only');
+});
+
+</script>
+</body>
+</html>
