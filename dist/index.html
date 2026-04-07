@@ -254,7 +254,7 @@ input:focus { border-color: var(--accent); }
 
 </div>
 
-<div class="version-tag">vb7d87ca @ 2026-04-07 17:36</div>
+<div class="version-tag">v37eab1a @ 2026-04-07 17:39</div>
 
 <script>
 // --- vendor: qrcode.js ---
@@ -2828,6 +2828,81 @@ const Scanner = (() => {
 })();
 
 
+// --- js/wakelock.js ---
+// ============================================================
+//  WAKE LOCK — Prevent screen from turning off during gameplay
+// ============================================================
+
+const WakeLock = (() => {
+  let lock = null;
+
+  async function request() {
+    if (!('wakeLock' in navigator)) {
+      console.log('Wake Lock API not supported');
+      return false;
+    }
+    try {
+      lock = await navigator.wakeLock.request('screen');
+      lock.addEventListener('release', () => {
+        console.log('Wake lock released');
+        lock = null;
+      });
+      console.log('Wake lock acquired — screen will stay on');
+      return true;
+    } catch (e) {
+      console.log('Wake lock failed:', e.message);
+      return false;
+    }
+  }
+
+  function release() {
+    if (lock) {
+      lock.release();
+      lock = null;
+    }
+  }
+
+  // Re-acquire wake lock when page becomes visible again
+  // (lock is automatically released when tab is hidden)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && !lock && connected) {
+      request();
+    }
+  });
+
+  return { request, release };
+})();
+
+
+// --- js/persist.js ---
+// ============================================================
+//  PERSISTENCE — Save/restore game state across reconnects
+// ============================================================
+
+const Persist = (() => {
+  const KEY = 'ashen-bond-session';
+
+  function saveSession(data) {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(data));
+    } catch {}
+  }
+
+  function loadSession() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }
+
+  function clearSession() {
+    localStorage.removeItem(KEY);
+  }
+
+  return { saveSession, loadSession, clearSession };
+})();
+
+
 // --- js/renderer.js ---
 // ============================================================
 //  TEST SCENE RENDERER (placeholder — will become full game renderer)
@@ -3198,6 +3273,12 @@ function onConnected() {
   Scanner.stopCamera(document.getElementById('host-video'));
   Scanner.stopCamera(document.getElementById('guest-video'));
 
+  // Keep screen awake during gameplay
+  WakeLock.request();
+
+  // Remember role for reconnect
+  Persist.saveSession({ role });
+
   showScreen('screen-connected');
   document.getElementById('role-label').textContent =
     role === 'host' ? 'The Hollow Knight' : 'The Pale Whisper';
@@ -3216,11 +3297,36 @@ function onConnected() {
 
 function onDisconnected() {
   connected = false;
+  WakeLock.release();
   const dot = document.getElementById('conn-dot');
   const status = document.getElementById('conn-status');
   if (dot) dot.className = 'status-dot error';
   if (status) status.textContent = 'Disconnected — refresh to reconnect';
   logMessage('Connection lost.', 'error');
+}
+
+// Check for previous session on page load — show reconnect option
+function checkPreviousSession() {
+  const session = Persist.loadSession();
+  if (session && session.role) {
+    const panel = document.querySelector('#screen-title .panel');
+    const reconnBtn = document.createElement('button');
+    reconnBtn.textContent = `Reconnect as ${session.role === 'host' ? 'Host (Hollow Knight)' : 'Guest (Pale Whisper)'}`;
+    reconnBtn.className = 'primary';
+    reconnBtn.style.marginBottom = '8px';
+    reconnBtn.onclick = () => {
+      if (session.role === 'host') startHost();
+      else startJoinScan();
+    };
+    panel.insertBefore(reconnBtn, panel.firstChild);
+
+    const newBtn = document.createElement('button');
+    newBtn.textContent = 'New Game';
+    newBtn.className = 'small';
+    newBtn.style.marginTop = '4px';
+    newBtn.onclick = () => { Persist.clearSession(); location.reload(); };
+    panel.appendChild(newBtn);
+  }
 }
 
 
@@ -3257,6 +3363,9 @@ Scanner.init().then(ok => {
   scannerReady = ok;
   if (!ok) console.log('BarcodeDetector not available — text fallback only');
 });
+
+// Check for previous session (show reconnect button)
+checkPreviousSession();
 
 </script>
 </body>

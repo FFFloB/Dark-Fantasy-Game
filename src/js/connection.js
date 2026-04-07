@@ -216,6 +216,12 @@ function onConnected() {
   Scanner.stopCamera(document.getElementById('host-video'));
   Scanner.stopCamera(document.getElementById('guest-video'));
 
+  // Keep screen awake during gameplay
+  WakeLock.request();
+
+  // Remember role for reconnect
+  Persist.saveSession({ role });
+
   showScreen('screen-connected');
   document.getElementById('role-label').textContent =
     role === 'host' ? 'The Hollow Knight' : 'The Pale Whisper';
@@ -234,9 +240,34 @@ function onConnected() {
 
 function onDisconnected() {
   connected = false;
+  WakeLock.release();
   const dot = document.getElementById('conn-dot');
   const status = document.getElementById('conn-status');
   if (dot) dot.className = 'status-dot error';
   if (status) status.textContent = 'Disconnected — refresh to reconnect';
   logMessage('Connection lost.', 'error');
+}
+
+// Check for previous session on page load — show reconnect option
+function checkPreviousSession() {
+  const session = Persist.loadSession();
+  if (session && session.role) {
+    const panel = document.querySelector('#screen-title .panel');
+    const reconnBtn = document.createElement('button');
+    reconnBtn.textContent = `Reconnect as ${session.role === 'host' ? 'Host (Hollow Knight)' : 'Guest (Pale Whisper)'}`;
+    reconnBtn.className = 'primary';
+    reconnBtn.style.marginBottom = '8px';
+    reconnBtn.onclick = () => {
+      if (session.role === 'host') startHost();
+      else startJoinScan();
+    };
+    panel.insertBefore(reconnBtn, panel.firstChild);
+
+    const newBtn = document.createElement('button');
+    newBtn.textContent = 'New Game';
+    newBtn.className = 'small';
+    newBtn.style.marginTop = '4px';
+    newBtn.onclick = () => { Persist.clearSession(); location.reload(); };
+    panel.appendChild(newBtn);
+  }
 }

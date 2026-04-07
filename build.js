@@ -23,6 +23,8 @@ const JS_FILES = [
   'js/qr.js',
   'js/sdp.js',
   'js/scanner.js',
+  'js/wakelock.js',
+  'js/persist.js',
   'js/renderer.js',
   'js/messaging.js',
   'js/connection.js',

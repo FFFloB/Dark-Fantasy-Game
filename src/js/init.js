@@ -30,3 +30,6 @@ Scanner.init().then(ok => {
   scannerReady = ok;
   if (!ok) console.log('BarcodeDetector not available — text fallback only');
 });
+
+// Check for previous session (show reconnect button)
+checkPreviousSession();
