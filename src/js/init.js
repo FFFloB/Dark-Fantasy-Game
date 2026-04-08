@@ -18,18 +18,20 @@
 
 // Register service worker for PWA / offline support
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').then(reg => {
+  navigator.serviceWorker.register('./sw.js').then(() => {
     console.log('Service worker registered');
   }).catch(err => {
-    console.log('Service worker not available (file:// mode?):', err.message);
+    console.log('SW not available:', err.message);
   });
 }
 
-// Init QR scanner
-Scanner.init().then(ok => {
-  scannerReady = ok;
-  if (!ok) console.log('BarcodeDetector not available — text fallback only');
-});
-
-// Check for previous session (show reconnect button)
-checkPreviousSession();
+// Check for existing session → resume game
+(function () {
+  const session = Persist.loadSession();
+  if (session && session.character && session.sharedSeed) {
+    enterGame();
+  } else if (session && session.character) {
+    showSeedExchange();
+  }
+  // Otherwise stays on character select (default visible screen)
+})();

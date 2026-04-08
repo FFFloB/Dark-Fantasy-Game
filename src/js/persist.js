@@ -1,5 +1,5 @@
 // ============================================================
-//  PERSISTENCE — Save/restore game state across reconnects
+//  PERSISTENCE — Save/restore game state in localStorage
 // ============================================================
 
 const Persist = (() => {

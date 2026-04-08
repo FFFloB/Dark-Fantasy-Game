@@ -11,23 +11,14 @@ const { execSync } = require('child_process');
 
 const SRC = path.join(__dirname, 'src');
 const DIST = path.join(__dirname, 'dist');
-const NODE_MODULES = path.join(__dirname, 'node_modules');
-
-// Vendor libraries to inline before our code
-const VENDOR_FILES = [
-  path.join(NODE_MODULES, 'qrcode-generator', 'dist', 'qrcode.js'),
-];
 
 // JS files in load order (dependencies first)
 const JS_FILES = [
-  'js/qr.js',
-  'js/sdp.js',
-  'js/scanner.js',
-  'js/wakelock.js',
+  'js/crypto.js',
   'js/persist.js',
+  'js/wakelock.js',
   'js/renderer.js',
-  'js/messaging.js',
-  'js/connection.js',
+  'js/ui.js',
   'js/init.js',
 ];
 
@@ -46,23 +37,13 @@ function build() {
     .map(f => fs.readFileSync(path.join(SRC, f), 'utf8'))
     .join('\n');
 
-  // Bundle JS — vendor libs first, then our code
-  // Escape </script> in vendor code to prevent premature tag closure
-  const vendorJS = VENDOR_FILES
-    .map(f => {
-      const content = fs.readFileSync(f, 'utf8').replace(/<\/script>/gi, '<\\/script>');
-      return `// --- vendor: ${path.basename(f)} ---\n${content}`;
-    })
-    .join('\n\n');
-
-  const appJS = JS_FILES
+  // Bundle JS
+  const js = JS_FILES
     .map(f => {
       const content = fs.readFileSync(path.join(SRC, f), 'utf8');
       return `// --- ${f} ---\n${content}`;
     })
     .join('\n\n');
-
-  const js = vendorJS + '\n\n' + appJS;
 
   // Version string: short git hash + build timestamp
   let gitHash = 'dev';
@@ -70,7 +51,7 @@ function build() {
   const buildTime = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '').slice(0, 16);
   const version = `v${gitHash} @ ${buildTime}`;
 
-  // Inject into template (use split/join to avoid $ replacement issues in .replace())
+  // Inject into template (use split/join to avoid $ replacement issues)
   html = html.split('/* __CSS__ */').join(css);
   html = html.split('/* __JS__ */').join(js);
   html = html.split('/* __VERSION__ */').join(version);

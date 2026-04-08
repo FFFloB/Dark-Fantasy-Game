@@ -307,6 +307,155 @@ playthrough — the mercy path makes combat significantly harder.
 - The players should be able to tell the characters are growing closer through 
   dialogue changes, not exposition.
 
+## The Glyph System — Narrative Integration
+
+The Ashen Bond's multiplayer glyph exchange isn't just a connection mechanic — it IS 
+the story. The two characters do not share a timeline. They share a place.
+
+### The Temporal Split
+
+Cael (the Hollow Knight) exists in Vaelthorne BEFORE the Unvoicing. His world is 
+warm, lamplit, alive. The Athenaeum's shelves are full. The Market hums with voices. 
+The Garden of Names is just a wall of civic pride, not a memorial. People walk the 
+streets with purpose and recognition in their eyes. This is the kingdom in its twilight 
+— beautiful and doomed, and Cael doesn't yet know it.
+
+Sable (the Pale Whisper) exists in Vaelthorne AFTER the Unvoicing. Her world is the 
+one described in the main narrative — dark, ruined, haunted by the Hollowed. The 
+Athenaeum's pages are blank. The Market of Echoes plays its ghostly loops. The Garden 
+of Names glows with dying embers of identity. She walks through the corpse of 
+everything Cael is trying to save.
+
+Both players explore the SAME map layout. The rooms are the same shape, the corridors 
+turn the same way, the landmarks sit in the same positions. But the palette, the 
+population, the atmosphere — everything is different. When one player says "I'm in the 
+big hall with the mural," the other knows exactly where that is, even though what they 
+each see in that hall is separated by seven years and a catastrophe.
+
+### How Glyphs Work In-Fiction
+
+Glyphs are not technology. They are fractures in the Unvoicing itself — cracks where 
+time bleeds through. The binding Cael used to split his identity and shield Sable 
+didn't just protect her mind. It punched holes in causality. The two halves of his 
+identity, separated by years, are still tethered. When one half acts with enough 
+intention in a significant place, the other half receives an echo — rendered in the 
+game as a glyph code.
+
+The players experience this as: you do something meaningful, the game gives you a 
+short code, and you read it aloud to the other player, who enters it on their phone. 
+The physical act of two real people sitting next to each other, speaking codes to one 
+another, mirrors Cael and Sable reaching across the temporal wound. The mechanic IS 
+the metaphor.
+
+### Glyph Types
+
+**Discovery Glyphs** — Finding significant things generates codes that unlock content 
+in the other timeline.
+
+- Cael finds the Synod's research notes in the Chamber of Records (intact, readable). 
+  A glyph generates. Sable enters it and finds the same documents reassembled from 
+  fragments — the Unvoicing scattered them, but Cael's discovery echoes forward and 
+  guides her to the pieces.
+- Sable reads a gravestone in the Garden of Names: a scholar who died "the night the 
+  words went out." A glyph generates. Cael enters it and sees that person ALIVE in the 
+  garden, tending the wall. He can speak to them. He learns something he couldn't have 
+  known otherwise — and the player feels the weight of knowing this person's fate.
+- Sable finds the Orphanage in ruins, a child's cot with a faded name scratched into 
+  the frame. Glyph. Cael enters it and visits the Orphanage while it's still open — 
+  sees a young girl reading in the corner, alone but content. He doesn't know who she is. 
+  The player might.
+
+**Echo Choices** — Moral decisions generate glyphs whose consequences manifest in the 
+other timeline.
+
+- Cael can choose to lock or unseal doors, hide or reveal texts, warn or stay silent. 
+  Each choice generates a glyph. When Sable enters it, she finds that door locked or 
+  open, that text hidden or exposed. Cael's past actions literally shape the dungeon 
+  Sable explores.
+- Sable can choose how to deal with Hollowed she encounters — mercy or destruction. 
+  Each choice generates a glyph. When Cael enters it, he meets that same person in the 
+  past, and something is subtly different about them. If Sable showed mercy, the person 
+  seems at peace. If she destroyed them, they seem agitated, haunted — as if the future 
+  is already reaching backward.
+- In the Confession Halls: each player answers questions privately. The answers generate 
+  glyphs. The other player enters the code and hears the echo of that confession in the 
+  other timeline — Cael's truths whispered in Sable's present, Sable's truths carved 
+  into Cael's walls.
+
+**Sync Rituals** — Both players must act at the same real-world moment, validated by 
+their phones' clocks.
+
+- At key narrative beats (the Bond visions, the Synod confrontation, the Throne 
+  decision), both players must perform an action simultaneously. The game checks the 
+  timestamps. If they're within a few seconds of each other, the ritual succeeds — the 
+  two timelines briefly overlap, and both players see a merged version of the world: 
+  Cael's warmth bleeding into Sable's ruins, Sable's ghosts flickering through Cael's 
+  living city.
+- The first sync ritual (Bond 20 vision) teaches the mechanic gently. The Athenaeum 
+  vision — both seeing the library in its glory — is actually the two timelines 
+  overlapping because the players acted together. Cael sees it as his present. Sable 
+  sees it as a memory of the future-past. Both see it as home.
+- The final sync ritual at the Ashen Throne is the climax of this system. Both players 
+  must choose and confirm at the same moment. The temporal wound either heals or 
+  hardens based on their synchronized choice.
+
+**Combined Glyphs** — Each player receives half a code. They must speak both halves 
+aloud to combine them.
+
+- These unlock the most significant content: the Bond ability upgrades, the key 
+  narrative revelations, the hidden paths. Neither player can progress alone.
+- The combination requires both players to literally say their half out loud and enter 
+  the combined code together. Two people, sitting on a plane, speaking fragments of a 
+  fictional language to each other to unlock a story about two people reaching across 
+  an impossible divide. The game knows what it's doing.
+- The Ending 6 (Paradox) path requires every combined glyph in the game to have been 
+  successfully assembled. It's a test of whether the two players committed fully to 
+  the act of connection — not just in-game, but at the table.
+
+### Location-Specific Glyph Examples
+
+**The Athenaeum:**
+- Cael's version: warm candlelight, full shelves, scholars working quietly. He can 
+  read any book. Some contain warnings he won't understand until Sable's glyphs 
+  provide context.
+- Sable's version: dark, shattered, pages blank. But where Cael has sent discovery 
+  glyphs, faint text glimmers on the pages — his echo preserving fragments across time.
+
+**The Market of Echoes:**
+- Cael's version: a bustling market. He can talk to vendors, buy supplies, overhear 
+  gossip about the Synod.
+- Sable's version: the ghostly loops. But echo choice glyphs from Cael change WHICH 
+  loops play. If Cael warned a merchant about the Synod, Sable sees that merchant's 
+  echo trying to flee instead of sell. The ghost remembers what Cael made them feel.
+
+**The Synod Hall:**
+- Cael's version: locked and guarded. He can find ways to infiltrate, spy, gather 
+  evidence. Every glyph he generates here gives Sable crucial information about the 
+  Hall's layout and secrets.
+- Sable's version: blown open, the guards long Hollowed. But the deeper chambers are 
+  sealed by wards that only respond to Cael's glyphs from the past. He must unlock 
+  them before they were ever locked, and she must walk through seven years later.
+
+**The Garden of Names:**
+- Cael's version: names freshly carved, a point of civic pride. He can add names, 
+  read dedications, talk to the mason.
+- Sable's version: names fading, some glowing. If Cael carved something specific into 
+  the wall (a combined glyph moment), Sable finds it seven years later — weathered but 
+  legible. A message from the past, left by a man who didn't yet know he was leaving 
+  it for someone he loved.
+
+### The Meta Layer
+
+The glyph system exists to make the players feel what the characters feel. Cael and 
+Sable are two halves of a broken whole, reaching across an impossible gap, and the only 
+bridge is language — spoken, shared, trusted. The two players are sitting next to each 
+other on a plane, reading codes off their phones, and that act of speaking and listening 
+is the entire point.
+
+A father and son, exchanging words that mean nothing in isolation but together unlock 
+a story about the people we were and the people we become. The glyph system doesn't 
+break the fourth wall. It makes the fourth wall load-bearing.
+
 ## Tone Guide
 
 - **Gothic, not grimdark.** The world is tragic, not edgy. Sadness, not shock value.

@@ -3,36 +3,35 @@
 ## Phase 1: Foundation
 - [x] Project setup and documentation
 - [x] Multi-file build system (src/ → dist/index.html)
-- [~] **WebRTC multiplayer framework** ← CURRENT
-  - [x] Host/join flow with code exchange
-  - [x] Peer-to-peer data channel
-  - [x] Connection status UI
-  - [x] SDP binary compression (~70 bytes)
-  - [x] QR code generator (inline, no dependencies)
-  - [x] QR camera scanner (BarcodeDetector API)
-  - [x] Text code fallback for desktop testing
-  - [x] Chat messaging over data channel
-  - [x] Game state/action message protocol
-  - [ ] Reconnection handling
-  - [ ] Local testing verification ← NEXT
-- [ ] Basic canvas renderer
-  - [ ] Tile rendering system
-  - [ ] Camera and viewport
-  - [ ] Dark fantasy color palette
+- [x] PWA support (service worker, manifest, offline play)
+- [x] ~~WebRTC multiplayer~~ → Replaced with glyph code system
+- [x] **Glyph code system** (HMAC-based offline multiplayer)
+  - [x] Crypto module (seed generation, HMAC, glyph codes)
+  - [x] Character selection (Hollow Knight / Pale Whisper)
+  - [x] Seed exchange flow (one-time verbal code swap)
+  - [x] Glyph input/display UI
+  - [x] Session persistence (localStorage)
+  - [x] Wake lock (screen stays on)
+- [x] Dual-timeline rendering (past=warm, present=cold)
+- [ ] Basic canvas renderer ← NEXT
+  - [ ] Tile map rendering with camera/viewport
+  - [ ] Touch input for movement
+  - [ ] Character movement and collision
 
 ## Phase 2: Core Engine
 - [ ] Tile map system
   - [ ] Map data structure
   - [ ] Procedural dungeon generation
-  - [ ] Fog of war
+  - [ ] Fog of war (per-character sight)
+  - [ ] Dual-timeline visual differences (same layout, different palette/details)
 - [ ] Character system
-  - [ ] Two playable characters with distinct stats
-  - [ ] Movement and collision
+  - [ ] Stats, health, abilities
   - [ ] Basic inventory
-- [ ] Game state sync
-  - [ ] Host-authoritative state model
-  - [ ] State diff sync over WebRTC
-  - [ ] Turn management (whose turn is it)
+- [ ] Glyph event system
+  - [ ] Discovery glyphs (find → generate code → other player enters)
+  - [ ] Echo choices (decision → code → consequences in other timeline)
+  - [ ] Combined glyphs (each player has half)
+  - [ ] Sync rituals (clock-based TOTP codes)
 
 ## Phase 3: Combat
 - [ ] Turn-based combat system
@@ -49,11 +48,11 @@
 ## Phase 4: Narrative & Bond System
 - [ ] Dialogue system
   - [ ] Branching dialogue trees
-  - [ ] Player-specific text (private visions)
+  - [ ] Player-specific text (timeline-dependent)
   - [ ] Choice consequences tracking
 - [ ] Bond mechanic
-  - [ ] Bond meter and cooperative triggers
-  - [ ] Vision scenes at thresholds
+  - [ ] Bond meter tracking through glyph exchanges
+  - [ ] Vision scenes at bond thresholds
   - [ ] Bond abilities unlock
 - [ ] Story implementation
   - [ ] Act 1 content
@@ -71,4 +70,4 @@
 - [ ] Playtesting and bug fixes
 
 ---
-*Last updated: 2026-04-07*
+*Last updated: 2026-04-08*

@@ -18,127 +18,70 @@
 
 <div id="app">
 
-  <!-- ===== TITLE SCREEN ===== -->
-  <div id="screen-title">
+  <!-- ===== CHARACTER SELECT ===== -->
+  <div id="screen-charselect" class="screen">
     <h1>Ashen Bond</h1>
-    <p class="subtitle">A tale of two souls</p>
-    <div class="divider"></div>
-    <div class="panel">
-      <button id="btn-host" class="primary" onclick="startHost()">Host Game</button>
-      <button id="btn-join" onclick="startJoinScan()">Join Game</button>
+    <p class="subtitle">Choose your path</p>
+
+    <div class="char-select">
+      <div class="char-option" id="char-knight" onclick="selectCharacter('knight')">
+        <div class="char-icon knight-icon"></div>
+        <h2>The Hollow Knight</h2>
+        <p class="char-desc">Melee warrior, shield and blade. You walk in the world that <em>was</em>.</p>
+        <span class="timeline-badge past">The Past</span>
+      </div>
+
+      <div class="char-option" id="char-whisper" onclick="selectCharacter('whisper')">
+        <div class="char-icon whisper-icon"></div>
+        <h2>The Pale Whisper</h2>
+        <p class="char-desc">Ranged magic, shadow and flame. You walk in the world that <em>remains</em>.</p>
+        <span class="timeline-badge present">The Present</span>
+      </div>
     </div>
+
+    <button id="btn-confirm-char" class="primary hidden" onclick="confirmCharacter()">Begin</button>
   </div>
 
-  <!-- ===== HOST: SHOW QR ===== -->
-  <div id="screen-host-qr" class="hidden">
+  <!-- ===== SEED EXCHANGE ===== -->
+  <div id="screen-seed" class="screen hidden">
     <h1>Ashen Bond</h1>
-    <p class="subtitle">Hosting</p>
+    <p class="subtitle">Forge the bond</p>
+
     <div class="panel">
-      <span class="role-badge host">Host — The Hollow Knight</span>
-      <h2>Step 1 — Share your code</h2>
-      <p class="step-label">Let the other player scan this QR, or copy the text code</p>
-      <div class="qr-container">
-        <canvas id="qr-offer" width="1" height="1"></canvas>
-        <div class="status" id="host-qr-status">
-          <div class="status-dot connecting"></div>
-          <span>Generating connection code...</span>
-        </div>
-      </div>
-      <div class="code-row">
-        <input type="text" id="host-offer-text" readonly placeholder="Generating...">
-        <button class="small" id="btn-copy-host" onclick="copyHostCode()">Copy</button>
-      </div>
+      <h2>Your Code</h2>
+      <p class="step-label">Read this aloud to the other player</p>
+      <div class="seed-display" id="my-seed">------</div>
 
       <div class="divider"></div>
 
-      <h2>Step 2 — Get their response</h2>
-      <p class="step-label">Scan their response QR, or paste their code</p>
-      <button onclick="hostStartScan()">Open Camera to Scan</button>
-
-      <div id="host-scanner" class="hidden">
-        <div class="viewfinder">
-          <video id="host-video" autoplay playsinline muted></video>
-          <div class="viewfinder-overlay"></div>
-          <div class="viewfinder-corner tl"></div>
-          <div class="viewfinder-corner tr"></div>
-          <div class="viewfinder-corner bl"></div>
-          <div class="viewfinder-corner br"></div>
-        </div>
-      </div>
-
-      <div class="or-divider">or</div>
-      <input type="text" id="input-answer" placeholder="Paste their response code here..." autocomplete="off" spellcheck="false">
-      <button onclick="acceptAnswerText()">Connect</button>
+      <h2>Their Code</h2>
+      <p class="step-label">Enter the code they read to you</p>
+      <input type="text" id="partner-seed-input" placeholder="Enter their code..." maxlength="8" autocomplete="off" spellcheck="false" autocapitalize="characters">
+      <button onclick="confirmSeedExchange()">Forge Bond</button>
+      <p class="seed-status" id="seed-status"></p>
     </div>
   </div>
 
-  <!-- ===== GUEST: SCAN HOST QR ===== -->
-  <div id="screen-guest-scan" class="hidden">
-    <h1>Ashen Bond</h1>
-    <p class="subtitle">Joining</p>
-    <div class="panel">
-      <span class="role-badge guest">Guest — The Pale Whisper</span>
-      <h2>Get the host's code</h2>
-      <p class="step-label">Scan their QR or paste their text code</p>
-
-      <div class="viewfinder">
-        <video id="guest-video" autoplay playsinline muted></video>
-        <div class="viewfinder-overlay"></div>
-        <div class="viewfinder-corner tl"></div>
-        <div class="viewfinder-corner tr"></div>
-        <div class="viewfinder-corner bl"></div>
-        <div class="viewfinder-corner br"></div>
-      </div>
-
-      <div class="status" id="guest-scan-status">
-        <div class="status-dot connecting"></div>
-        <span>Looking for QR code...</span>
-      </div>
-
-      <div class="or-divider">or paste code</div>
-      <input type="text" id="input-offer" placeholder="Paste host's code here..." autocomplete="off" spellcheck="false">
-      <button onclick="joinWithText()">Connect</button>
+  <!-- ===== GAME SCREEN ===== -->
+  <div id="screen-game" class="screen hidden">
+    <div class="game-header">
+      <span class="game-role" id="game-role-label">---</span>
+      <button class="icon-btn" onclick="openGlyphPanel()" title="Glyphs">&#9753;</button>
     </div>
-  </div>
 
-  <!-- ===== GUEST: SHOW RESPONSE QR ===== -->
-  <div id="screen-guest-qr" class="hidden">
-    <h1>Ashen Bond</h1>
-    <p class="subtitle">Joining</p>
-    <div class="panel">
-      <span class="role-badge guest">Guest — The Pale Whisper</span>
-      <h2>Share this back to the host</h2>
-      <p class="step-label">Let them scan this QR, or copy the text code</p>
-      <div class="qr-container">
-        <canvas id="qr-answer" width="1" height="1"></canvas>
-      </div>
-      <div class="code-row">
-        <input type="text" id="guest-answer-text" readonly placeholder="Generating...">
-        <button class="small" id="btn-copy-guest" onclick="copyGuestCode()">Copy</button>
-      </div>
-      <div class="status" id="guest-qr-status">
-        <div class="status-dot connecting"></div>
-        <span>Waiting for host to enter your code...</span>
+    <canvas id="game-canvas" width="480" height="480"></canvas>
+
+    <!-- Glyph Exchange Panel (toggleable) -->
+    <div id="glyph-panel" class="panel glyph-panel hidden">
+      <h2>Glyphs</h2>
+      <div class="log" id="glyph-log"></div>
+      <div class="glyph-input-row">
+        <input type="text" id="glyph-input" placeholder="Enter a glyph code..." autocomplete="off" spellcheck="false" autocapitalize="characters" onkeydown="if(event.key==='Enter')enterGlyph()">
+        <button onclick="enterGlyph()">&#10003;</button>
       </div>
     </div>
-  </div>
 
-  <!-- ===== CONNECTED ===== -->
-  <div id="screen-connected" class="hidden">
-    <h1>Ashen Bond</h1>
-    <p class="subtitle" id="role-label">Connected</p>
-    <div class="panel">
-      <div class="status">
-        <div class="status-dot connected" id="conn-dot"></div>
-        <span id="conn-status">Connected — ready to play</span>
-      </div>
-      <canvas id="game-canvas" width="480" height="480"></canvas>
-      <div class="log" id="message-log"></div>
-      <div class="chat-area">
-        <input type="text" id="chat-input" placeholder="Send a message..." onkeydown="if(event.key==='Enter')sendChat()">
-        <button onclick="sendChat()">Send</button>
-      </div>
-    </div>
+    <button class="small reset-btn" onclick="resetGame()">Reset Game</button>
   </div>
 
 </div>

@@ -22,10 +22,15 @@
   --accent-glow: #d4a024;
   --ember: #c4501a;
   --teal: #2a7a7a;
+  --teal-light: #4ac0c0;
   --purple: #6a3a8a;
   --success: #2a8a4a;
   --danger: #8a2a2a;
 }
+
+/* Timeline-specific overrides */
+[data-timeline="past"] { --timeline: #b8860b; --timeline-glow: rgba(184,134,11,0.15); }
+[data-timeline="present"] { --timeline: #2a7a7a; --timeline-glow: rgba(42,122,122,0.15); }
 
 body {
   background: var(--bg-dark);
@@ -50,9 +55,14 @@ body {
 }
 
 h1 { font-size: 1.8em; color: var(--accent); text-shadow: 0 0 20px rgba(184,134,11,0.3); letter-spacing: 0.15em; text-transform: uppercase; }
+h2 { color: var(--accent); font-size: 1em; letter-spacing: 0.1em; margin-bottom: 12px; text-transform: uppercase; }
 .subtitle { color: var(--text-dim); font-size: 0.85em; letter-spacing: 0.3em; text-transform: uppercase; margin-top: -8px; }
+em { font-style: italic; color: var(--accent-glow); }
+
 .panel { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 4px; padding: 20px; width: 100%; }
-.panel h2 { color: var(--accent); font-size: 1em; letter-spacing: 0.1em; margin-bottom: 12px; text-transform: uppercase; }
+.hidden { display: none !important; }
+.divider { width: 100%; height: 1px; background: var(--border); margin: 12px 0; }
+.step-label { color: var(--text-dim); font-size: 0.8em; margin-bottom: 8px; letter-spacing: 0.05em; }
 
 button {
   background: var(--bg-mid); color: var(--text); border: 1px solid var(--border);
@@ -61,61 +71,102 @@ button {
 }
 button:hover { border-color: var(--accent); color: var(--accent); }
 button:active { background: var(--accent); color: var(--bg-dark); }
-button:disabled { opacity: 0.4; cursor: not-allowed; }
 button.primary { border-color: var(--accent); color: var(--accent); }
-button.small { width: auto; padding: 8px 16px; font-size: 0.85em; }
+button.small { width: auto; padding: 8px 16px; font-size: 0.8em; }
+button.icon-btn { width: auto; padding: 8px 12px; font-size: 1.2em; margin: 0; line-height: 1; }
 
-input { background: var(--bg-dark); color: var(--text); border: 1px solid var(--border); padding: 10px; font-family: 'Courier New', monospace; font-size: 0.9em; width: 100%; outline: none; margin-bottom: 10px; border-radius: 2px; }
+input {
+  background: var(--bg-dark); color: var(--text); border: 1px solid var(--border);
+  padding: 10px; font-family: 'Courier New', monospace; font-size: 0.9em;
+  width: 100%; outline: none; margin-bottom: 10px; border-radius: 2px;
+}
 input:focus { border-color: var(--accent); }
 
-.status { display: flex; align-items: center; gap: 8px; padding: 10px; font-size: 0.85em; color: var(--text-dim); }
-.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-dim); flex-shrink: 0; }
-.status-dot.connecting { background: var(--accent); animation: pulse 1.5s infinite; }
-.status-dot.connected { background: var(--success); }
-.status-dot.error { background: var(--danger); }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+/* ===== CHARACTER SELECT ===== */
 
-.log { background: var(--bg-dark); border: 1px solid var(--border); padding: 10px; height: 150px; overflow-y: auto; font-size: 0.8em; color: var(--text-dim); margin-top: 10px; }
-.log-entry { padding: 2px 0; border-bottom: 1px solid rgba(42,38,64,0.5); }
+.char-select {
+  display: flex; flex-direction: column; gap: 12px; width: 100%; margin: 8px 0;
+}
+
+.char-option {
+  background: var(--bg-panel); border: 2px solid var(--border); border-radius: 6px;
+  padding: 20px; cursor: pointer; transition: all 0.3s; text-align: center;
+}
+.char-option:hover { border-color: var(--text-dim); }
+.char-option.selected { border-color: var(--accent); box-shadow: 0 0 20px rgba(184,134,11,0.15); }
+.char-option h2 { margin-bottom: 6px; font-size: 1.1em; }
+.char-option .char-desc { color: var(--text-dim); font-size: 0.85em; line-height: 1.4; margin-bottom: 10px; }
+
+.char-icon {
+  width: 48px; height: 48px; border-radius: 50%; margin: 0 auto 12px;
+}
+.knight-icon { background: radial-gradient(circle, #d4a024 30%, #b8860b 70%, transparent 100%); box-shadow: 0 0 15px rgba(184,134,11,0.4); }
+.whisper-icon { background: radial-gradient(circle, #4ac0c0 30%, #2a7a7a 70%, transparent 100%); box-shadow: 0 0 15px rgba(42,122,122,0.4); }
+
+.timeline-badge {
+  display: inline-block; padding: 3px 12px; font-size: 0.7em;
+  letter-spacing: 0.15em; text-transform: uppercase; border-radius: 2px;
+}
+.timeline-badge.past { background: rgba(184,134,11,0.15); color: var(--accent); border: 1px solid var(--accent); }
+.timeline-badge.present { background: rgba(42,122,122,0.15); color: var(--teal); border: 1px solid var(--teal); }
+
+/* ===== SEED EXCHANGE ===== */
+
+.seed-display {
+  background: var(--bg-dark); border: 2px solid var(--accent);
+  padding: 16px; font-size: 1.8em; letter-spacing: 0.4em;
+  text-align: center; color: var(--accent-glow); margin: 10px 0;
+  font-weight: bold; user-select: all;
+}
+
+.seed-status {
+  color: var(--success); font-size: 0.85em; text-align: center;
+  min-height: 1.2em; margin-top: 8px;
+}
+
+/* ===== GAME SCREEN ===== */
+
+.game-header {
+  display: flex; justify-content: space-between; align-items: center;
+  width: 100%; padding: 4px 0;
+}
+.game-role {
+  font-size: 0.8em; color: var(--timeline, var(--accent));
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+
+#game-canvas {
+  width: 100%; aspect-ratio: 1;
+  background: var(--bg-dark); border: 1px solid var(--border);
+  image-rendering: pixelated;
+}
+
+/* ===== GLYPH PANEL ===== */
+
+.glyph-panel { margin-top: 8px; }
+.glyph-panel .log {
+  background: var(--bg-dark); border: 1px solid var(--border);
+  padding: 10px; height: 120px; overflow-y: auto;
+  font-size: 0.8em; color: var(--text-dim); margin-bottom: 10px;
+}
+.log-entry { padding: 3px 0; border-bottom: 1px solid rgba(42,38,64,0.3); }
 .log-entry.system { color: var(--accent); }
+.log-entry.generated { color: var(--accent-glow); font-weight: bold; }
+.log-entry.received { color: var(--teal-light); }
 .log-entry.error { color: var(--ember); }
-.log-entry.success { color: var(--success); }
-.log-entry.peer { color: var(--teal); }
 
-.chat-area { display: flex; gap: 8px; margin-top: 10px; }
-.chat-area input { flex: 1; margin-bottom: 0; }
-.chat-area button { width: auto; margin-bottom: 0; padding: 10px 16px; }
+.glyph-input-row { display: flex; gap: 8px; }
+.glyph-input-row input { flex: 1; margin-bottom: 0; text-transform: uppercase; font-size: 1em; letter-spacing: 0.1em; }
+.glyph-input-row button { width: auto; margin-bottom: 0; padding: 10px 16px; font-size: 1.1em; }
 
-.hidden { display: none !important; }
-.divider { width: 100%; height: 1px; background: var(--border); margin: 5px 0; }
-.step-label { color: var(--text-dim); font-size: 0.8em; margin-bottom: 8px; letter-spacing: 0.05em; }
+.reset-btn { margin-top: 12px; opacity: 0.5; }
+.reset-btn:hover { opacity: 1; }
 
-#game-canvas { width: 100%; aspect-ratio: 1; background: var(--bg-dark); border: 1px solid var(--border); image-rendering: pixelated; }
-
-.role-badge { display: inline-block; padding: 3px 10px; font-size: 0.75em; letter-spacing: 0.1em; text-transform: uppercase; border-radius: 2px; margin-bottom: 10px; }
-.role-badge.host { background: rgba(184,134,11,0.15); color: var(--accent); border: 1px solid var(--accent); }
-.role-badge.guest { background: rgba(42,122,122,0.15); color: var(--teal); border: 1px solid var(--teal); }
-
-.qr-container { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 10px 0; }
-.qr-container canvas { background: #fff; border-radius: 4px; image-rendering: pixelated; }
-
-.viewfinder { position: relative; width: 100%; max-width: 320px; aspect-ratio: 1; margin: 10px auto; overflow: hidden; border-radius: 4px; border: 2px solid var(--accent); }
-.viewfinder video { width: 100%; height: 100%; object-fit: cover; }
-.viewfinder-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; border: 40px solid rgba(10,10,15,0.7); pointer-events: none; }
-.viewfinder-corner { position: absolute; width: 20px; height: 20px; pointer-events: none; }
-.viewfinder-corner.tl { top: 30px; left: 30px; border-top: 2px solid var(--accent); border-left: 2px solid var(--accent); }
-.viewfinder-corner.tr { top: 30px; right: 30px; border-top: 2px solid var(--accent); border-right: 2px solid var(--accent); }
-.viewfinder-corner.bl { bottom: 30px; left: 30px; border-bottom: 2px solid var(--accent); border-left: 2px solid var(--accent); }
-.viewfinder-corner.br { bottom: 30px; right: 30px; border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent); }
-
-.code-row { display: flex; gap: 8px; margin-bottom: 10px; }
-.code-row input { flex: 1; margin-bottom: 0; font-size: 0.75em; }
-.code-row button { width: auto; margin-bottom: 0; }
-
-.or-divider { display: flex; align-items: center; gap: 10px; width: 100%; color: var(--text-dim); font-size: 0.8em; margin: 8px 0; }
-.or-divider::before, .or-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+/* ===== VERSION TAG ===== */
 
 .version-tag { position: fixed; bottom: 4px; right: 8px; font-size: 0.65em; color: #ff0000; opacity: 0.9; pointer-events: none; z-index: 10; }
+
+/* ===== AMBIENT ===== */
 
 .ember-bg { position: fixed; top:0;left:0;right:0;bottom:0; pointer-events: none; z-index: -1; overflow: hidden; }
 .ember-particle { position: absolute; width: 2px; height: 2px; background: var(--ember); border-radius: 50%; opacity: 0; animation: float-up 4s ease-in infinite; }
@@ -129,2702 +180,220 @@ input:focus { border-color: var(--accent); }
 
 <div id="app">
 
-  <!-- ===== TITLE SCREEN ===== -->
-  <div id="screen-title">
+  <!-- ===== CHARACTER SELECT ===== -->
+  <div id="screen-charselect" class="screen">
     <h1>Ashen Bond</h1>
-    <p class="subtitle">A tale of two souls</p>
-    <div class="divider"></div>
-    <div class="panel">
-      <button id="btn-host" class="primary" onclick="startHost()">Host Game</button>
-      <button id="btn-join" onclick="startJoinScan()">Join Game</button>
+    <p class="subtitle">Choose your path</p>
+
+    <div class="char-select">
+      <div class="char-option" id="char-knight" onclick="selectCharacter('knight')">
+        <div class="char-icon knight-icon"></div>
+        <h2>The Hollow Knight</h2>
+        <p class="char-desc">Melee warrior, shield and blade. You walk in the world that <em>was</em>.</p>
+        <span class="timeline-badge past">The Past</span>
+      </div>
+
+      <div class="char-option" id="char-whisper" onclick="selectCharacter('whisper')">
+        <div class="char-icon whisper-icon"></div>
+        <h2>The Pale Whisper</h2>
+        <p class="char-desc">Ranged magic, shadow and flame. You walk in the world that <em>remains</em>.</p>
+        <span class="timeline-badge present">The Present</span>
+      </div>
     </div>
+
+    <button id="btn-confirm-char" class="primary hidden" onclick="confirmCharacter()">Begin</button>
   </div>
 
-  <!-- ===== HOST: SHOW QR ===== -->
-  <div id="screen-host-qr" class="hidden">
+  <!-- ===== SEED EXCHANGE ===== -->
+  <div id="screen-seed" class="screen hidden">
     <h1>Ashen Bond</h1>
-    <p class="subtitle">Hosting</p>
+    <p class="subtitle">Forge the bond</p>
+
     <div class="panel">
-      <span class="role-badge host">Host — The Hollow Knight</span>
-      <h2>Step 1 — Share your code</h2>
-      <p class="step-label">Let the other player scan this QR, or copy the text code</p>
-      <div class="qr-container">
-        <canvas id="qr-offer" width="1" height="1"></canvas>
-        <div class="status" id="host-qr-status">
-          <div class="status-dot connecting"></div>
-          <span>Generating connection code...</span>
-        </div>
-      </div>
-      <div class="code-row">
-        <input type="text" id="host-offer-text" readonly placeholder="Generating...">
-        <button class="small" id="btn-copy-host" onclick="copyHostCode()">Copy</button>
-      </div>
+      <h2>Your Code</h2>
+      <p class="step-label">Read this aloud to the other player</p>
+      <div class="seed-display" id="my-seed">------</div>
 
       <div class="divider"></div>
 
-      <h2>Step 2 — Get their response</h2>
-      <p class="step-label">Scan their response QR, or paste their code</p>
-      <button onclick="hostStartScan()">Open Camera to Scan</button>
-
-      <div id="host-scanner" class="hidden">
-        <div class="viewfinder">
-          <video id="host-video" autoplay playsinline muted></video>
-          <div class="viewfinder-overlay"></div>
-          <div class="viewfinder-corner tl"></div>
-          <div class="viewfinder-corner tr"></div>
-          <div class="viewfinder-corner bl"></div>
-          <div class="viewfinder-corner br"></div>
-        </div>
-      </div>
-
-      <div class="or-divider">or</div>
-      <input type="text" id="input-answer" placeholder="Paste their response code here..." autocomplete="off" spellcheck="false">
-      <button onclick="acceptAnswerText()">Connect</button>
+      <h2>Their Code</h2>
+      <p class="step-label">Enter the code they read to you</p>
+      <input type="text" id="partner-seed-input" placeholder="Enter their code..." maxlength="8" autocomplete="off" spellcheck="false" autocapitalize="characters">
+      <button onclick="confirmSeedExchange()">Forge Bond</button>
+      <p class="seed-status" id="seed-status"></p>
     </div>
   </div>
 
-  <!-- ===== GUEST: SCAN HOST QR ===== -->
-  <div id="screen-guest-scan" class="hidden">
-    <h1>Ashen Bond</h1>
-    <p class="subtitle">Joining</p>
-    <div class="panel">
-      <span class="role-badge guest">Guest — The Pale Whisper</span>
-      <h2>Get the host's code</h2>
-      <p class="step-label">Scan their QR or paste their text code</p>
-
-      <div class="viewfinder">
-        <video id="guest-video" autoplay playsinline muted></video>
-        <div class="viewfinder-overlay"></div>
-        <div class="viewfinder-corner tl"></div>
-        <div class="viewfinder-corner tr"></div>
-        <div class="viewfinder-corner bl"></div>
-        <div class="viewfinder-corner br"></div>
-      </div>
-
-      <div class="status" id="guest-scan-status">
-        <div class="status-dot connecting"></div>
-        <span>Looking for QR code...</span>
-      </div>
-
-      <div class="or-divider">or paste code</div>
-      <input type="text" id="input-offer" placeholder="Paste host's code here..." autocomplete="off" spellcheck="false">
-      <button onclick="joinWithText()">Connect</button>
+  <!-- ===== GAME SCREEN ===== -->
+  <div id="screen-game" class="screen hidden">
+    <div class="game-header">
+      <span class="game-role" id="game-role-label">---</span>
+      <button class="icon-btn" onclick="openGlyphPanel()" title="Glyphs">&#9753;</button>
     </div>
-  </div>
 
-  <!-- ===== GUEST: SHOW RESPONSE QR ===== -->
-  <div id="screen-guest-qr" class="hidden">
-    <h1>Ashen Bond</h1>
-    <p class="subtitle">Joining</p>
-    <div class="panel">
-      <span class="role-badge guest">Guest — The Pale Whisper</span>
-      <h2>Share this back to the host</h2>
-      <p class="step-label">Let them scan this QR, or copy the text code</p>
-      <div class="qr-container">
-        <canvas id="qr-answer" width="1" height="1"></canvas>
-      </div>
-      <div class="code-row">
-        <input type="text" id="guest-answer-text" readonly placeholder="Generating...">
-        <button class="small" id="btn-copy-guest" onclick="copyGuestCode()">Copy</button>
-      </div>
-      <div class="status" id="guest-qr-status">
-        <div class="status-dot connecting"></div>
-        <span>Waiting for host to enter your code...</span>
+    <canvas id="game-canvas" width="480" height="480"></canvas>
+
+    <!-- Glyph Exchange Panel (toggleable) -->
+    <div id="glyph-panel" class="panel glyph-panel hidden">
+      <h2>Glyphs</h2>
+      <div class="log" id="glyph-log"></div>
+      <div class="glyph-input-row">
+        <input type="text" id="glyph-input" placeholder="Enter a glyph code..." autocomplete="off" spellcheck="false" autocapitalize="characters" onkeydown="if(event.key==='Enter')enterGlyph()">
+        <button onclick="enterGlyph()">&#10003;</button>
       </div>
     </div>
-  </div>
 
-  <!-- ===== CONNECTED ===== -->
-  <div id="screen-connected" class="hidden">
-    <h1>Ashen Bond</h1>
-    <p class="subtitle" id="role-label">Connected</p>
-    <div class="panel">
-      <div class="status">
-        <div class="status-dot connected" id="conn-dot"></div>
-        <span id="conn-status">Connected — ready to play</span>
-      </div>
-      <canvas id="game-canvas" width="480" height="480"></canvas>
-      <div class="log" id="message-log"></div>
-      <div class="chat-area">
-        <input type="text" id="chat-input" placeholder="Send a message..." onkeydown="if(event.key==='Enter')sendChat()">
-        <button onclick="sendChat()">Send</button>
-      </div>
-    </div>
+    <button class="small reset-btn" onclick="resetGame()">Reset Game</button>
   </div>
 
 </div>
 
-<div class="version-tag">v37eab1a @ 2026-04-07 17:39</div>
+<div class="version-tag">v98c6d39 @ 2026-04-08 17:50</div>
 
 <script>
-// --- vendor: qrcode.js ---
-//---------------------------------------------------------------------
-//
-// QR Code Generator for JavaScript
-//
-// Copyright (c) 2009 Kazuhiko Arase
-//
-// URL: http://www.d-project.com/
-//
-// Licensed under the MIT license:
-//  http://www.opensource.org/licenses/mit-license.php
-//
-// The word 'QR Code' is registered trademark of
-// DENSO WAVE INCORPORATED
-//  http://www.denso-wave.com/qrcode/faqpatent-e.html
-//
-//---------------------------------------------------------------------
-
-var qrcode = function() {
-
-  //---------------------------------------------------------------------
-  // qrcode
-  //---------------------------------------------------------------------
-
-  /**
-   * qrcode
-   * @param typeNumber 1 to 40
-   * @param errorCorrectionLevel 'L','M','Q','H'
-   */
-  var qrcode = function(typeNumber, errorCorrectionLevel) {
-
-    var PAD0 = 0xEC;
-    var PAD1 = 0x11;
-
-    var _typeNumber = typeNumber;
-    var _errorCorrectionLevel = QRErrorCorrectionLevel[errorCorrectionLevel];
-    var _modules = null;
-    var _moduleCount = 0;
-    var _dataCache = null;
-    var _dataList = [];
-
-    var _this = {};
-
-    var makeImpl = function(test, maskPattern) {
-
-      _moduleCount = _typeNumber * 4 + 17;
-      _modules = function(moduleCount) {
-        var modules = new Array(moduleCount);
-        for (var row = 0; row < moduleCount; row += 1) {
-          modules[row] = new Array(moduleCount);
-          for (var col = 0; col < moduleCount; col += 1) {
-            modules[row][col] = null;
-          }
-        }
-        return modules;
-      }(_moduleCount);
-
-      setupPositionProbePattern(0, 0);
-      setupPositionProbePattern(_moduleCount - 7, 0);
-      setupPositionProbePattern(0, _moduleCount - 7);
-      setupPositionAdjustPattern();
-      setupTimingPattern();
-      setupTypeInfo(test, maskPattern);
-
-      if (_typeNumber >= 7) {
-        setupTypeNumber(test);
-      }
-
-      if (_dataCache == null) {
-        _dataCache = createData(_typeNumber, _errorCorrectionLevel, _dataList);
-      }
-
-      mapData(_dataCache, maskPattern);
-    };
-
-    var setupPositionProbePattern = function(row, col) {
-
-      for (var r = -1; r <= 7; r += 1) {
-
-        if (row + r <= -1 || _moduleCount <= row + r) continue;
-
-        for (var c = -1; c <= 7; c += 1) {
-
-          if (col + c <= -1 || _moduleCount <= col + c) continue;
-
-          if ( (0 <= r && r <= 6 && (c == 0 || c == 6) )
-              || (0 <= c && c <= 6 && (r == 0 || r == 6) )
-              || (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
-            _modules[row + r][col + c] = true;
-          } else {
-            _modules[row + r][col + c] = false;
-          }
-        }
-      }
-    };
-
-    var getBestMaskPattern = function() {
-
-      var minLostPoint = 0;
-      var pattern = 0;
-
-      for (var i = 0; i < 8; i += 1) {
-
-        makeImpl(true, i);
-
-        var lostPoint = QRUtil.getLostPoint(_this);
-
-        if (i == 0 || minLostPoint > lostPoint) {
-          minLostPoint = lostPoint;
-          pattern = i;
-        }
-      }
-
-      return pattern;
-    };
-
-    var setupTimingPattern = function() {
-
-      for (var r = 8; r < _moduleCount - 8; r += 1) {
-        if (_modules[r][6] != null) {
-          continue;
-        }
-        _modules[r][6] = (r % 2 == 0);
-      }
-
-      for (var c = 8; c < _moduleCount - 8; c += 1) {
-        if (_modules[6][c] != null) {
-          continue;
-        }
-        _modules[6][c] = (c % 2 == 0);
-      }
-    };
-
-    var setupPositionAdjustPattern = function() {
-
-      var pos = QRUtil.getPatternPosition(_typeNumber);
-
-      for (var i = 0; i < pos.length; i += 1) {
-
-        for (var j = 0; j < pos.length; j += 1) {
-
-          var row = pos[i];
-          var col = pos[j];
-
-          if (_modules[row][col] != null) {
-            continue;
-          }
-
-          for (var r = -2; r <= 2; r += 1) {
-
-            for (var c = -2; c <= 2; c += 1) {
-
-              if (r == -2 || r == 2 || c == -2 || c == 2
-                  || (r == 0 && c == 0) ) {
-                _modules[row + r][col + c] = true;
-              } else {
-                _modules[row + r][col + c] = false;
-              }
-            }
-          }
-        }
-      }
-    };
-
-    var setupTypeNumber = function(test) {
-
-      var bits = QRUtil.getBCHTypeNumber(_typeNumber);
-
-      for (var i = 0; i < 18; i += 1) {
-        var mod = (!test && ( (bits >> i) & 1) == 1);
-        _modules[Math.floor(i / 3)][i % 3 + _moduleCount - 8 - 3] = mod;
-      }
-
-      for (var i = 0; i < 18; i += 1) {
-        var mod = (!test && ( (bits >> i) & 1) == 1);
-        _modules[i % 3 + _moduleCount - 8 - 3][Math.floor(i / 3)] = mod;
-      }
-    };
-
-    var setupTypeInfo = function(test, maskPattern) {
-
-      var data = (_errorCorrectionLevel << 3) | maskPattern;
-      var bits = QRUtil.getBCHTypeInfo(data);
-
-      // vertical
-      for (var i = 0; i < 15; i += 1) {
-
-        var mod = (!test && ( (bits >> i) & 1) == 1);
-
-        if (i < 6) {
-          _modules[i][8] = mod;
-        } else if (i < 8) {
-          _modules[i + 1][8] = mod;
-        } else {
-          _modules[_moduleCount - 15 + i][8] = mod;
-        }
-      }
-
-      // horizontal
-      for (var i = 0; i < 15; i += 1) {
-
-        var mod = (!test && ( (bits >> i) & 1) == 1);
-
-        if (i < 8) {
-          _modules[8][_moduleCount - i - 1] = mod;
-        } else if (i < 9) {
-          _modules[8][15 - i - 1 + 1] = mod;
-        } else {
-          _modules[8][15 - i - 1] = mod;
-        }
-      }
-
-      // fixed module
-      _modules[_moduleCount - 8][8] = (!test);
-    };
-
-    var mapData = function(data, maskPattern) {
-
-      var inc = -1;
-      var row = _moduleCount - 1;
-      var bitIndex = 7;
-      var byteIndex = 0;
-      var maskFunc = QRUtil.getMaskFunction(maskPattern);
-
-      for (var col = _moduleCount - 1; col > 0; col -= 2) {
-
-        if (col == 6) col -= 1;
-
-        while (true) {
-
-          for (var c = 0; c < 2; c += 1) {
-
-            if (_modules[row][col - c] == null) {
-
-              var dark = false;
-
-              if (byteIndex < data.length) {
-                dark = ( ( (data[byteIndex] >>> bitIndex) & 1) == 1);
-              }
-
-              var mask = maskFunc(row, col - c);
-
-              if (mask) {
-                dark = !dark;
-              }
-
-              _modules[row][col - c] = dark;
-              bitIndex -= 1;
-
-              if (bitIndex == -1) {
-                byteIndex += 1;
-                bitIndex = 7;
-              }
-            }
-          }
-
-          row += inc;
-
-          if (row < 0 || _moduleCount <= row) {
-            row -= inc;
-            inc = -inc;
-            break;
-          }
-        }
-      }
-    };
-
-    var createBytes = function(buffer, rsBlocks) {
-
-      var offset = 0;
-
-      var maxDcCount = 0;
-      var maxEcCount = 0;
-
-      var dcdata = new Array(rsBlocks.length);
-      var ecdata = new Array(rsBlocks.length);
-
-      for (var r = 0; r < rsBlocks.length; r += 1) {
-
-        var dcCount = rsBlocks[r].dataCount;
-        var ecCount = rsBlocks[r].totalCount - dcCount;
-
-        maxDcCount = Math.max(maxDcCount, dcCount);
-        maxEcCount = Math.max(maxEcCount, ecCount);
-
-        dcdata[r] = new Array(dcCount);
-
-        for (var i = 0; i < dcdata[r].length; i += 1) {
-          dcdata[r][i] = 0xff & buffer.getBuffer()[i + offset];
-        }
-        offset += dcCount;
-
-        var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
-        var rawPoly = qrPolynomial(dcdata[r], rsPoly.getLength() - 1);
-
-        var modPoly = rawPoly.mod(rsPoly);
-        ecdata[r] = new Array(rsPoly.getLength() - 1);
-        for (var i = 0; i < ecdata[r].length; i += 1) {
-          var modIndex = i + modPoly.getLength() - ecdata[r].length;
-          ecdata[r][i] = (modIndex >= 0)? modPoly.getAt(modIndex) : 0;
-        }
-      }
-
-      var totalCodeCount = 0;
-      for (var i = 0; i < rsBlocks.length; i += 1) {
-        totalCodeCount += rsBlocks[i].totalCount;
-      }
-
-      var data = new Array(totalCodeCount);
-      var index = 0;
-
-      for (var i = 0; i < maxDcCount; i += 1) {
-        for (var r = 0; r < rsBlocks.length; r += 1) {
-          if (i < dcdata[r].length) {
-            data[index] = dcdata[r][i];
-            index += 1;
-          }
-        }
-      }
-
-      for (var i = 0; i < maxEcCount; i += 1) {
-        for (var r = 0; r < rsBlocks.length; r += 1) {
-          if (i < ecdata[r].length) {
-            data[index] = ecdata[r][i];
-            index += 1;
-          }
-        }
-      }
-
-      return data;
-    };
-
-    var createData = function(typeNumber, errorCorrectionLevel, dataList) {
-
-      var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectionLevel);
-
-      var buffer = qrBitBuffer();
-
-      for (var i = 0; i < dataList.length; i += 1) {
-        var data = dataList[i];
-        buffer.put(data.getMode(), 4);
-        buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
-        data.write(buffer);
-      }
-
-      // calc num max data.
-      var totalDataCount = 0;
-      for (var i = 0; i < rsBlocks.length; i += 1) {
-        totalDataCount += rsBlocks[i].dataCount;
-      }
-
-      if (buffer.getLengthInBits() > totalDataCount * 8) {
-        throw 'code length overflow. ('
-          + buffer.getLengthInBits()
-          + '>'
-          + totalDataCount * 8
-          + ')';
-      }
-
-      // end code
-      if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
-        buffer.put(0, 4);
-      }
-
-      // padding
-      while (buffer.getLengthInBits() % 8 != 0) {
-        buffer.putBit(false);
-      }
-
-      // padding
-      while (true) {
-
-        if (buffer.getLengthInBits() >= totalDataCount * 8) {
-          break;
-        }
-        buffer.put(PAD0, 8);
-
-        if (buffer.getLengthInBits() >= totalDataCount * 8) {
-          break;
-        }
-        buffer.put(PAD1, 8);
-      }
-
-      return createBytes(buffer, rsBlocks);
-    };
-
-    _this.addData = function(data, mode) {
-
-      mode = mode || 'Byte';
-
-      var newData = null;
-
-      switch(mode) {
-      case 'Numeric' :
-        newData = qrNumber(data);
-        break;
-      case 'Alphanumeric' :
-        newData = qrAlphaNum(data);
-        break;
-      case 'Byte' :
-        newData = qr8BitByte(data);
-        break;
-      case 'Kanji' :
-        newData = qrKanji(data);
-        break;
-      default :
-        throw 'mode:' + mode;
-      }
-
-      _dataList.push(newData);
-      _dataCache = null;
-    };
-
-    _this.isDark = function(row, col) {
-      if (row < 0 || _moduleCount <= row || col < 0 || _moduleCount <= col) {
-        throw row + ',' + col;
-      }
-      return _modules[row][col];
-    };
-
-    _this.getModuleCount = function() {
-      return _moduleCount;
-    };
-
-    _this.make = function() {
-      if (_typeNumber < 1) {
-        var typeNumber = 1;
-
-        for (; typeNumber < 40; typeNumber++) {
-          var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, _errorCorrectionLevel);
-          var buffer = qrBitBuffer();
-
-          for (var i = 0; i < _dataList.length; i++) {
-            var data = _dataList[i];
-            buffer.put(data.getMode(), 4);
-            buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
-            data.write(buffer);
-          }
-
-          var totalDataCount = 0;
-          for (var i = 0; i < rsBlocks.length; i++) {
-            totalDataCount += rsBlocks[i].dataCount;
-          }
-
-          if (buffer.getLengthInBits() <= totalDataCount * 8) {
-            break;
-          }
-        }
-
-        _typeNumber = typeNumber;
-      }
-
-      makeImpl(false, getBestMaskPattern() );
-    };
-
-    _this.createTableTag = function(cellSize, margin) {
-
-      cellSize = cellSize || 2;
-      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
-
-      var qrHtml = '';
-
-      qrHtml += '<table style="';
-      qrHtml += ' border-width: 0px; border-style: none;';
-      qrHtml += ' border-collapse: collapse;';
-      qrHtml += ' padding: 0px; margin: ' + margin + 'px;';
-      qrHtml += '">';
-      qrHtml += '<tbody>';
-
-      for (var r = 0; r < _this.getModuleCount(); r += 1) {
-
-        qrHtml += '<tr>';
-
-        for (var c = 0; c < _this.getModuleCount(); c += 1) {
-          qrHtml += '<td style="';
-          qrHtml += ' border-width: 0px; border-style: none;';
-          qrHtml += ' border-collapse: collapse;';
-          qrHtml += ' padding: 0px; margin: 0px;';
-          qrHtml += ' width: ' + cellSize + 'px;';
-          qrHtml += ' height: ' + cellSize + 'px;';
-          qrHtml += ' background-color: ';
-          qrHtml += _this.isDark(r, c)? '#000000' : '#ffffff';
-          qrHtml += ';';
-          qrHtml += '"/>';
-        }
-
-        qrHtml += '</tr>';
-      }
-
-      qrHtml += '</tbody>';
-      qrHtml += '</table>';
-
-      return qrHtml;
-    };
-
-    _this.createSvgTag = function(cellSize, margin, alt, title) {
-
-      var opts = {};
-      if (typeof arguments[0] == 'object') {
-        // Called by options.
-        opts = arguments[0];
-        // overwrite cellSize and margin.
-        cellSize = opts.cellSize;
-        margin = opts.margin;
-        alt = opts.alt;
-        title = opts.title;
-      }
-
-      cellSize = cellSize || 2;
-      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
-
-      // Compose alt property surrogate
-      alt = (typeof alt === 'string') ? {text: alt} : alt || {};
-      alt.text = alt.text || null;
-      alt.id = (alt.text) ? alt.id || 'qrcode-description' : null;
-
-      // Compose title property surrogate
-      title = (typeof title === 'string') ? {text: title} : title || {};
-      title.text = title.text || null;
-      title.id = (title.text) ? title.id || 'qrcode-title' : null;
-
-      var size = _this.getModuleCount() * cellSize + margin * 2;
-      var c, mc, r, mr, qrSvg='', rect;
-
-      rect = 'l' + cellSize + ',0 0,' + cellSize +
-        ' -' + cellSize + ',0 0,-' + cellSize + 'z ';
-
-      qrSvg += '<svg version="1.1" xmlns="http://www.w3.org/2000/svg"';
-      qrSvg += !opts.scalable ? ' width="' + size + 'px" height="' + size + 'px"' : '';
-      qrSvg += ' viewBox="0 0 ' + size + ' ' + size + '" ';
-      qrSvg += ' preserveAspectRatio="xMinYMin meet"';
-      qrSvg += (title.text || alt.text) ? ' role="img" aria-labelledby="' +
-          escapeXml([title.id, alt.id].join(' ').trim() ) + '"' : '';
-      qrSvg += '>';
-      qrSvg += (title.text) ? '<title id="' + escapeXml(title.id) + '">' +
-          escapeXml(title.text) + '</title>' : '';
-      qrSvg += (alt.text) ? '<description id="' + escapeXml(alt.id) + '">' +
-          escapeXml(alt.text) + '</description>' : '';
-      qrSvg += '<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>';
-      qrSvg += '<path d="';
-
-      for (r = 0; r < _this.getModuleCount(); r += 1) {
-        mr = r * cellSize + margin;
-        for (c = 0; c < _this.getModuleCount(); c += 1) {
-          if (_this.isDark(r, c) ) {
-            mc = c*cellSize+margin;
-            qrSvg += 'M' + mc + ',' + mr + rect;
-          }
-        }
-      }
-
-      qrSvg += '" stroke="transparent" fill="black"/>';
-      qrSvg += '</svg>';
-
-      return qrSvg;
-    };
-
-    _this.createDataURL = function(cellSize, margin) {
-
-      cellSize = cellSize || 2;
-      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
-
-      var size = _this.getModuleCount() * cellSize + margin * 2;
-      var min = margin;
-      var max = size - margin;
-
-      return createDataURL(size, size, function(x, y) {
-        if (min <= x && x < max && min <= y && y < max) {
-          var c = Math.floor( (x - min) / cellSize);
-          var r = Math.floor( (y - min) / cellSize);
-          return _this.isDark(r, c)? 0 : 1;
-        } else {
-          return 1;
-        }
-      } );
-    };
-
-    _this.createImgTag = function(cellSize, margin, alt) {
-
-      cellSize = cellSize || 2;
-      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
-
-      var size = _this.getModuleCount() * cellSize + margin * 2;
-
-      var img = '';
-      img += '<img';
-      img += '\u0020src="';
-      img += _this.createDataURL(cellSize, margin);
-      img += '"';
-      img += '\u0020width="';
-      img += size;
-      img += '"';
-      img += '\u0020height="';
-      img += size;
-      img += '"';
-      if (alt) {
-        img += '\u0020alt="';
-        img += escapeXml(alt);
-        img += '"';
-      }
-      img += '/>';
-
-      return img;
-    };
-
-    var escapeXml = function(s) {
-      var escaped = '';
-      for (var i = 0; i < s.length; i += 1) {
-        var c = s.charAt(i);
-        switch(c) {
-        case '<': escaped += '&lt;'; break;
-        case '>': escaped += '&gt;'; break;
-        case '&': escaped += '&amp;'; break;
-        case '"': escaped += '&quot;'; break;
-        default : escaped += c; break;
-        }
-      }
-      return escaped;
-    };
-
-    var _createHalfASCII = function(margin) {
-      var cellSize = 1;
-      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
-
-      var size = _this.getModuleCount() * cellSize + margin * 2;
-      var min = margin;
-      var max = size - margin;
-
-      var y, x, r1, r2, p;
-
-      var blocks = {
-        '██': '█',
-        '█ ': '▀',
-        ' █': '▄',
-        '  ': ' '
-      };
-
-      var blocksLastLineNoMargin = {
-        '██': '▀',
-        '█ ': '▀',
-        ' █': ' ',
-        '  ': ' '
-      };
-
-      var ascii = '';
-      for (y = 0; y < size; y += 2) {
-        r1 = Math.floor((y - min) / cellSize);
-        r2 = Math.floor((y + 1 - min) / cellSize);
-        for (x = 0; x < size; x += 1) {
-          p = '█';
-
-          if (min <= x && x < max && min <= y && y < max && _this.isDark(r1, Math.floor((x - min) / cellSize))) {
-            p = ' ';
-          }
-
-          if (min <= x && x < max && min <= y+1 && y+1 < max && _this.isDark(r2, Math.floor((x - min) / cellSize))) {
-            p += ' ';
-          }
-          else {
-            p += '█';
-          }
-
-          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
-          ascii += (margin < 1 && y+1 >= max) ? blocksLastLineNoMargin[p] : blocks[p];
-        }
-
-        ascii += '\n';
-      }
-
-      if (size % 2 && margin > 0) {
-        return ascii.substring(0, ascii.length - size - 1) + Array(size+1).join('▀');
-      }
-
-      return ascii.substring(0, ascii.length-1);
-    };
-
-    _this.createASCII = function(cellSize, margin) {
-      cellSize = cellSize || 1;
-
-      if (cellSize < 2) {
-        return _createHalfASCII(margin);
-      }
-
-      cellSize -= 1;
-      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
-
-      var size = _this.getModuleCount() * cellSize + margin * 2;
-      var min = margin;
-      var max = size - margin;
-
-      var y, x, r, p;
-
-      var white = Array(cellSize+1).join('██');
-      var black = Array(cellSize+1).join('  ');
-
-      var ascii = '';
-      var line = '';
-      for (y = 0; y < size; y += 1) {
-        r = Math.floor( (y - min) / cellSize);
-        line = '';
-        for (x = 0; x < size; x += 1) {
-          p = 1;
-
-          if (min <= x && x < max && min <= y && y < max && _this.isDark(r, Math.floor((x - min) / cellSize))) {
-            p = 0;
-          }
-
-          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
-          line += p ? white : black;
-        }
-
-        for (r = 0; r < cellSize; r += 1) {
-          ascii += line + '\n';
-        }
-      }
-
-      return ascii.substring(0, ascii.length-1);
-    };
-
-    _this.renderTo2dContext = function(context, cellSize) {
-      cellSize = cellSize || 2;
-      var length = _this.getModuleCount();
-      for (var row = 0; row < length; row++) {
-        for (var col = 0; col < length; col++) {
-          context.fillStyle = _this.isDark(row, col) ? 'black' : 'white';
-          context.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
-        }
-      }
-    }
-
-    return _this;
-  };
-
-  //---------------------------------------------------------------------
-  // qrcode.stringToBytes
-  //---------------------------------------------------------------------
-
-  qrcode.stringToBytesFuncs = {
-    'default' : function(s) {
-      var bytes = [];
-      for (var i = 0; i < s.length; i += 1) {
-        var c = s.charCodeAt(i);
-        bytes.push(c & 0xff);
-      }
-      return bytes;
-    }
-  };
-
-  qrcode.stringToBytes = qrcode.stringToBytesFuncs['default'];
-
-  //---------------------------------------------------------------------
-  // qrcode.createStringToBytes
-  //---------------------------------------------------------------------
-
-  /**
-   * @param unicodeData base64 string of byte array.
-   * [16bit Unicode],[16bit Bytes], ...
-   * @param numChars
-   */
-  qrcode.createStringToBytes = function(unicodeData, numChars) {
-
-    // create conversion map.
-
-    var unicodeMap = function() {
-
-      var bin = base64DecodeInputStream(unicodeData);
-      var read = function() {
-        var b = bin.read();
-        if (b == -1) throw 'eof';
-        return b;
-      };
-
-      var count = 0;
-      var unicodeMap = {};
-      while (true) {
-        var b0 = bin.read();
-        if (b0 == -1) break;
-        var b1 = read();
-        var b2 = read();
-        var b3 = read();
-        var k = String.fromCharCode( (b0 << 8) | b1);
-        var v = (b2 << 8) | b3;
-        unicodeMap[k] = v;
-        count += 1;
-      }
-      if (count != numChars) {
-        throw count + ' != ' + numChars;
-      }
-
-      return unicodeMap;
-    }();
-
-    var unknownChar = '?'.charCodeAt(0);
-
-    return function(s) {
-      var bytes = [];
-      for (var i = 0; i < s.length; i += 1) {
-        var c = s.charCodeAt(i);
-        if (c < 128) {
-          bytes.push(c);
-        } else {
-          var b = unicodeMap[s.charAt(i)];
-          if (typeof b == 'number') {
-            if ( (b & 0xff) == b) {
-              // 1byte
-              bytes.push(b);
-            } else {
-              // 2bytes
-              bytes.push(b >>> 8);
-              bytes.push(b & 0xff);
-            }
-          } else {
-            bytes.push(unknownChar);
-          }
-        }
-      }
-      return bytes;
-    };
-  };
-
-  //---------------------------------------------------------------------
-  // QRMode
-  //---------------------------------------------------------------------
-
-  var QRMode = {
-    MODE_NUMBER :    1 << 0,
-    MODE_ALPHA_NUM : 1 << 1,
-    MODE_8BIT_BYTE : 1 << 2,
-    MODE_KANJI :     1 << 3
-  };
-
-  //---------------------------------------------------------------------
-  // QRErrorCorrectionLevel
-  //---------------------------------------------------------------------
-
-  var QRErrorCorrectionLevel = {
-    L : 1,
-    M : 0,
-    Q : 3,
-    H : 2
-  };
-
-  //---------------------------------------------------------------------
-  // QRMaskPattern
-  //---------------------------------------------------------------------
-
-  var QRMaskPattern = {
-    PATTERN000 : 0,
-    PATTERN001 : 1,
-    PATTERN010 : 2,
-    PATTERN011 : 3,
-    PATTERN100 : 4,
-    PATTERN101 : 5,
-    PATTERN110 : 6,
-    PATTERN111 : 7
-  };
-
-  //---------------------------------------------------------------------
-  // QRUtil
-  //---------------------------------------------------------------------
-
-  var QRUtil = function() {
-
-    var PATTERN_POSITION_TABLE = [
-      [],
-      [6, 18],
-      [6, 22],
-      [6, 26],
-      [6, 30],
-      [6, 34],
-      [6, 22, 38],
-      [6, 24, 42],
-      [6, 26, 46],
-      [6, 28, 50],
-      [6, 30, 54],
-      [6, 32, 58],
-      [6, 34, 62],
-      [6, 26, 46, 66],
-      [6, 26, 48, 70],
-      [6, 26, 50, 74],
-      [6, 30, 54, 78],
-      [6, 30, 56, 82],
-      [6, 30, 58, 86],
-      [6, 34, 62, 90],
-      [6, 28, 50, 72, 94],
-      [6, 26, 50, 74, 98],
-      [6, 30, 54, 78, 102],
-      [6, 28, 54, 80, 106],
-      [6, 32, 58, 84, 110],
-      [6, 30, 58, 86, 114],
-      [6, 34, 62, 90, 118],
-      [6, 26, 50, 74, 98, 122],
-      [6, 30, 54, 78, 102, 126],
-      [6, 26, 52, 78, 104, 130],
-      [6, 30, 56, 82, 108, 134],
-      [6, 34, 60, 86, 112, 138],
-      [6, 30, 58, 86, 114, 142],
-      [6, 34, 62, 90, 118, 146],
-      [6, 30, 54, 78, 102, 126, 150],
-      [6, 24, 50, 76, 102, 128, 154],
-      [6, 28, 54, 80, 106, 132, 158],
-      [6, 32, 58, 84, 110, 136, 162],
-      [6, 26, 54, 82, 110, 138, 166],
-      [6, 30, 58, 86, 114, 142, 170]
-    ];
-    var G15 = (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0);
-    var G18 = (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0);
-    var G15_MASK = (1 << 14) | (1 << 12) | (1 << 10) | (1 << 4) | (1 << 1);
-
-    var _this = {};
-
-    var getBCHDigit = function(data) {
-      var digit = 0;
-      while (data != 0) {
-        digit += 1;
-        data >>>= 1;
-      }
-      return digit;
-    };
-
-    _this.getBCHTypeInfo = function(data) {
-      var d = data << 10;
-      while (getBCHDigit(d) - getBCHDigit(G15) >= 0) {
-        d ^= (G15 << (getBCHDigit(d) - getBCHDigit(G15) ) );
-      }
-      return ( (data << 10) | d) ^ G15_MASK;
-    };
-
-    _this.getBCHTypeNumber = function(data) {
-      var d = data << 12;
-      while (getBCHDigit(d) - getBCHDigit(G18) >= 0) {
-        d ^= (G18 << (getBCHDigit(d) - getBCHDigit(G18) ) );
-      }
-      return (data << 12) | d;
-    };
-
-    _this.getPatternPosition = function(typeNumber) {
-      return PATTERN_POSITION_TABLE[typeNumber - 1];
-    };
-
-    _this.getMaskFunction = function(maskPattern) {
-
-      switch (maskPattern) {
-
-      case QRMaskPattern.PATTERN000 :
-        return function(i, j) { return (i + j) % 2 == 0; };
-      case QRMaskPattern.PATTERN001 :
-        return function(i, j) { return i % 2 == 0; };
-      case QRMaskPattern.PATTERN010 :
-        return function(i, j) { return j % 3 == 0; };
-      case QRMaskPattern.PATTERN011 :
-        return function(i, j) { return (i + j) % 3 == 0; };
-      case QRMaskPattern.PATTERN100 :
-        return function(i, j) { return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 == 0; };
-      case QRMaskPattern.PATTERN101 :
-        return function(i, j) { return (i * j) % 2 + (i * j) % 3 == 0; };
-      case QRMaskPattern.PATTERN110 :
-        return function(i, j) { return ( (i * j) % 2 + (i * j) % 3) % 2 == 0; };
-      case QRMaskPattern.PATTERN111 :
-        return function(i, j) { return ( (i * j) % 3 + (i + j) % 2) % 2 == 0; };
-
-      default :
-        throw 'bad maskPattern:' + maskPattern;
-      }
-    };
-
-    _this.getErrorCorrectPolynomial = function(errorCorrectLength) {
-      var a = qrPolynomial([1], 0);
-      for (var i = 0; i < errorCorrectLength; i += 1) {
-        a = a.multiply(qrPolynomial([1, QRMath.gexp(i)], 0) );
-      }
-      return a;
-    };
-
-    _this.getLengthInBits = function(mode, type) {
-
-      if (1 <= type && type < 10) {
-
-        // 1 - 9
-
-        switch(mode) {
-        case QRMode.MODE_NUMBER    : return 10;
-        case QRMode.MODE_ALPHA_NUM : return 9;
-        case QRMode.MODE_8BIT_BYTE : return 8;
-        case QRMode.MODE_KANJI     : return 8;
-        default :
-          throw 'mode:' + mode;
-        }
-
-      } else if (type < 27) {
-
-        // 10 - 26
-
-        switch(mode) {
-        case QRMode.MODE_NUMBER    : return 12;
-        case QRMode.MODE_ALPHA_NUM : return 11;
-        case QRMode.MODE_8BIT_BYTE : return 16;
-        case QRMode.MODE_KANJI     : return 10;
-        default :
-          throw 'mode:' + mode;
-        }
-
-      } else if (type < 41) {
-
-        // 27 - 40
-
-        switch(mode) {
-        case QRMode.MODE_NUMBER    : return 14;
-        case QRMode.MODE_ALPHA_NUM : return 13;
-        case QRMode.MODE_8BIT_BYTE : return 16;
-        case QRMode.MODE_KANJI     : return 12;
-        default :
-          throw 'mode:' + mode;
-        }
-
-      } else {
-        throw 'type:' + type;
-      }
-    };
-
-    _this.getLostPoint = function(qrcode) {
-
-      var moduleCount = qrcode.getModuleCount();
-
-      var lostPoint = 0;
-
-      // LEVEL1
-
-      for (var row = 0; row < moduleCount; row += 1) {
-        for (var col = 0; col < moduleCount; col += 1) {
-
-          var sameCount = 0;
-          var dark = qrcode.isDark(row, col);
-
-          for (var r = -1; r <= 1; r += 1) {
-
-            if (row + r < 0 || moduleCount <= row + r) {
-              continue;
-            }
-
-            for (var c = -1; c <= 1; c += 1) {
-
-              if (col + c < 0 || moduleCount <= col + c) {
-                continue;
-              }
-
-              if (r == 0 && c == 0) {
-                continue;
-              }
-
-              if (dark == qrcode.isDark(row + r, col + c) ) {
-                sameCount += 1;
-              }
-            }
-          }
-
-          if (sameCount > 5) {
-            lostPoint += (3 + sameCount - 5);
-          }
-        }
-      };
-
-      // LEVEL2
-
-      for (var row = 0; row < moduleCount - 1; row += 1) {
-        for (var col = 0; col < moduleCount - 1; col += 1) {
-          var count = 0;
-          if (qrcode.isDark(row, col) ) count += 1;
-          if (qrcode.isDark(row + 1, col) ) count += 1;
-          if (qrcode.isDark(row, col + 1) ) count += 1;
-          if (qrcode.isDark(row + 1, col + 1) ) count += 1;
-          if (count == 0 || count == 4) {
-            lostPoint += 3;
-          }
-        }
-      }
-
-      // LEVEL3
-
-      for (var row = 0; row < moduleCount; row += 1) {
-        for (var col = 0; col < moduleCount - 6; col += 1) {
-          if (qrcode.isDark(row, col)
-              && !qrcode.isDark(row, col + 1)
-              &&  qrcode.isDark(row, col + 2)
-              &&  qrcode.isDark(row, col + 3)
-              &&  qrcode.isDark(row, col + 4)
-              && !qrcode.isDark(row, col + 5)
-              &&  qrcode.isDark(row, col + 6) ) {
-            lostPoint += 40;
-          }
-        }
-      }
-
-      for (var col = 0; col < moduleCount; col += 1) {
-        for (var row = 0; row < moduleCount - 6; row += 1) {
-          if (qrcode.isDark(row, col)
-              && !qrcode.isDark(row + 1, col)
-              &&  qrcode.isDark(row + 2, col)
-              &&  qrcode.isDark(row + 3, col)
-              &&  qrcode.isDark(row + 4, col)
-              && !qrcode.isDark(row + 5, col)
-              &&  qrcode.isDark(row + 6, col) ) {
-            lostPoint += 40;
-          }
-        }
-      }
-
-      // LEVEL4
-
-      var darkCount = 0;
-
-      for (var col = 0; col < moduleCount; col += 1) {
-        for (var row = 0; row < moduleCount; row += 1) {
-          if (qrcode.isDark(row, col) ) {
-            darkCount += 1;
-          }
-        }
-      }
-
-      var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
-      lostPoint += ratio * 10;
-
-      return lostPoint;
-    };
-
-    return _this;
-  }();
-
-  //---------------------------------------------------------------------
-  // QRMath
-  //---------------------------------------------------------------------
-
-  var QRMath = function() {
-
-    var EXP_TABLE = new Array(256);
-    var LOG_TABLE = new Array(256);
-
-    // initialize tables
-    for (var i = 0; i < 8; i += 1) {
-      EXP_TABLE[i] = 1 << i;
-    }
-    for (var i = 8; i < 256; i += 1) {
-      EXP_TABLE[i] = EXP_TABLE[i - 4]
-        ^ EXP_TABLE[i - 5]
-        ^ EXP_TABLE[i - 6]
-        ^ EXP_TABLE[i - 8];
-    }
-    for (var i = 0; i < 255; i += 1) {
-      LOG_TABLE[EXP_TABLE[i] ] = i;
-    }
-
-    var _this = {};
-
-    _this.glog = function(n) {
-
-      if (n < 1) {
-        throw 'glog(' + n + ')';
-      }
-
-      return LOG_TABLE[n];
-    };
-
-    _this.gexp = function(n) {
-
-      while (n < 0) {
-        n += 255;
-      }
-
-      while (n >= 256) {
-        n -= 255;
-      }
-
-      return EXP_TABLE[n];
-    };
-
-    return _this;
-  }();
-
-  //---------------------------------------------------------------------
-  // qrPolynomial
-  //---------------------------------------------------------------------
-
-  function qrPolynomial(num, shift) {
-
-    if (typeof num.length == 'undefined') {
-      throw num.length + '/' + shift;
-    }
-
-    var _num = function() {
-      var offset = 0;
-      while (offset < num.length && num[offset] == 0) {
-        offset += 1;
-      }
-      var _num = new Array(num.length - offset + shift);
-      for (var i = 0; i < num.length - offset; i += 1) {
-        _num[i] = num[i + offset];
-      }
-      return _num;
-    }();
-
-    var _this = {};
-
-    _this.getAt = function(index) {
-      return _num[index];
-    };
-
-    _this.getLength = function() {
-      return _num.length;
-    };
-
-    _this.multiply = function(e) {
-
-      var num = new Array(_this.getLength() + e.getLength() - 1);
-
-      for (var i = 0; i < _this.getLength(); i += 1) {
-        for (var j = 0; j < e.getLength(); j += 1) {
-          num[i + j] ^= QRMath.gexp(QRMath.glog(_this.getAt(i) ) + QRMath.glog(e.getAt(j) ) );
-        }
-      }
-
-      return qrPolynomial(num, 0);
-    };
-
-    _this.mod = function(e) {
-
-      if (_this.getLength() - e.getLength() < 0) {
-        return _this;
-      }
-
-      var ratio = QRMath.glog(_this.getAt(0) ) - QRMath.glog(e.getAt(0) );
-
-      var num = new Array(_this.getLength() );
-      for (var i = 0; i < _this.getLength(); i += 1) {
-        num[i] = _this.getAt(i);
-      }
-
-      for (var i = 0; i < e.getLength(); i += 1) {
-        num[i] ^= QRMath.gexp(QRMath.glog(e.getAt(i) ) + ratio);
-      }
-
-      // recursive call
-      return qrPolynomial(num, 0).mod(e);
-    };
-
-    return _this;
-  };
-
-  //---------------------------------------------------------------------
-  // QRRSBlock
-  //---------------------------------------------------------------------
-
-  var QRRSBlock = function() {
-
-    var RS_BLOCK_TABLE = [
-
-      // L
-      // M
-      // Q
-      // H
-
-      // 1
-      [1, 26, 19],
-      [1, 26, 16],
-      [1, 26, 13],
-      [1, 26, 9],
-
-      // 2
-      [1, 44, 34],
-      [1, 44, 28],
-      [1, 44, 22],
-      [1, 44, 16],
-
-      // 3
-      [1, 70, 55],
-      [1, 70, 44],
-      [2, 35, 17],
-      [2, 35, 13],
-
-      // 4
-      [1, 100, 80],
-      [2, 50, 32],
-      [2, 50, 24],
-      [4, 25, 9],
-
-      // 5
-      [1, 134, 108],
-      [2, 67, 43],
-      [2, 33, 15, 2, 34, 16],
-      [2, 33, 11, 2, 34, 12],
-
-      // 6
-      [2, 86, 68],
-      [4, 43, 27],
-      [4, 43, 19],
-      [4, 43, 15],
-
-      // 7
-      [2, 98, 78],
-      [4, 49, 31],
-      [2, 32, 14, 4, 33, 15],
-      [4, 39, 13, 1, 40, 14],
-
-      // 8
-      [2, 121, 97],
-      [2, 60, 38, 2, 61, 39],
-      [4, 40, 18, 2, 41, 19],
-      [4, 40, 14, 2, 41, 15],
-
-      // 9
-      [2, 146, 116],
-      [3, 58, 36, 2, 59, 37],
-      [4, 36, 16, 4, 37, 17],
-      [4, 36, 12, 4, 37, 13],
-
-      // 10
-      [2, 86, 68, 2, 87, 69],
-      [4, 69, 43, 1, 70, 44],
-      [6, 43, 19, 2, 44, 20],
-      [6, 43, 15, 2, 44, 16],
-
-      // 11
-      [4, 101, 81],
-      [1, 80, 50, 4, 81, 51],
-      [4, 50, 22, 4, 51, 23],
-      [3, 36, 12, 8, 37, 13],
-
-      // 12
-      [2, 116, 92, 2, 117, 93],
-      [6, 58, 36, 2, 59, 37],
-      [4, 46, 20, 6, 47, 21],
-      [7, 42, 14, 4, 43, 15],
-
-      // 13
-      [4, 133, 107],
-      [8, 59, 37, 1, 60, 38],
-      [8, 44, 20, 4, 45, 21],
-      [12, 33, 11, 4, 34, 12],
-
-      // 14
-      [3, 145, 115, 1, 146, 116],
-      [4, 64, 40, 5, 65, 41],
-      [11, 36, 16, 5, 37, 17],
-      [11, 36, 12, 5, 37, 13],
-
-      // 15
-      [5, 109, 87, 1, 110, 88],
-      [5, 65, 41, 5, 66, 42],
-      [5, 54, 24, 7, 55, 25],
-      [11, 36, 12, 7, 37, 13],
-
-      // 16
-      [5, 122, 98, 1, 123, 99],
-      [7, 73, 45, 3, 74, 46],
-      [15, 43, 19, 2, 44, 20],
-      [3, 45, 15, 13, 46, 16],
-
-      // 17
-      [1, 135, 107, 5, 136, 108],
-      [10, 74, 46, 1, 75, 47],
-      [1, 50, 22, 15, 51, 23],
-      [2, 42, 14, 17, 43, 15],
-
-      // 18
-      [5, 150, 120, 1, 151, 121],
-      [9, 69, 43, 4, 70, 44],
-      [17, 50, 22, 1, 51, 23],
-      [2, 42, 14, 19, 43, 15],
-
-      // 19
-      [3, 141, 113, 4, 142, 114],
-      [3, 70, 44, 11, 71, 45],
-      [17, 47, 21, 4, 48, 22],
-      [9, 39, 13, 16, 40, 14],
-
-      // 20
-      [3, 135, 107, 5, 136, 108],
-      [3, 67, 41, 13, 68, 42],
-      [15, 54, 24, 5, 55, 25],
-      [15, 43, 15, 10, 44, 16],
-
-      // 21
-      [4, 144, 116, 4, 145, 117],
-      [17, 68, 42],
-      [17, 50, 22, 6, 51, 23],
-      [19, 46, 16, 6, 47, 17],
-
-      // 22
-      [2, 139, 111, 7, 140, 112],
-      [17, 74, 46],
-      [7, 54, 24, 16, 55, 25],
-      [34, 37, 13],
-
-      // 23
-      [4, 151, 121, 5, 152, 122],
-      [4, 75, 47, 14, 76, 48],
-      [11, 54, 24, 14, 55, 25],
-      [16, 45, 15, 14, 46, 16],
-
-      // 24
-      [6, 147, 117, 4, 148, 118],
-      [6, 73, 45, 14, 74, 46],
-      [11, 54, 24, 16, 55, 25],
-      [30, 46, 16, 2, 47, 17],
-
-      // 25
-      [8, 132, 106, 4, 133, 107],
-      [8, 75, 47, 13, 76, 48],
-      [7, 54, 24, 22, 55, 25],
-      [22, 45, 15, 13, 46, 16],
-
-      // 26
-      [10, 142, 114, 2, 143, 115],
-      [19, 74, 46, 4, 75, 47],
-      [28, 50, 22, 6, 51, 23],
-      [33, 46, 16, 4, 47, 17],
-
-      // 27
-      [8, 152, 122, 4, 153, 123],
-      [22, 73, 45, 3, 74, 46],
-      [8, 53, 23, 26, 54, 24],
-      [12, 45, 15, 28, 46, 16],
-
-      // 28
-      [3, 147, 117, 10, 148, 118],
-      [3, 73, 45, 23, 74, 46],
-      [4, 54, 24, 31, 55, 25],
-      [11, 45, 15, 31, 46, 16],
-
-      // 29
-      [7, 146, 116, 7, 147, 117],
-      [21, 73, 45, 7, 74, 46],
-      [1, 53, 23, 37, 54, 24],
-      [19, 45, 15, 26, 46, 16],
-
-      // 30
-      [5, 145, 115, 10, 146, 116],
-      [19, 75, 47, 10, 76, 48],
-      [15, 54, 24, 25, 55, 25],
-      [23, 45, 15, 25, 46, 16],
-
-      // 31
-      [13, 145, 115, 3, 146, 116],
-      [2, 74, 46, 29, 75, 47],
-      [42, 54, 24, 1, 55, 25],
-      [23, 45, 15, 28, 46, 16],
-
-      // 32
-      [17, 145, 115],
-      [10, 74, 46, 23, 75, 47],
-      [10, 54, 24, 35, 55, 25],
-      [19, 45, 15, 35, 46, 16],
-
-      // 33
-      [17, 145, 115, 1, 146, 116],
-      [14, 74, 46, 21, 75, 47],
-      [29, 54, 24, 19, 55, 25],
-      [11, 45, 15, 46, 46, 16],
-
-      // 34
-      [13, 145, 115, 6, 146, 116],
-      [14, 74, 46, 23, 75, 47],
-      [44, 54, 24, 7, 55, 25],
-      [59, 46, 16, 1, 47, 17],
-
-      // 35
-      [12, 151, 121, 7, 152, 122],
-      [12, 75, 47, 26, 76, 48],
-      [39, 54, 24, 14, 55, 25],
-      [22, 45, 15, 41, 46, 16],
-
-      // 36
-      [6, 151, 121, 14, 152, 122],
-      [6, 75, 47, 34, 76, 48],
-      [46, 54, 24, 10, 55, 25],
-      [2, 45, 15, 64, 46, 16],
-
-      // 37
-      [17, 152, 122, 4, 153, 123],
-      [29, 74, 46, 14, 75, 47],
-      [49, 54, 24, 10, 55, 25],
-      [24, 45, 15, 46, 46, 16],
-
-      // 38
-      [4, 152, 122, 18, 153, 123],
-      [13, 74, 46, 32, 75, 47],
-      [48, 54, 24, 14, 55, 25],
-      [42, 45, 15, 32, 46, 16],
-
-      // 39
-      [20, 147, 117, 4, 148, 118],
-      [40, 75, 47, 7, 76, 48],
-      [43, 54, 24, 22, 55, 25],
-      [10, 45, 15, 67, 46, 16],
-
-      // 40
-      [19, 148, 118, 6, 149, 119],
-      [18, 75, 47, 31, 76, 48],
-      [34, 54, 24, 34, 55, 25],
-      [20, 45, 15, 61, 46, 16]
-    ];
-
-    var qrRSBlock = function(totalCount, dataCount) {
-      var _this = {};
-      _this.totalCount = totalCount;
-      _this.dataCount = dataCount;
-      return _this;
-    };
-
-    var _this = {};
-
-    var getRsBlockTable = function(typeNumber, errorCorrectionLevel) {
-
-      switch(errorCorrectionLevel) {
-      case QRErrorCorrectionLevel.L :
-        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
-      case QRErrorCorrectionLevel.M :
-        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
-      case QRErrorCorrectionLevel.Q :
-        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
-      case QRErrorCorrectionLevel.H :
-        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
-      default :
-        return undefined;
-      }
-    };
-
-    _this.getRSBlocks = function(typeNumber, errorCorrectionLevel) {
-
-      var rsBlock = getRsBlockTable(typeNumber, errorCorrectionLevel);
-
-      if (typeof rsBlock == 'undefined') {
-        throw 'bad rs block @ typeNumber:' + typeNumber +
-            '/errorCorrectionLevel:' + errorCorrectionLevel;
-      }
-
-      var length = rsBlock.length / 3;
-
-      var list = [];
-
-      for (var i = 0; i < length; i += 1) {
-
-        var count = rsBlock[i * 3 + 0];
-        var totalCount = rsBlock[i * 3 + 1];
-        var dataCount = rsBlock[i * 3 + 2];
-
-        for (var j = 0; j < count; j += 1) {
-          list.push(qrRSBlock(totalCount, dataCount) );
-        }
-      }
-
-      return list;
-    };
-
-    return _this;
-  }();
-
-  //---------------------------------------------------------------------
-  // qrBitBuffer
-  //---------------------------------------------------------------------
-
-  var qrBitBuffer = function() {
-
-    var _buffer = [];
-    var _length = 0;
-
-    var _this = {};
-
-    _this.getBuffer = function() {
-      return _buffer;
-    };
-
-    _this.getAt = function(index) {
-      var bufIndex = Math.floor(index / 8);
-      return ( (_buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
-    };
-
-    _this.put = function(num, length) {
-      for (var i = 0; i < length; i += 1) {
-        _this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
-      }
-    };
-
-    _this.getLengthInBits = function() {
-      return _length;
-    };
-
-    _this.putBit = function(bit) {
-
-      var bufIndex = Math.floor(_length / 8);
-      if (_buffer.length <= bufIndex) {
-        _buffer.push(0);
-      }
-
-      if (bit) {
-        _buffer[bufIndex] |= (0x80 >>> (_length % 8) );
-      }
-
-      _length += 1;
-    };
-
-    return _this;
-  };
-
-  //---------------------------------------------------------------------
-  // qrNumber
-  //---------------------------------------------------------------------
-
-  var qrNumber = function(data) {
-
-    var _mode = QRMode.MODE_NUMBER;
-    var _data = data;
-
-    var _this = {};
-
-    _this.getMode = function() {
-      return _mode;
-    };
-
-    _this.getLength = function(buffer) {
-      return _data.length;
-    };
-
-    _this.write = function(buffer) {
-
-      var data = _data;
-
-      var i = 0;
-
-      while (i + 2 < data.length) {
-        buffer.put(strToNum(data.substring(i, i + 3) ), 10);
-        i += 3;
-      }
-
-      if (i < data.length) {
-        if (data.length - i == 1) {
-          buffer.put(strToNum(data.substring(i, i + 1) ), 4);
-        } else if (data.length - i == 2) {
-          buffer.put(strToNum(data.substring(i, i + 2) ), 7);
-        }
-      }
-    };
-
-    var strToNum = function(s) {
-      var num = 0;
-      for (var i = 0; i < s.length; i += 1) {
-        num = num * 10 + chatToNum(s.charAt(i) );
-      }
-      return num;
-    };
-
-    var chatToNum = function(c) {
-      if ('0' <= c && c <= '9') {
-        return c.charCodeAt(0) - '0'.charCodeAt(0);
-      }
-      throw 'illegal char :' + c;
-    };
-
-    return _this;
-  };
-
-  //---------------------------------------------------------------------
-  // qrAlphaNum
-  //---------------------------------------------------------------------
-
-  var qrAlphaNum = function(data) {
-
-    var _mode = QRMode.MODE_ALPHA_NUM;
-    var _data = data;
-
-    var _this = {};
-
-    _this.getMode = function() {
-      return _mode;
-    };
-
-    _this.getLength = function(buffer) {
-      return _data.length;
-    };
-
-    _this.write = function(buffer) {
-
-      var s = _data;
-
-      var i = 0;
-
-      while (i + 1 < s.length) {
-        buffer.put(
-          getCode(s.charAt(i) ) * 45 +
-          getCode(s.charAt(i + 1) ), 11);
-        i += 2;
-      }
-
-      if (i < s.length) {
-        buffer.put(getCode(s.charAt(i) ), 6);
-      }
-    };
-
-    var getCode = function(c) {
-
-      if ('0' <= c && c <= '9') {
-        return c.charCodeAt(0) - '0'.charCodeAt(0);
-      } else if ('A' <= c && c <= 'Z') {
-        return c.charCodeAt(0) - 'A'.charCodeAt(0) + 10;
-      } else {
-        switch (c) {
-        case ' ' : return 36;
-        case '$' : return 37;
-        case '%' : return 38;
-        case '*' : return 39;
-        case '+' : return 40;
-        case '-' : return 41;
-        case '.' : return 42;
-        case '/' : return 43;
-        case ':' : return 44;
-        default :
-          throw 'illegal char :' + c;
-        }
-      }
-    };
-
-    return _this;
-  };
-
-  //---------------------------------------------------------------------
-  // qr8BitByte
-  //---------------------------------------------------------------------
-
-  var qr8BitByte = function(data) {
-
-    var _mode = QRMode.MODE_8BIT_BYTE;
-    var _data = data;
-    var _bytes = qrcode.stringToBytes(data);
-
-    var _this = {};
-
-    _this.getMode = function() {
-      return _mode;
-    };
-
-    _this.getLength = function(buffer) {
-      return _bytes.length;
-    };
-
-    _this.write = function(buffer) {
-      for (var i = 0; i < _bytes.length; i += 1) {
-        buffer.put(_bytes[i], 8);
-      }
-    };
-
-    return _this;
-  };
-
-  //---------------------------------------------------------------------
-  // qrKanji
-  //---------------------------------------------------------------------
-
-  var qrKanji = function(data) {
-
-    var _mode = QRMode.MODE_KANJI;
-    var _data = data;
-
-    var stringToBytes = qrcode.stringToBytesFuncs['SJIS'];
-    if (!stringToBytes) {
-      throw 'sjis not supported.';
-    }
-    !function(c, code) {
-      // self test for sjis support.
-      var test = stringToBytes(c);
-      if (test.length != 2 || ( (test[0] << 8) | test[1]) != code) {
-        throw 'sjis not supported.';
-      }
-    }('\u53cb', 0x9746);
-
-    var _bytes = stringToBytes(data);
-
-    var _this = {};
-
-    _this.getMode = function() {
-      return _mode;
-    };
-
-    _this.getLength = function(buffer) {
-      return ~~(_bytes.length / 2);
-    };
-
-    _this.write = function(buffer) {
-
-      var data = _bytes;
-
-      var i = 0;
-
-      while (i + 1 < data.length) {
-
-        var c = ( (0xff & data[i]) << 8) | (0xff & data[i + 1]);
-
-        if (0x8140 <= c && c <= 0x9FFC) {
-          c -= 0x8140;
-        } else if (0xE040 <= c && c <= 0xEBBF) {
-          c -= 0xC140;
-        } else {
-          throw 'illegal char at ' + (i + 1) + '/' + c;
-        }
-
-        c = ( (c >>> 8) & 0xff) * 0xC0 + (c & 0xff);
-
-        buffer.put(c, 13);
-
-        i += 2;
-      }
-
-      if (i < data.length) {
-        throw 'illegal char at ' + (i + 1);
-      }
-    };
-
-    return _this;
-  };
-
-  //=====================================================================
-  // GIF Support etc.
-  //
-
-  //---------------------------------------------------------------------
-  // byteArrayOutputStream
-  //---------------------------------------------------------------------
-
-  var byteArrayOutputStream = function() {
-
-    var _bytes = [];
-
-    var _this = {};
-
-    _this.writeByte = function(b) {
-      _bytes.push(b & 0xff);
-    };
-
-    _this.writeShort = function(i) {
-      _this.writeByte(i);
-      _this.writeByte(i >>> 8);
-    };
-
-    _this.writeBytes = function(b, off, len) {
-      off = off || 0;
-      len = len || b.length;
-      for (var i = 0; i < len; i += 1) {
-        _this.writeByte(b[i + off]);
-      }
-    };
-
-    _this.writeString = function(s) {
-      for (var i = 0; i < s.length; i += 1) {
-        _this.writeByte(s.charCodeAt(i) );
-      }
-    };
-
-    _this.toByteArray = function() {
-      return _bytes;
-    };
-
-    _this.toString = function() {
-      var s = '';
-      s += '[';
-      for (var i = 0; i < _bytes.length; i += 1) {
-        if (i > 0) {
-          s += ',';
-        }
-        s += _bytes[i];
-      }
-      s += ']';
-      return s;
-    };
-
-    return _this;
-  };
-
-  //---------------------------------------------------------------------
-  // base64EncodeOutputStream
-  //---------------------------------------------------------------------
-
-  var base64EncodeOutputStream = function() {
-
-    var _buffer = 0;
-    var _buflen = 0;
-    var _length = 0;
-    var _base64 = '';
-
-    var _this = {};
-
-    var writeEncoded = function(b) {
-      _base64 += String.fromCharCode(encode(b & 0x3f) );
-    };
-
-    var encode = function(n) {
-      if (n < 0) {
-        // error.
-      } else if (n < 26) {
-        return 0x41 + n;
-      } else if (n < 52) {
-        return 0x61 + (n - 26);
-      } else if (n < 62) {
-        return 0x30 + (n - 52);
-      } else if (n == 62) {
-        return 0x2b;
-      } else if (n == 63) {
-        return 0x2f;
-      }
-      throw 'n:' + n;
-    };
-
-    _this.writeByte = function(n) {
-
-      _buffer = (_buffer << 8) | (n & 0xff);
-      _buflen += 8;
-      _length += 1;
-
-      while (_buflen >= 6) {
-        writeEncoded(_buffer >>> (_buflen - 6) );
-        _buflen -= 6;
-      }
-    };
-
-    _this.flush = function() {
-
-      if (_buflen > 0) {
-        writeEncoded(_buffer << (6 - _buflen) );
-        _buffer = 0;
-        _buflen = 0;
-      }
-
-      if (_length % 3 != 0) {
-        // padding
-        var padlen = 3 - _length % 3;
-        for (var i = 0; i < padlen; i += 1) {
-          _base64 += '=';
-        }
-      }
-    };
-
-    _this.toString = function() {
-      return _base64;
-    };
-
-    return _this;
-  };
-
-  //---------------------------------------------------------------------
-  // base64DecodeInputStream
-  //---------------------------------------------------------------------
-
-  var base64DecodeInputStream = function(str) {
-
-    var _str = str;
-    var _pos = 0;
-    var _buffer = 0;
-    var _buflen = 0;
-
-    var _this = {};
-
-    _this.read = function() {
-
-      while (_buflen < 8) {
-
-        if (_pos >= _str.length) {
-          if (_buflen == 0) {
-            return -1;
-          }
-          throw 'unexpected end of file./' + _buflen;
-        }
-
-        var c = _str.charAt(_pos);
-        _pos += 1;
-
-        if (c == '=') {
-          _buflen = 0;
-          return -1;
-        } else if (c.match(/^\s$/) ) {
-          // ignore if whitespace.
-          continue;
-        }
-
-        _buffer = (_buffer << 6) | decode(c.charCodeAt(0) );
-        _buflen += 6;
-      }
-
-      var n = (_buffer >>> (_buflen - 8) ) & 0xff;
-      _buflen -= 8;
-      return n;
-    };
-
-    var decode = function(c) {
-      if (0x41 <= c && c <= 0x5a) {
-        return c - 0x41;
-      } else if (0x61 <= c && c <= 0x7a) {
-        return c - 0x61 + 26;
-      } else if (0x30 <= c && c <= 0x39) {
-        return c - 0x30 + 52;
-      } else if (c == 0x2b) {
-        return 62;
-      } else if (c == 0x2f) {
-        return 63;
-      } else {
-        throw 'c:' + c;
-      }
-    };
-
-    return _this;
-  };
-
-  //---------------------------------------------------------------------
-  // gifImage (B/W)
-  //---------------------------------------------------------------------
-
-  var gifImage = function(width, height) {
-
-    var _width = width;
-    var _height = height;
-    var _data = new Array(width * height);
-
-    var _this = {};
-
-    _this.setPixel = function(x, y, pixel) {
-      _data[y * _width + x] = pixel;
-    };
-
-    _this.write = function(out) {
-
-      //---------------------------------
-      // GIF Signature
-
-      out.writeString('GIF87a');
-
-      //---------------------------------
-      // Screen Descriptor
-
-      out.writeShort(_width);
-      out.writeShort(_height);
-
-      out.writeByte(0x80); // 2bit
-      out.writeByte(0);
-      out.writeByte(0);
-
-      //---------------------------------
-      // Global Color Map
-
-      // black
-      out.writeByte(0x00);
-      out.writeByte(0x00);
-      out.writeByte(0x00);
-
-      // white
-      out.writeByte(0xff);
-      out.writeByte(0xff);
-      out.writeByte(0xff);
-
-      //---------------------------------
-      // Image Descriptor
-
-      out.writeString(',');
-      out.writeShort(0);
-      out.writeShort(0);
-      out.writeShort(_width);
-      out.writeShort(_height);
-      out.writeByte(0);
-
-      //---------------------------------
-      // Local Color Map
-
-      //---------------------------------
-      // Raster Data
-
-      var lzwMinCodeSize = 2;
-      var raster = getLZWRaster(lzwMinCodeSize);
-
-      out.writeByte(lzwMinCodeSize);
-
-      var offset = 0;
-
-      while (raster.length - offset > 255) {
-        out.writeByte(255);
-        out.writeBytes(raster, offset, 255);
-        offset += 255;
-      }
-
-      out.writeByte(raster.length - offset);
-      out.writeBytes(raster, offset, raster.length - offset);
-      out.writeByte(0x00);
-
-      //---------------------------------
-      // GIF Terminator
-      out.writeString(';');
-    };
-
-    var bitOutputStream = function(out) {
-
-      var _out = out;
-      var _bitLength = 0;
-      var _bitBuffer = 0;
-
-      var _this = {};
-
-      _this.write = function(data, length) {
-
-        if ( (data >>> length) != 0) {
-          throw 'length over';
-        }
-
-        while (_bitLength + length >= 8) {
-          _out.writeByte(0xff & ( (data << _bitLength) | _bitBuffer) );
-          length -= (8 - _bitLength);
-          data >>>= (8 - _bitLength);
-          _bitBuffer = 0;
-          _bitLength = 0;
-        }
-
-        _bitBuffer = (data << _bitLength) | _bitBuffer;
-        _bitLength = _bitLength + length;
-      };
-
-      _this.flush = function() {
-        if (_bitLength > 0) {
-          _out.writeByte(_bitBuffer);
-        }
-      };
-
-      return _this;
-    };
-
-    var getLZWRaster = function(lzwMinCodeSize) {
-
-      var clearCode = 1 << lzwMinCodeSize;
-      var endCode = (1 << lzwMinCodeSize) + 1;
-      var bitLength = lzwMinCodeSize + 1;
-
-      // Setup LZWTable
-      var table = lzwTable();
-
-      for (var i = 0; i < clearCode; i += 1) {
-        table.add(String.fromCharCode(i) );
-      }
-      table.add(String.fromCharCode(clearCode) );
-      table.add(String.fromCharCode(endCode) );
-
-      var byteOut = byteArrayOutputStream();
-      var bitOut = bitOutputStream(byteOut);
-
-      // clear code
-      bitOut.write(clearCode, bitLength);
-
-      var dataIndex = 0;
-
-      var s = String.fromCharCode(_data[dataIndex]);
-      dataIndex += 1;
-
-      while (dataIndex < _data.length) {
-
-        var c = String.fromCharCode(_data[dataIndex]);
-        dataIndex += 1;
-
-        if (table.contains(s + c) ) {
-
-          s = s + c;
-
-        } else {
-
-          bitOut.write(table.indexOf(s), bitLength);
-
-          if (table.size() < 0xfff) {
-
-            if (table.size() == (1 << bitLength) ) {
-              bitLength += 1;
-            }
-
-            table.add(s + c);
-          }
-
-          s = c;
-        }
-      }
-
-      bitOut.write(table.indexOf(s), bitLength);
-
-      // end code
-      bitOut.write(endCode, bitLength);
-
-      bitOut.flush();
-
-      return byteOut.toByteArray();
-    };
-
-    var lzwTable = function() {
-
-      var _map = {};
-      var _size = 0;
-
-      var _this = {};
-
-      _this.add = function(key) {
-        if (_this.contains(key) ) {
-          throw 'dup key:' + key;
-        }
-        _map[key] = _size;
-        _size += 1;
-      };
-
-      _this.size = function() {
-        return _size;
-      };
-
-      _this.indexOf = function(key) {
-        return _map[key];
-      };
-
-      _this.contains = function(key) {
-        return typeof _map[key] != 'undefined';
-      };
-
-      return _this;
-    };
-
-    return _this;
-  };
-
-  var createDataURL = function(width, height, getPixel) {
-    var gif = gifImage(width, height);
-    for (var y = 0; y < height; y += 1) {
-      for (var x = 0; x < width; x += 1) {
-        gif.setPixel(x, y, getPixel(x, y) );
-      }
-    }
-
-    var b = byteArrayOutputStream();
-    gif.write(b);
-
-    var base64 = base64EncodeOutputStream();
-    var bytes = b.toByteArray();
-    for (var i = 0; i < bytes.length; i += 1) {
-      base64.writeByte(bytes[i]);
-    }
-    base64.flush();
-
-    return 'data:image/gif;base64,' + base64;
-  };
-
-  //---------------------------------------------------------------------
-  // returns qrcode function.
-
-  return qrcode;
-}();
-
-// multibyte support
-!function() {
-
-  qrcode.stringToBytesFuncs['UTF-8'] = function(s) {
-    // http://stackoverflow.com/questions/18729405/how-to-convert-utf8-string-to-byte-array
-    function toUTF8Array(str) {
-      var utf8 = [];
-      for (var i=0; i < str.length; i++) {
-        var charcode = str.charCodeAt(i);
-        if (charcode < 0x80) utf8.push(charcode);
-        else if (charcode < 0x800) {
-          utf8.push(0xc0 | (charcode >> 6),
-              0x80 | (charcode & 0x3f));
-        }
-        else if (charcode < 0xd800 || charcode >= 0xe000) {
-          utf8.push(0xe0 | (charcode >> 12),
-              0x80 | ((charcode>>6) & 0x3f),
-              0x80 | (charcode & 0x3f));
-        }
-        // surrogate pair
-        else {
-          i++;
-          // UTF-16 encodes 0x10000-0x10FFFF by
-          // subtracting 0x10000 and splitting the
-          // 20 bits of 0x0-0xFFFFF into two halves
-          charcode = 0x10000 + (((charcode & 0x3ff)<<10)
-            | (str.charCodeAt(i) & 0x3ff));
-          utf8.push(0xf0 | (charcode >>18),
-              0x80 | ((charcode>>12) & 0x3f),
-              0x80 | ((charcode>>6) & 0x3f),
-              0x80 | (charcode & 0x3f));
-        }
-      }
-      return utf8;
-    }
-    return toUTF8Array(s);
-  };
-
-}();
-
-(function (factory) {
-  if (typeof define === 'function' && define.amd) {
-      define([], factory);
-  } else if (typeof exports === 'object') {
-      module.exports = factory();
-  }
-}(function () {
-    return qrcode;
-}));
-
-
-// --- js/qr.js ---
+// --- js/crypto.js ---
 // ============================================================
-//  QR CODE — Thin wrapper around qrcode-generator library
-//  The library itself is inlined by the build script
+//  CRYPTO — Shared seed, HMAC-based glyph generation/validation
+//  No network needed. Codes are verified via shared secret.
 // ============================================================
 
-const QR = (() => {
-  // Encode data into a QR code. Accepts string or Uint8Array.
-  // Uint8Array is base64-encoded first to avoid binary/string issues.
-  function encode(data) {
-    let text;
-    if (typeof data === 'string') {
-      text = data;
-    } else {
-      // Convert Uint8Array to base64url for safe QR encoding
-      let binary = '';
-      for (const b of data) binary += String.fromCharCode(b);
-      text = btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const Crypto = (() => {
+  // Dark-fantasy word fragments for readable glyph codes
+  const WORDS = [
+    'ASH','VEIL','DUST','EMBER','HOLLOW','PALE','BONE','SHADE',
+    'THORN','RUST','VOID','GRIM','DUSK','WANE','PYRE','BLIGHT',
+    'CAIRN','DREAD','FRAY','GLOOM','HUSK','IRE','KNELL','LORN',
+    'MURK','NULL','ORE','PLUME','QUELL','RIME','SEAR','TOLL',
+    'URN','WRATH','BANE','CRYPT','DIRGE','FORGE','GHAST','HEX',
+    'JEST','KEEN','LOOM','MIRE','NETHER','OAK','REND','SIGIL',
+    'WEFT','ZINC','CHAR','DROSS','FELL','GORGE','HAVEN','JADE',
+    'LATCH','MOAT','NEXUS','OPAL','PITCH','QUARTZ','SABLE','TIDE'
+  ];
+
+  // Simple but effective hash: cyrb53
+  function hash(str, seed = 0) {
+    let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+    for (let i = 0; i < str.length; i++) {
+      const ch = str.charCodeAt(i);
+      h1 = Math.imul(h1 ^ ch, 2654435761);
+      h2 = Math.imul(h2 ^ ch, 1597334677);
     }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
+    h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
+    h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+  }
 
-    // Auto-detect version (typeNumber 0), EC level M
-    const qr = qrcode(0, 'M');
-    qr.addData(text);
-    qr.make();
+  // HMAC-like: hash(seed + message) with double hashing for security
+  function hmac(sharedSeed, message) {
+    const inner = hash(sharedSeed + ':' + message, 0x5a5a);
+    const outer = hash(sharedSeed + ':' + inner.toString(36), 0xa5a5);
+    return outer;
+  }
 
-    const size = qr.getModuleCount();
-    const matrix = [];
-    for (let r = 0; r < size; r++) {
-      matrix[r] = [];
-      for (let c = 0; c < size; c++) {
-        matrix[r][c] = qr.isDark(r, c) ? 1 : -1;
+  // Generate a 6-char random seed for initial exchange
+  function generateSeed() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no ambiguous chars (0/O, 1/I)
+    let seed = '';
+    const arr = new Uint8Array(6);
+    crypto.getRandomValues(arr);
+    for (const b of arr) seed += chars[b % chars.length];
+    return seed;
+  }
+
+  // Combine two player seeds into a shared secret
+  function combineSeeds(mySeed, theirSeed) {
+    const sorted = [mySeed, theirSeed].sort();
+    return hash(sorted[0] + ':' + sorted[1]).toString(36);
+  }
+
+  // Generate a glyph code for an event
+  function generateGlyph(sharedSeed, eventId) {
+    const h = hmac(sharedSeed, eventId);
+    const w1 = WORDS[Math.abs(h) % WORDS.length];
+    const w2 = WORDS[Math.abs(h >> 8) % WORDS.length];
+    // Avoid same word twice
+    if (w1 === w2) {
+      const w2alt = WORDS[(Math.abs(h >> 8) + 1) % WORDS.length];
+      return w1 + '-' + w2alt;
+    }
+    return w1 + '-' + w2;
+  }
+
+  // Validate a received glyph: try all possible event IDs
+  // Returns the matching event ID, or null if invalid
+  function validateGlyph(sharedSeed, code, possibleEventIds) {
+    const normalized = code.toUpperCase().trim();
+    for (const eventId of possibleEventIds) {
+      if (generateGlyph(sharedSeed, eventId) === normalized) {
+        return eventId;
       }
     }
-
-    return { matrix, size };
+    return null;
   }
 
-  // Render QR matrix to a canvas element
-  function render(canvas, qrData, scale = 8) {
-    const { matrix, size } = qrData;
-    const quiet = 4;
-    const total = size + quiet * 2;
-    canvas.width = total * scale;
-    canvas.height = total * scale;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#000000';
-    for (let r = 0; r < size; r++)
-      for (let c = 0; c < size; c++)
-        if (matrix[r][c] === 1)
-          ctx.fillRect((c + quiet) * scale, (r + quiet) * scale, scale, scale);
+  // Sync ritual: time-based code (valid for ~30 second windows)
+  function generateSyncCode(sharedSeed, ritualId) {
+    const window = Math.floor(Date.now() / 30000); // 30-second windows
+    return generateGlyph(sharedSeed, ritualId + ':' + window);
   }
 
-  return { encode, render };
-})();
-
-
-// --- js/sdp.js ---
-// ============================================================
-//  SDP COMPRESSION — Pack/unpack WebRTC SDP into minimal binary
-// ============================================================
-
-const SDP = (() => {
-  function extractField(sdp, field) {
-    const re = new RegExp('a=' + field + ':(.+?)[\r\n]');
-    const m = sdp.match(re);
-    return m ? m[1].trim() : '';
-  }
-
-  function extractCandidates(sdp) {
-    const candidates = [];
-    const re = /a=candidate:(\S+)\s+(\d+)\s+(\w+)\s+(\d+)\s+([\d.]+)\s+(\d+)\s+typ\s+(\w+)/g;
-    let m;
-    while ((m = re.exec(sdp)) !== null) {
-      if (m[5].includes(':')) continue; // skip IPv6
-      candidates.push({
-        foundation: m[1],
-        component: parseInt(m[2]),
-        transport: m[3],
-        priority: parseInt(m[4]),
-        ip: m[5],
-        port: parseInt(m[6]),
-        type: m[7]
-      });
-    }
-    return candidates;
-  }
-
-  function pack(sdp, type) {
-    const ufrag = extractField(sdp, 'ice-ufrag');
-    const pwd = extractField(sdp, 'ice-pwd');
-    const fpLine = extractField(sdp, 'fingerprint');
-    const setup = extractField(sdp, 'setup');
-    const candidates = extractCandidates(sdp);
-
-    const fpHex = fpLine.split(' ')[1] || '';
-    const fpBytes = fpHex.split(':').map(h => parseInt(h, 16));
-    const setupVal = { actpass: 0, active: 1, passive: 2 }[setup] || 0;
-
-    const parts = [];
-    // Byte 0: flags
-    parts.push((type === 'offer' ? 0 : 1) | (setupVal << 1) | (Math.min(candidates.length, 31) << 3));
-
-    // ufrag
-    const ufragBytes = new TextEncoder().encode(ufrag);
-    parts.push(ufragBytes.length);
-    for (const b of ufragBytes) parts.push(b);
-
-    // pwd
-    const pwdBytes = new TextEncoder().encode(pwd);
-    parts.push(pwdBytes.length);
-    for (const b of pwdBytes) parts.push(b);
-
-    // fingerprint (32 bytes)
-    for (let i = 0; i < 32; i++) parts.push(fpBytes[i] || 0);
-
-    // candidates
-    for (const c of candidates) {
-      const ipParts = c.ip.split('.').map(Number);
-      for (const p of ipParts) parts.push(p);
-      parts.push((c.port >> 8) & 0xff);
-      parts.push(c.port & 0xff);
-      parts.push((c.priority >> 24) & 0xff);
-      parts.push((c.priority >> 16) & 0xff);
-      parts.push((c.priority >> 8) & 0xff);
-      parts.push(c.priority & 0xff);
-      parts.push({ host: 0, srflx: 1, relay: 2 }[c.type] || 0);
-    }
-
-    return new Uint8Array(parts);
-  }
-
-  function unpack(data) {
-    let i = 0;
-    const flags = data[i++];
-    const type = (flags & 1) ? 'answer' : 'offer';
-    const setupVal = (flags >> 1) & 3;
-    const numCandidates = (flags >> 3) & 31;
-    const setup = ['actpass', 'active', 'passive'][setupVal];
-
-    const ufragLen = data[i++];
-    const ufrag = new TextDecoder().decode(data.slice(i, i + ufragLen)); i += ufragLen;
-    const pwdLen = data[i++];
-    const pwd = new TextDecoder().decode(data.slice(i, i + pwdLen)); i += pwdLen;
-
-    const fpBytes = data.slice(i, i + 32); i += 32;
-    const fp = 'sha-256 ' + Array.from(fpBytes).map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(':');
-
-    const candidates = [];
-    for (let c = 0; c < numCandidates; c++) {
-      const ip = `${data[i]}.${data[i+1]}.${data[i+2]}.${data[i+3]}`; i += 4;
-      const port = (data[i] << 8) | data[i+1]; i += 2;
-      const priority = (data[i] << 24) | (data[i+1] << 16) | (data[i+2] << 8) | data[i+3]; i += 4;
-      const cType = ['host', 'srflx', 'relay'][data[i++]] || 'host';
-      candidates.push({ ip, port, priority: priority >>> 0, type: cType });
-    }
-
-    let sdp = 'v=0\r\n';
-    sdp += 'o=- 1 1 IN IP4 0.0.0.0\r\n';
-    sdp += 's=-\r\n';
-    sdp += 't=0 0\r\n';
-    sdp += 'a=group:BUNDLE 0\r\n';
-    sdp += 'a=msid-semantic: WMS\r\n';
-    sdp += 'm=application 9 UDP/DTLS/SCTP webrtc-datachannel\r\n';
-    sdp += 'c=IN IP4 0.0.0.0\r\n';
-    sdp += `a=ice-ufrag:${ufrag}\r\n`;
-    sdp += `a=ice-pwd:${pwd}\r\n`;
-    sdp += 'a=ice-options:trickle\r\n';
-    sdp += `a=fingerprint:${fp}\r\n`;
-    sdp += `a=setup:${setup}\r\n`;
-    sdp += 'a=mid:0\r\n';
-    sdp += 'a=sctp-port:5000\r\n';
-    sdp += 'a=max-message-size:262144\r\n';
-
-    for (let c = 0; c < candidates.length; c++) {
-      const cand = candidates[c];
-      sdp += `a=candidate:${c + 1} 1 udp ${cand.priority} ${cand.ip} ${cand.port} typ ${cand.type}\r\n`;
-    }
-
-    return { sdp, type };
-  }
-
-  function toBase64(data) {
-    let binary = '';
-    for (const b of data) binary += String.fromCharCode(b);
-    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  }
-
-  function fromBase64(str) {
-    const b64 = str.replace(/-/g, '+').replace(/_/g, '/');
-    const padded = b64 + '=='.slice(0, (4 - b64.length % 4) % 4);
-    const binary = atob(padded);
-    const data = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) data[i] = binary.charCodeAt(i);
-    return data;
-  }
-
-  return { pack, unpack, toBase64, fromBase64 };
-})();
-
-
-// --- js/scanner.js ---
-// ============================================================
-//  QR SCANNER — BarcodeDetector API with camera
-// ============================================================
-
-const Scanner = (() => {
-  let stream = null;
-  let detector = null;
-  let scanning = false;
-  let animFrame = null;
-
-  async function init() {
-    if ('BarcodeDetector' in window) {
-      const formats = await BarcodeDetector.getSupportedFormats();
-      if (formats.includes('qr_code')) {
-        detector = new BarcodeDetector({ formats: ['qr_code'] });
-        return true;
-      }
+  // Validate a sync code (check current window ± 1 for clock drift)
+  function validateSyncCode(sharedSeed, code, ritualId) {
+    const window = Math.floor(Date.now() / 30000);
+    for (let offset = -1; offset <= 1; offset++) {
+      const expected = generateGlyph(sharedSeed, ritualId + ':' + (window + offset));
+      if (code.toUpperCase().trim() === expected) return true;
     }
     return false;
   }
 
-  async function startCamera(videoEl) {
+  // Generate a half-glyph (for combined glyphs where each player has half)
+  function generateHalfGlyph(sharedSeed, eventId, isFirstHalf) {
+    const h = hmac(sharedSeed, eventId + (isFirstHalf ? ':A' : ':B'));
+    return WORDS[Math.abs(h) % WORDS.length];
+  }
+
+  return {
+    generateSeed,
+    combineSeeds,
+    generateGlyph,
+    validateGlyph,
+    generateSyncCode,
+    validateSyncCode,
+    generateHalfGlyph,
+    WORDS,
+  };
+})();
+
+
+// --- js/persist.js ---
+// ============================================================
+//  PERSISTENCE — Save/restore game state in localStorage
+// ============================================================
+
+const Persist = (() => {
+  const KEY = 'ashen-bond-session';
+
+  function saveSession(data) {
     try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 640 } }
-      });
-      videoEl.srcObject = stream;
-      await videoEl.play();
-      return true;
-    } catch (e) {
-      console.error('Camera access denied:', e);
-      return false;
-    }
+      localStorage.setItem(KEY, JSON.stringify(data));
+    } catch {}
   }
 
-  function stopCamera(videoEl) {
-    scanning = false;
-    if (animFrame) cancelAnimationFrame(animFrame);
-    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-    if (videoEl) videoEl.srcObject = null;
+  function loadSession() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
   }
 
-  async function scan(videoEl, onResult) {
-    if (!detector) return;
-    scanning = true;
-
-    const tick = async () => {
-      if (!scanning) return;
-      if (videoEl.readyState >= 2) {
-        try {
-          const results = await detector.detect(videoEl);
-          if (results.length > 0) {
-            scanning = false;
-            stopCamera(videoEl);
-            onResult(results[0].rawValue);
-            return;
-          }
-        } catch (e) { /* ignore detection errors */ }
-      }
-      animFrame = requestAnimationFrame(tick);
-    };
-    tick();
+  function clearSession() {
+    localStorage.removeItem(KEY);
   }
 
-  return { init, startCamera, stopCamera, scan };
+  return { saveSession, loadSession, clearSession };
 })();
 
 
@@ -2874,46 +443,49 @@ const WakeLock = (() => {
 })();
 
 
-// --- js/persist.js ---
-// ============================================================
-//  PERSISTENCE — Save/restore game state across reconnects
-// ============================================================
-
-const Persist = (() => {
-  const KEY = 'ashen-bond-session';
-
-  function saveSession(data) {
-    try {
-      localStorage.setItem(KEY, JSON.stringify(data));
-    } catch {}
-  }
-
-  function loadSession() {
-    try {
-      const raw = localStorage.getItem(KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch { return null; }
-  }
-
-  function clearSession() {
-    localStorage.removeItem(KEY);
-  }
-
-  return { saveSession, loadSession, clearSession };
-})();
-
-
 // --- js/renderer.js ---
 // ============================================================
-//  TEST SCENE RENDERER (placeholder — will become full game renderer)
+//  RENDERER — Dual-timeline canvas rendering
 // ============================================================
 
-function drawTestScene() {
+const Palette = {
+  past: {
+    bg: '#1a1510',
+    floor: '#1e1a12',
+    floorAlt: 'rgba(80, 65, 30, 0.3)',
+    wall: '#2a2218',
+    wallStroke: '#3d3428',
+    player: '#b8860b',
+    playerLight: '#d4a024',
+    glow: 'rgba(184, 134, 11, 0.06)',
+    fog: '#1a1510',
+    textColor: '#b8860b',
+    textDim: '#6b5a30',
+    label: 'The world that was...',
+  },
+  present: {
+    bg: '#0a0a14',
+    floor: '#0e0e18',
+    floorAlt: 'rgba(30, 40, 64, 0.3)',
+    wall: '#141428',
+    wallStroke: '#222240',
+    player: '#2a7a7a',
+    playerLight: '#4ac0c0',
+    glow: 'rgba(42, 122, 122, 0.06)',
+    fog: '#0a0a14',
+    textColor: '#2a7a7a',
+    textDim: '#30506b',
+    label: 'The world that remains...',
+  }
+};
+
+function drawTestScene(character) {
   const canvas = document.getElementById('game-canvas');
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
+  const pal = character === 'knight' ? Palette.past : Palette.present;
 
-  ctx.fillStyle = '#0a0a0f';
+  ctx.fillStyle = pal.bg;
   ctx.fillRect(0, 0, W, H);
 
   const TILE = 24;
@@ -2924,47 +496,47 @@ function drawTestScene() {
     for (let x = 0; x < COLS; x++) {
       const px = x * TILE, py = y * TILE;
       if (room[y][x] === 1) {
-        ctx.fillStyle = '#1a1826';
+        ctx.fillStyle = pal.wall;
         ctx.fillRect(px, py, TILE, TILE);
-        ctx.strokeStyle = '#2a2640';
+        ctx.strokeStyle = pal.wallStroke;
         ctx.strokeRect(px + 0.5, py + 0.5, TILE - 1, TILE - 1);
       } else {
-        ctx.fillStyle = '#12111a';
+        ctx.fillStyle = pal.floor;
         ctx.fillRect(px, py, TILE, TILE);
         if ((x + y) % 3 === 0) {
-          ctx.fillStyle = 'rgba(42, 38, 64, 0.3)';
+          ctx.fillStyle = pal.floorAlt;
           ctx.fillRect(px + 2, py + 2, TILE - 4, TILE - 4);
         }
       }
     }
   }
 
-  const kp = { x: 8, y: 10 }, wp = { x: 11, y: 10 };
-  drawCharacter(ctx, kp.x * TILE, kp.y * TILE, TILE, '#b8860b', '#d4a024');
-  drawCharacter(ctx, wp.x * TILE, wp.y * TILE, TILE, '#2a7a7a', '#4ac0c0');
+  // Draw player character
+  const pos = { x: 10, y: 10 };
+  drawCharacter(ctx, pos.x * TILE, pos.y * TILE, TILE, pal.player, pal.playerLight);
 
   // Fog of war
   for (let y = 0; y < ROWS; y++) {
     for (let x = 0; x < COLS; x++) {
-      const d1 = Math.hypot(x - kp.x, y - kp.y);
-      const d2 = Math.hypot(x - wp.x, y - wp.y);
-      const dist = Math.min(d1, d2);
+      const dist = Math.hypot(x - pos.x, y - pos.y);
       if (dist > 3) {
-        ctx.fillStyle = `rgba(10,10,15,${Math.min(0.85, (dist - 3) * 0.15)})`;
+        ctx.fillStyle = pal.fog;
+        ctx.globalAlpha = Math.min(0.85, (dist - 3) * 0.15);
         ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+        ctx.globalAlpha = 1;
       }
     }
   }
 
-  ctx.fillStyle = 'rgba(10,10,15,0.7)';
-  ctx.fillRect(0, H / 2 - 40, W, 80);
-  ctx.fillStyle = '#b8860b';
-  ctx.font = '20px "Courier New", monospace';
+  // Atmosphere label
+  ctx.fillStyle = pal.fog;
+  ctx.globalAlpha = 0.7;
+  ctx.fillRect(0, H - 40, W, 40);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = pal.textDim;
+  ctx.font = '11px "Courier New", monospace';
   ctx.textAlign = 'center';
-  ctx.fillText('\u2014 CONNECTION ESTABLISHED \u2014', W / 2, H / 2 - 8);
-  ctx.fillStyle = '#6b6480';
-  ctx.font = '12px "Courier New", monospace';
-  ctx.fillText('The Athenaeum awaits...', W / 2, H / 2 + 18);
+  ctx.fillText(pal.label, W / 2, H - 16);
 }
 
 function drawCharacter(ctx, x, y, size, dark, light) {
@@ -3007,325 +579,159 @@ function generateTestRoom(cols, rows) {
 }
 
 
-// --- js/messaging.js ---
+// --- js/ui.js ---
 // ============================================================
-//  MESSAGING & CHAT
+//  UI — Screen management and glyph exchange interface
 // ============================================================
 
-function sendData(data) {
-  if (dataChannel && dataChannel.readyState === 'open') {
-    dataChannel.send(JSON.stringify(data));
+function showScreen(id) {
+  document.querySelectorAll('#app > .screen').forEach(el => el.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+// --- CHARACTER SELECT ---
+
+function selectCharacter(character) {
+  const session = Persist.loadSession() || {};
+  session.character = character;
+  Persist.saveSession(session);
+
+  // Update UI to show selected
+  document.querySelectorAll('.char-option').forEach(el => el.classList.remove('selected'));
+  document.getElementById('char-' + character).classList.add('selected');
+  document.getElementById('btn-confirm-char').classList.remove('hidden');
+}
+
+function confirmCharacter() {
+  const session = Persist.loadSession();
+  if (!session || !session.character) return;
+
+  // If we already have a shared seed, go straight to game
+  if (session.sharedSeed) {
+    enterGame();
+  } else {
+    showSeedExchange();
   }
 }
 
-function handleMessage(data) {
-  switch (data.type) {
-    case 'chat':
-      logMessage(`${role === 'host' ? 'Pale Whisper' : 'Hollow Knight'}: ${data.message}`, 'peer');
-      break;
-    case 'system':
-      logMessage(data.message, 'system');
-      break;
-    case 'game-state':
-      break;
-    case 'game-action':
-      break;
+// --- SEED EXCHANGE ---
+
+function showSeedExchange() {
+  showScreen('screen-seed');
+  const session = Persist.loadSession();
+
+  // Generate our seed if we don't have one
+  if (!session.mySeed) {
+    session.mySeed = Crypto.generateSeed();
+    Persist.saveSession(session);
   }
+
+  document.getElementById('my-seed').textContent = session.mySeed;
+  document.getElementById('partner-seed-input').value = '';
+  document.getElementById('seed-status').textContent = '';
 }
 
-function sendChat() {
-  const input = document.getElementById('chat-input');
-  const msg = input.value.trim();
-  if (!msg) return;
-  logMessage(`${role === 'host' ? 'Hollow Knight' : 'Pale Whisper'} (you): ${msg}`, 'peer');
-  sendData({ type: 'chat', message: msg });
+function confirmSeedExchange() {
+  const partnerSeed = document.getElementById('partner-seed-input').value.trim().toUpperCase();
+  if (partnerSeed.length < 4) {
+    document.getElementById('seed-status').textContent = 'Code too short';
+    return;
+  }
+
+  const session = Persist.loadSession();
+  session.partnerSeed = partnerSeed;
+  session.sharedSeed = Crypto.combineSeeds(session.mySeed, partnerSeed);
+  Persist.saveSession(session);
+
+  document.getElementById('seed-status').textContent = 'Bond established.';
+  setTimeout(() => enterGame(), 800);
+}
+
+// --- GAME SCREEN ---
+
+function enterGame() {
+  const session = Persist.loadSession();
+  if (!session) return;
+
+  showScreen('screen-game');
+
+  // Apply timeline theme
+  const isKnight = session.character === 'knight';
+  document.body.setAttribute('data-timeline', isKnight ? 'past' : 'present');
+
+  const label = isKnight ? 'The Hollow Knight — Past' : 'The Pale Whisper — Present';
+  document.getElementById('game-role-label').textContent = label;
+
+  WakeLock.request();
+  drawTestScene(session.character);
+}
+
+// --- GLYPH EXCHANGE ---
+
+function openGlyphPanel() {
+  document.getElementById('glyph-panel').classList.toggle('hidden');
+}
+
+function enterGlyph() {
+  const input = document.getElementById('glyph-input');
+  const code = input.value.trim().toUpperCase();
+  if (!code) return;
+
+  const session = Persist.loadSession();
+  if (!session || !session.sharedSeed) return;
+
+  // Try to validate against known event IDs
+  // For now, just log it (real validation comes with game events)
+  const glyphLog = session.glyphLog || [];
+  glyphLog.push({
+    code,
+    time: Date.now(),
+    direction: 'received'
+  });
+  session.glyphLog = glyphLog;
+  Persist.saveSession(session);
+
+  addGlyphLogEntry('Received: ' + code, 'received');
   input.value = '';
+
+  // TODO: validate and trigger game events
+  addGlyphLogEntry('The glyph resonates...', 'system');
 }
 
-function logMessage(text, type = '') {
-  const log = document.getElementById('message-log');
-  if (!log) return;
+function addGlyphLogEntry(text, type) {
+  const log = document.getElementById('glyph-log');
   const entry = document.createElement('div');
-  entry.className = 'log-entry ' + type;
-  const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  entry.textContent = `[${time}] ${text}`;
+  entry.className = 'log-entry ' + (type || '');
+  entry.textContent = text;
   log.appendChild(entry);
   log.scrollTop = log.scrollHeight;
 }
 
-
-// --- js/connection.js ---
-// ============================================================
-//  WebRTC CONNECTION MANAGER
-// ============================================================
-
-let role = null;
-let pc = null;
-let dataChannel = null;
-let connected = false;
-let scannerReady = false;
-
-const rtcConfig = {
-  iceServers: [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' }
-  ]
-};
-
-function showScreen(id) {
-  document.querySelectorAll('#app > div').forEach(el => el.classList.add('hidden'));
-  document.getElementById(id).classList.remove('hidden');
-}
-
-function setupPeerConnection() {
-  pc = new RTCPeerConnection(rtcConfig);
-  pc.oniceconnectionstatechange = () => {
-    const s = pc.iceConnectionState;
-    if (s === 'connected' || s === 'completed') onConnected();
-    if (s === 'disconnected' || s === 'failed') onDisconnected();
-  };
-  return pc;
-}
-
-function setupDataChannel(channel) {
-  dataChannel = channel;
-  dataChannel.onopen = () => onConnected();
-  dataChannel.onclose = () => onDisconnected();
-  dataChannel.onmessage = (e) => handleMessage(JSON.parse(e.data));
-}
-
-function waitForICE(timeout = 5000) {
-  return new Promise((resolve) => {
-    if (pc.iceGatheringState === 'complete') return resolve();
-    const timer = setTimeout(resolve, timeout);
-    pc.onicegatheringstatechange = () => {
-      if (pc.iceGatheringState === 'complete') { clearTimeout(timer); resolve(); }
-    };
-  });
-}
-
-// Pack SDP into a base64url string (used for both QR and text codes)
-function packSDPToCode(sdp, type) {
-  const packed = SDP.pack(sdp, type);
-  return SDP.toBase64(packed);
-}
-
-// Unpack a base64url code back to SDP
-function unpackCodeToSDP(code) {
-  const data = SDP.fromBase64(code);
-  return SDP.unpack(data);
-}
-
-// Copy text to clipboard with visual feedback
-async function copyToClipboard(text, btnEl) {
-  try {
-    await navigator.clipboard.writeText(text);
-    const orig = btnEl.textContent;
-    btnEl.textContent = 'Copied!';
-    setTimeout(() => btnEl.textContent = orig, 1500);
-  } catch {
-    const input = btnEl.previousElementSibling;
-    if (input && input.tagName === 'INPUT') {
-      input.select();
-      input.setSelectionRange(0, 99999);
-    }
-  }
-}
-
-// --- HOST ---
-
-async function startHost() {
-  role = 'host';
-  showScreen('screen-host-qr');
-
-  setupPeerConnection();
-  const channel = pc.createDataChannel('game', { ordered: true });
-  setupDataChannel(channel);
-
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  await waitForICE();
-
-  const code = packSDPToCode(pc.localDescription.sdp, 'offer');
-  console.log(`Connection code: ${code.length} chars`);
-
-  // QR contains the same base64url string as the text code
-  QR.render(document.getElementById('qr-offer'), QR.encode(code), 6);
-  document.getElementById('host-offer-text').value = code;
-
-  document.getElementById('host-qr-status').innerHTML =
-    `<div class="status-dot connected"></div><span>QR ready! Waiting for other player...</span>`;
-}
-
-async function hostStartScan() {
-  const videoEl = document.getElementById('host-video');
-  document.getElementById('host-scanner').classList.remove('hidden');
-
-  if (!scannerReady) {
-    showScanError('host-scanner', 'Camera scanning not available. Use text code below.');
-    return;
-  }
-
-  const camOK = await Scanner.startCamera(videoEl);
-  if (!camOK) {
-    showScanError('host-scanner', 'Camera access denied. Use text code below.');
-    return;
-  }
-  Scanner.scan(videoEl, (result) => processAnswerCode(result));
-}
-
-function showScanError(containerId, msg) {
-  const el = document.getElementById(containerId);
-  const existing = el.querySelector('.scan-error');
-  if (existing) existing.remove();
-  const div = document.createElement('div');
-  div.className = 'scan-error';
-  div.style.cssText = 'color: var(--ember); font-size: 0.85em; padding: 10px; text-align: center;';
-  div.textContent = msg;
-  el.appendChild(div);
-}
-
-async function processAnswerCode(code) {
-  try {
-    const { sdp } = unpackCodeToSDP(code);
-    await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp }));
-  } catch (e) {
-    console.error('Invalid answer:', e);
-    alert('Invalid response code. Check the code and try again.');
-  }
-}
-
-function acceptAnswerText() {
-  const input = document.getElementById('input-answer').value.trim();
-  if (input) processAnswerCode(input);
-}
-
-function copyHostCode() {
-  const input = document.getElementById('host-offer-text');
-  const btn = document.getElementById('btn-copy-host');
-  copyToClipboard(input.value, btn);
-}
-
-// --- GUEST ---
-
-async function startJoinScan() {
-  role = 'guest';
-  showScreen('screen-guest-scan');
-
-  if (!scannerReady) {
-    document.getElementById('guest-scan-status').innerHTML =
-      `<div class="status-dot error"></div><span>Camera scanning not available — paste the host's code below</span>`;
-    return;
-  }
-
-  const videoEl = document.getElementById('guest-video');
-  const camOK = await Scanner.startCamera(videoEl);
-  if (!camOK) {
-    document.getElementById('guest-scan-status').innerHTML =
-      `<div class="status-dot error"></div><span>Camera access denied — paste the host's code below</span>`;
-    return;
-  }
-  Scanner.scan(videoEl, (result) => processOfferCode(result));
-}
-
-async function processOfferCode(code) {
-  try {
-    const { sdp } = unpackCodeToSDP(code);
-
-    setupPeerConnection();
-    pc.ondatachannel = (e) => setupDataChannel(e.channel);
-
-    await pc.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp }));
-
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    await waitForICE();
-
-    const answerCode = packSDPToCode(pc.localDescription.sdp, 'answer');
-
-    showScreen('screen-guest-qr');
-    QR.render(document.getElementById('qr-answer'), QR.encode(answerCode), 6);
-    document.getElementById('guest-answer-text').value = answerCode;
-  } catch (e) {
-    console.error('Invalid offer:', e);
-    document.getElementById('guest-scan-status').innerHTML =
-      `<div class="status-dot error"></div><span>Invalid code — check and try again</span>`;
-  }
-}
-
-function joinWithText() {
-  const input = document.getElementById('input-offer').value.trim();
-  if (input) processOfferCode(input);
-}
-
-function copyGuestCode() {
-  const input = document.getElementById('guest-answer-text');
-  const btn = document.getElementById('btn-copy-guest');
-  copyToClipboard(input.value, btn);
-}
-
-// --- EVENTS ---
-
-function onConnected() {
-  if (connected) return;
-  connected = true;
-
-  Scanner.stopCamera(document.getElementById('host-video'));
-  Scanner.stopCamera(document.getElementById('guest-video'));
-
-  // Keep screen awake during gameplay
-  WakeLock.request();
-
-  // Remember role for reconnect
-  Persist.saveSession({ role });
-
-  showScreen('screen-connected');
-  document.getElementById('role-label').textContent =
-    role === 'host' ? 'The Hollow Knight' : 'The Pale Whisper';
-
-  logMessage('Connection established.', 'success');
-  logMessage(`You are: ${role === 'host' ? 'The Hollow Knight' : 'The Pale Whisper'}`, 'system');
-  logMessage('The bond between two souls is forged...', 'system');
-
-  drawTestScene();
-
-  sendData({
-    type: 'system',
-    message: `${role === 'host' ? 'The Hollow Knight' : 'The Pale Whisper'} has arrived.`
-  });
-}
-
-function onDisconnected() {
-  connected = false;
-  WakeLock.release();
-  const dot = document.getElementById('conn-dot');
-  const status = document.getElementById('conn-status');
-  if (dot) dot.className = 'status-dot error';
-  if (status) status.textContent = 'Disconnected — refresh to reconnect';
-  logMessage('Connection lost.', 'error');
-}
-
-// Check for previous session on page load — show reconnect option
-function checkPreviousSession() {
+// Show a glyph that was generated by a game event
+function showGeneratedGlyph(code, description) {
   const session = Persist.loadSession();
-  if (session && session.role) {
-    const panel = document.querySelector('#screen-title .panel');
-    const reconnBtn = document.createElement('button');
-    reconnBtn.textContent = `Reconnect as ${session.role === 'host' ? 'Host (Hollow Knight)' : 'Guest (Pale Whisper)'}`;
-    reconnBtn.className = 'primary';
-    reconnBtn.style.marginBottom = '8px';
-    reconnBtn.onclick = () => {
-      if (session.role === 'host') startHost();
-      else startJoinScan();
-    };
-    panel.insertBefore(reconnBtn, panel.firstChild);
+  const glyphLog = session.glyphLog || [];
+  glyphLog.push({
+    code,
+    time: Date.now(),
+    direction: 'generated',
+    description
+  });
+  session.glyphLog = glyphLog;
+  Persist.saveSession(session);
 
-    const newBtn = document.createElement('button');
-    newBtn.textContent = 'New Game';
-    newBtn.className = 'small';
-    newBtn.style.marginTop = '4px';
-    newBtn.onclick = () => { Persist.clearSession(); location.reload(); };
-    panel.appendChild(newBtn);
+  // Show in UI
+  document.getElementById('glyph-panel').classList.remove('hidden');
+  addGlyphLogEntry('A glyph appears: ' + code, 'generated');
+  if (description) addGlyphLogEntry(description, 'system');
+}
+
+// --- RESET ---
+
+function resetGame() {
+  if (confirm('This will erase all progress. Are you sure?')) {
+    Persist.clearSession();
+    location.reload();
   }
 }
 
@@ -3351,21 +757,23 @@ function checkPreviousSession() {
 
 // Register service worker for PWA / offline support
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').then(reg => {
+  navigator.serviceWorker.register('./sw.js').then(() => {
     console.log('Service worker registered');
   }).catch(err => {
-    console.log('Service worker not available (file:// mode?):', err.message);
+    console.log('SW not available:', err.message);
   });
 }
 
-// Init QR scanner
-Scanner.init().then(ok => {
-  scannerReady = ok;
-  if (!ok) console.log('BarcodeDetector not available — text fallback only');
-});
-
-// Check for previous session (show reconnect button)
-checkPreviousSession();
+// Check for existing session → resume game
+(function () {
+  const session = Persist.loadSession();
+  if (session && session.character && session.sharedSeed) {
+    enterGame();
+  } else if (session && session.character) {
+    showSeedExchange();
+  }
+  // Otherwise stays on character select (default visible screen)
+})();
 
 </script>
 </body>

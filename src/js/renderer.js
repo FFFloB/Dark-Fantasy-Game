@@ -1,13 +1,45 @@
 // ============================================================
-//  TEST SCENE RENDERER (placeholder — will become full game renderer)
+//  RENDERER — Dual-timeline canvas rendering
 // ============================================================
 
-function drawTestScene() {
+const Palette = {
+  past: {
+    bg: '#1a1510',
+    floor: '#1e1a12',
+    floorAlt: 'rgba(80, 65, 30, 0.3)',
+    wall: '#2a2218',
+    wallStroke: '#3d3428',
+    player: '#b8860b',
+    playerLight: '#d4a024',
+    glow: 'rgba(184, 134, 11, 0.06)',
+    fog: '#1a1510',
+    textColor: '#b8860b',
+    textDim: '#6b5a30',
+    label: 'The world that was...',
+  },
+  present: {
+    bg: '#0a0a14',
+    floor: '#0e0e18',
+    floorAlt: 'rgba(30, 40, 64, 0.3)',
+    wall: '#141428',
+    wallStroke: '#222240',
+    player: '#2a7a7a',
+    playerLight: '#4ac0c0',
+    glow: 'rgba(42, 122, 122, 0.06)',
+    fog: '#0a0a14',
+    textColor: '#2a7a7a',
+    textDim: '#30506b',
+    label: 'The world that remains...',
+  }
+};
+
+function drawTestScene(character) {
   const canvas = document.getElementById('game-canvas');
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
+  const pal = character === 'knight' ? Palette.past : Palette.present;
 
-  ctx.fillStyle = '#0a0a0f';
+  ctx.fillStyle = pal.bg;
   ctx.fillRect(0, 0, W, H);
 
   const TILE = 24;
@@ -18,47 +50,47 @@ function drawTestScene() {
     for (let x = 0; x < COLS; x++) {
       const px = x * TILE, py = y * TILE;
       if (room[y][x] === 1) {
-        ctx.fillStyle = '#1a1826';
+        ctx.fillStyle = pal.wall;
         ctx.fillRect(px, py, TILE, TILE);
-        ctx.strokeStyle = '#2a2640';
+        ctx.strokeStyle = pal.wallStroke;
         ctx.strokeRect(px + 0.5, py + 0.5, TILE - 1, TILE - 1);
       } else {
-        ctx.fillStyle = '#12111a';
+        ctx.fillStyle = pal.floor;
         ctx.fillRect(px, py, TILE, TILE);
         if ((x + y) % 3 === 0) {
-          ctx.fillStyle = 'rgba(42, 38, 64, 0.3)';
+          ctx.fillStyle = pal.floorAlt;
           ctx.fillRect(px + 2, py + 2, TILE - 4, TILE - 4);
         }
       }
     }
   }
 
-  const kp = { x: 8, y: 10 }, wp = { x: 11, y: 10 };
-  drawCharacter(ctx, kp.x * TILE, kp.y * TILE, TILE, '#b8860b', '#d4a024');
-  drawCharacter(ctx, wp.x * TILE, wp.y * TILE, TILE, '#2a7a7a', '#4ac0c0');
+  // Draw player character
+  const pos = { x: 10, y: 10 };
+  drawCharacter(ctx, pos.x * TILE, pos.y * TILE, TILE, pal.player, pal.playerLight);
 
   // Fog of war
   for (let y = 0; y < ROWS; y++) {
     for (let x = 0; x < COLS; x++) {
-      const d1 = Math.hypot(x - kp.x, y - kp.y);
-      const d2 = Math.hypot(x - wp.x, y - wp.y);
-      const dist = Math.min(d1, d2);
+      const dist = Math.hypot(x - pos.x, y - pos.y);
       if (dist > 3) {
-        ctx.fillStyle = `rgba(10,10,15,${Math.min(0.85, (dist - 3) * 0.15)})`;
+        ctx.fillStyle = pal.fog;
+        ctx.globalAlpha = Math.min(0.85, (dist - 3) * 0.15);
         ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+        ctx.globalAlpha = 1;
       }
     }
   }
 
-  ctx.fillStyle = 'rgba(10,10,15,0.7)';
-  ctx.fillRect(0, H / 2 - 40, W, 80);
-  ctx.fillStyle = '#b8860b';
-  ctx.font = '20px "Courier New", monospace';
+  // Atmosphere label
+  ctx.fillStyle = pal.fog;
+  ctx.globalAlpha = 0.7;
+  ctx.fillRect(0, H - 40, W, 40);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = pal.textDim;
+  ctx.font = '11px "Courier New", monospace';
   ctx.textAlign = 'center';
-  ctx.fillText('\u2014 CONNECTION ESTABLISHED \u2014', W / 2, H / 2 - 8);
-  ctx.fillStyle = '#6b6480';
-  ctx.font = '12px "Courier New", monospace';
-  ctx.fillText('The Athenaeum awaits...', W / 2, H / 2 + 18);
+  ctx.fillText(pal.label, W / 2, H - 16);
 }
 
 function drawCharacter(ctx, x, y, size, dark, light) {
