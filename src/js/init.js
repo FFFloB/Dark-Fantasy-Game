@@ -30,8 +30,7 @@ if ('serviceWorker' in navigator) {
   const session = Persist.loadSession();
   if (session && session.character && session.sharedSeed) {
     enterGame();
-  } else if (session && session.character) {
+  } else if (session && session.character && !session.sharedSeed && !session.demo) {
     showSeedExchange();
   }
-  // Otherwise stays on character select (default visible screen)
 })();

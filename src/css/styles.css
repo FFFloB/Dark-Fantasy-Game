@@ -148,8 +148,67 @@ input:focus { border-color: var(--accent); }
 .glyph-input-row input { flex: 1; margin-bottom: 0; text-transform: uppercase; font-size: 1em; letter-spacing: 0.1em; }
 .glyph-input-row button { width: auto; margin-bottom: 0; padding: 10px 16px; font-size: 1.1em; }
 
+.game-header-btns { display: flex; gap: 4px; }
+
+.controls-hint { color: var(--text-dim); font-size: 0.7em; text-align: center; margin: 6px 0; opacity: 0.6; }
+
+.demo-btn { margin-top: 16px; opacity: 0.6; }
+.demo-btn:hover { opacity: 1; }
+
 .reset-btn { margin-top: 12px; opacity: 0.5; }
 .reset-btn:hover { opacity: 1; }
+
+/* ===== DIALOGUE OVERLAY ===== */
+
+.dialogue-overlay {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(10,10,15,0.92); border-top: 1px solid var(--border);
+  padding: 20px; min-height: 120px; z-index: 100;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  cursor: pointer;
+}
+.dialogue-text {
+  color: var(--text); font-size: 0.95em; line-height: 1.6;
+  text-align: center; max-width: 440px; padding: 0 10px;
+}
+.dialogue-hint {
+  color: var(--text-dim); font-size: 0.7em; margin-top: 12px;
+  letter-spacing: 0.1em; opacity: 0.6;
+}
+.dialogue-choices {
+  display: flex; flex-direction: column; gap: 8px; margin-top: 16px; width: 100%; max-width: 300px;
+}
+.dialogue-choice-btn {
+  background: var(--bg-panel); color: var(--accent); border: 1px solid var(--accent);
+  padding: 14px 20px; font-family: 'Courier New', monospace; font-size: 0.9em;
+  cursor: pointer; text-align: center; min-height: 48px;
+}
+.dialogue-choice-btn:active { background: var(--accent); color: var(--bg-dark); }
+
+/* ===== INVENTORY DRAWER ===== */
+
+.inventory-drawer {
+  background: var(--bg-panel); border: 1px solid var(--border); border-radius: 4px;
+  padding: 16px; margin-top: 8px;
+}
+.inventory-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+}
+.inventory-slot {
+  background: var(--bg-dark); border: 1px solid var(--border); border-radius: 2px;
+  padding: 8px; font-size: 0.7em; color: var(--text-dim); text-align: center;
+  min-height: 48px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.inventory-slot.filled { color: var(--text); border-color: var(--accent); }
+.inventory-slot.filled:active { background: var(--accent); color: var(--bg-dark); }
+
+/* ===== BOND DISPLAY ===== */
+
+.bond-label {
+  font-size: 0.7em; color: var(--accent); letter-spacing: 0.1em;
+  text-transform: uppercase; opacity: 0.8;
+}
 
 /* ===== VERSION TAG ===== */
 

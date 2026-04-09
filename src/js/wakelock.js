@@ -34,7 +34,7 @@ const WakeLock = (() => {
   // Re-acquire wake lock when page becomes visible again
   // (lock is automatically released when tab is hidden)
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && !lock && connected) {
+    if (document.visibilityState === 'visible' && !lock) {
       request();
     }
   });

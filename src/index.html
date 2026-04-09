@@ -40,6 +40,7 @@
     </div>
 
     <button id="btn-confirm-char" class="primary hidden" onclick="confirmCharacter()">Begin</button>
+    <button id="btn-demo" class="small demo-btn" onclick="enterDemoMode()">Demo Mode (solo test)</button>
   </div>
 
   <!-- ===== SEED EXCHANGE ===== -->
@@ -65,11 +66,20 @@
   <!-- ===== GAME SCREEN ===== -->
   <div id="screen-game" class="screen hidden">
     <div class="game-header">
-      <span class="game-role" id="game-role-label">---</span>
-      <button class="icon-btn" onclick="openGlyphPanel()" title="Glyphs">&#9753;</button>
+      <div>
+        <span class="game-role" id="game-role-label">---</span>
+        <span class="bond-label" id="bond-label"></span>
+      </div>
+      <div class="game-header-btns">
+        <button class="icon-btn hidden" id="btn-toggle-timeline" onclick="toggleTimeline()" title="Switch timeline">&#8644;</button>
+        <button class="icon-btn" onclick="toggleInventory()" title="Inventory">&#9776;</button>
+        <button class="icon-btn" onclick="openGlyphPanel()" title="Glyphs">&#9753;</button>
+      </div>
     </div>
 
     <canvas id="game-canvas" width="480" height="480"></canvas>
+
+    <p class="controls-hint">Tap to move — Tap objects to interact</p>
 
     <!-- Glyph Exchange Panel (toggleable) -->
     <div id="glyph-panel" class="panel glyph-panel hidden">
@@ -79,6 +89,12 @@
         <input type="text" id="glyph-input" placeholder="Enter a glyph code..." autocomplete="off" spellcheck="false" autocapitalize="characters" onkeydown="if(event.key==='Enter')enterGlyph()">
         <button onclick="enterGlyph()">&#10003;</button>
       </div>
+    </div>
+
+    <!-- Inventory Drawer -->
+    <div id="inventory-drawer" class="inventory-drawer hidden">
+      <h2>Items</h2>
+      <div class="inventory-grid" id="inventory-grid"></div>
     </div>
 
     <button class="small reset-btn" onclick="resetGame()">Reset Game</button>
