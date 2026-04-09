@@ -1,77 +1,126 @@
 // ============================================================
-//  INPUT — Touch-first input with BFS pathfinding
+//  INPUT — Touch-first input with smooth movement
 // ============================================================
 
 const Input = (() => {
   let canvas = null;
   let camera = { x: 0, y: 0 };
+  let cameraTarget = { x: 0, y: 0 };
+  let playerDisplay = { x: 0, y: 0 };
   const TILE = 24;
   const VIEW = 20;
-  let walkPath = null;  // queued path tiles [{x,y}, ...]
-  let walkTimer = null;
+
+  // Walk queue
+  let walkPath = null;
+  let walkInteractAtEnd = false;
+
+  // Animation
+  let animFrame = null;
+  let animating = false;
+  let lastFrameTime = 0;
 
   function init(canvasEl) {
     canvas = canvasEl;
     canvas.addEventListener('pointerdown', onPointer);
-    document.addEventListener('keydown', onKey); // dev convenience, hidden from UI
-    updateCamera();
+    document.addEventListener('keydown', onKey);
+    snapCamera();
   }
 
-  function updateCamera() {
+  function snapCamera() {
     const state = Game.getState();
     if (!state) return;
-    camera.x = Math.max(0, Math.min(state.player.x - Math.floor(VIEW / 2), Map.W - VIEW));
-    camera.y = Math.max(0, Math.min(state.player.y - Math.floor(VIEW / 2), Map.H - VIEW));
+    cameraTarget.x = Math.max(0, Math.min(state.player.x - Math.floor(VIEW / 2), Map.W - VIEW));
+    cameraTarget.y = Math.max(0, Math.min(state.player.y - Math.floor(VIEW / 2), Map.H - VIEW));
+    camera.x = cameraTarget.x;
+    camera.y = cameraTarget.y;
+    playerDisplay.x = state.player.x;
+    playerDisplay.y = state.player.y;
+  }
+
+  function updateCameraTarget() {
+    const state = Game.getState();
+    if (!state) return;
+    cameraTarget.x = Math.max(0, Math.min(state.player.x - Math.floor(VIEW / 2), Map.W - VIEW));
+    cameraTarget.y = Math.max(0, Math.min(state.player.y - Math.floor(VIEW / 2), Map.H - VIEW));
   }
 
   function getCamera() { return camera; }
+  function getPlayerDisplay() { return playerDisplay; }
 
-  // --- BFS pathfinding ---
-  function findPath(fromX, fromY, toX, toY) {
+  // --- ANIMATION LOOP ---
+
+  function ensureAnimating() {
+    if (animating) return;
+    animating = true;
+    lastFrameTime = performance.now();
+    console.log('[SMOOTH] Animation loop STARTED');
+    animFrame = requestAnimationFrame(animLoop);
+  }
+
+  function animLoop(now) {
+    const dt = Math.min(now - lastFrameTime, 50) / 1000;
+    lastFrameTime = now;
+
     const state = Game.getState();
-    // Allow walking TO an object tile even if it's not normally walkable (for interaction)
-    const targetObj = Map.getObjectAt(toX, toY);
-    const queue = [{ x: fromX, y: fromY, path: [] }];
-    const visited = new Set();
-    visited.add(fromY * Map.W + fromX);
+    if (!state) { animating = false; return; }
 
-    while (queue.length > 0) {
-      const { x, y, path } = queue.shift();
-
-      for (const [dx, dy] of [[0,-1],[0,1],[-1,0],[1,0]]) {
-        const nx = x + dx, ny = y + dy;
-        const key = ny * Map.W + nx;
-        if (visited.has(key)) continue;
-        visited.add(key);
-
-        const newPath = [...path, { x: nx, y: ny }];
-
-        if (nx === toX && ny === toY) return newPath;
-
-        if (Map.isWalkable(nx, ny, state)) {
-          queue.push({ x: nx, y: ny, path: newPath });
-        }
-      }
-
-      // Limit search depth
-      if (queue.length > 800) return null;
+    // Move player display toward actual position at fixed speed (tiles per second)
+    const MOVE_SPEED = 4; // tiles per second
+    const pdx = state.player.x - playerDisplay.x;
+    const pdy = state.player.y - playerDisplay.y;
+    const pDist = Math.sqrt(pdx * pdx + pdy * pdy);
+    if (pDist > 0.01) {
+      const step = Math.min(MOVE_SPEED * dt, pDist);
+      playerDisplay.x += (pdx / pDist) * step;
+      playerDisplay.y += (pdy / pDist) * step;
     }
-    return null;
-  }
 
-  // --- Walk along path with animation ---
-  function startWalking(path, interactAtEnd) {
-    cancelWalk();
-    walkPath = path;
-    walkStep(interactAtEnd);
-  }
+    // Camera follows player display smoothly
+    const camTargetX = Math.max(0, Math.min(playerDisplay.x - Math.floor(VIEW / 2), Map.W - VIEW));
+    const camTargetY = Math.max(0, Math.min(playerDisplay.y - Math.floor(VIEW / 2), Map.H - VIEW));
+    const cdx = camTargetX - camera.x;
+    const cdy = camTargetY - camera.y;
+    camera.x += cdx * 0.15;
+    camera.y += cdy * 0.15;
 
-  function walkStep(interactAtEnd) {
-    if (!walkPath || walkPath.length === 0) {
-      walkPath = null;
-      if (interactAtEnd) doInteract();
+    // Take next walk step when player display is close to current tile
+    const playerSettled = pDist < 0.2;
+    if (playerSettled && walkPath && walkPath.length > 0) {
+      advanceWalkStep();
+    }
+
+    // Render
+    Renderer.draw(state, state.timeline);
+
+    // Check if everything has settled
+    const camSettled = Math.abs(cdx) < 0.01 && Math.abs(cdy) < 0.01;
+    const playerDone = pDist < 0.01;
+    const walkDone = !walkPath || walkPath.length === 0;
+
+    if (camSettled && playerDone && walkDone) {
+      camera.x = cameraTarget.x;
+      camera.y = cameraTarget.y;
+      playerDisplay.x = state.player.x;
+      playerDisplay.y = state.player.y;
+      animating = false;
+      console.log('[SMOOTH] Animation loop SETTLED');
+      Renderer.draw(state, state.timeline);
+      // Handle end-of-walk interaction
+      if (walkInteractAtEnd && walkDone) {
+        walkInteractAtEnd = false;
+        doInteract();
+        Renderer.draw(Game.getState(), Game.getState().timeline);
+      }
       return;
     }
+
+    animFrame = requestAnimationFrame(animLoop);
+  }
+
+  // --- WALK PATH ---
+
+  function advanceWalkStep() {
+    if (!walkPath || walkPath.length === 0) return;
 
     const next = walkPath.shift();
     const state = Game.getState();
@@ -79,97 +128,135 @@ const Input = (() => {
     const dy = next.y - state.player.y;
 
     if (Game.movePlayer(dx, dy)) {
-      updateCamera();
-      render();
-      // Next step after a short delay (animated walk feel)
-      walkTimer = setTimeout(() => walkStep(interactAtEnd), 120);
+      updateCameraTarget();
     } else {
-      // Path blocked (door closed, etc.) — stop
+      // Blocked — cancel remaining path
       walkPath = null;
     }
   }
 
-  function cancelWalk() {
-    walkPath = null;
-    if (walkTimer) { clearTimeout(walkTimer); walkTimer = null; }
+  function startWalking(path, interactAtEnd) {
+    cancelWalk();
+    if (!path || path.length === 0) return;
+    walkPath = path;
+    walkInteractAtEnd = interactAtEnd;
+    console.log('[SMOOTH] Walking path of', path.length, 'steps, interactAtEnd:', interactAtEnd);
+
+    // Take the first step immediately
+    advanceWalkStep();
+    ensureAnimating();
   }
 
-  // --- Pointer (touch/mouse) ---
+  function cancelWalk() {
+    walkPath = null;
+    walkInteractAtEnd = false;
+  }
+
+  // --- BFS PATHFINDING ---
+
+  function findPath(fromX, fromY, toX, toY) {
+    const state = Game.getState();
+    const queue = [{ x: fromX, y: fromY, path: [] }];
+    const visited = new Set();
+    visited.add(fromY * Map.W + fromX);
+
+    while (queue.length > 0) {
+      const { x, y, path } = queue.shift();
+      for (const [ddx, ddy] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) {
+        const nx = x + ddx, ny = y + ddy;
+        const key = ny * Map.W + nx;
+        if (visited.has(key)) continue;
+        visited.add(key);
+        const newPath = [...path, { x: nx, y: ny }];
+        if (nx === toX && ny === toY) return newPath;
+        if (Map.isWalkable(nx, ny, state)) {
+          queue.push({ x: nx, y: ny, path: newPath });
+        }
+      }
+      if (queue.length > 800) return null;
+    }
+    return null;
+  }
+
+  // --- POINTER (TOUCH/MOUSE) ---
+
   function onPointer(e) {
     const state = Game.getState();
     if (!state) return;
     if (typeof Dialogue !== 'undefined' && Dialogue.isActive()) return;
+    if (typeof Combat !== 'undefined' && Combat.isActive()) {
+      Combat.handleTap(e, canvas);
+      return;
+    }
 
     cancelWalk();
 
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    const tileX = Math.floor((e.clientX - rect.left) * scaleX / TILE) + camera.x;
-    const tileY = Math.floor((e.clientY - rect.top) * scaleY / TILE) + camera.y;
+    const tileX = Math.floor(((e.clientX - rect.left) * scaleX / TILE) + camera.x);
+    const tileY = Math.floor(((e.clientY - rect.top) * scaleY / TILE) + camera.y);
 
-    // Out of bounds
     if (tileX < 0 || tileX >= Map.W || tileY < 0 || tileY >= Map.H) return;
-
-    // Not explored — can't tap there
     if (!Game.isExplored(tileX, tileY)) return;
 
     const dx = tileX - state.player.x;
     const dy = tileY - state.player.y;
 
-    // Tap on self = interact with object here
+    // Tap on self = interact
     if (dx === 0 && dy === 0) {
       doInteract();
+      Renderer.draw(state, state.timeline);
       return;
     }
 
-    // Check if tapped tile has an object
+    // Tap on object = walk to adjacent + interact
     const tappedObj = Map.getObjectAt(tileX, tileY);
-
     if (tappedObj) {
-      // Walk to an adjacent tile and interact
       const adjTiles = [
         { x: tileX, y: tileY - 1 }, { x: tileX, y: tileY + 1 },
         { x: tileX - 1, y: tileY }, { x: tileX + 1, y: tileY },
       ].filter(t => Map.isWalkable(t.x, t.y, state));
 
-      // Find shortest path to any adjacent tile
-      let bestPath = null;
+      // Already adjacent?
       for (const adj of adjTiles) {
-        // Already adjacent?
         if (adj.x === state.player.x && adj.y === state.player.y) {
-          // Set facing direction toward object
-          Game.getState().lastDir = { x: tileX - state.player.x, y: tileY - state.player.y };
+          state.lastDir = { x: tileX - state.player.x, y: tileY - state.player.y };
           doInteract();
-          render();
+          Renderer.draw(state, state.timeline);
           return;
         }
+      }
+
+      // Find path to nearest adjacent tile
+      let bestPath = null;
+      for (const adj of adjTiles) {
         const path = findPath(state.player.x, state.player.y, adj.x, adj.y);
         if (path && (!bestPath || path.length < bestPath.length)) bestPath = path;
       }
       if (bestPath) {
-        // Face the object at the end
         const lastStep = bestPath[bestPath.length - 1];
+        state.lastDir = { x: tileX - lastStep.x, y: tileY - lastStep.y };
         startWalking(bestPath, true);
-        // Set facing toward object after walk
-        Game.getState().lastDir = { x: tileX - lastStep.x, y: tileY - lastStep.y };
       }
       return;
     }
 
-    // Tap walkable tile — pathfind there
+    // Tap walkable tile = walk there
     if (Map.isWalkable(tileX, tileY, state)) {
       const path = findPath(state.player.x, state.player.y, tileX, tileY);
       if (path) startWalking(path, false);
     }
   }
 
-  // --- Keyboard (dev convenience) ---
+  // --- KEYBOARD (DEV) ---
+
   function onKey(e) {
     const state = Game.getState();
     if (!state) return;
     if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
     if (typeof Dialogue !== 'undefined' && Dialogue.isActive()) return;
+    if (typeof Combat !== 'undefined' && Combat.isActive()) return;
 
     cancelWalk();
 
@@ -185,10 +272,14 @@ const Input = (() => {
     }
 
     e.preventDefault();
-    if (Game.movePlayer(dx, dy)) { updateCamera(); render(); }
+    if (Game.movePlayer(dx, dy)) {
+      updateCameraTarget();
+      ensureAnimating();
+    }
   }
 
-  // --- Interact ---
+  // --- INTERACT ---
+
   function doInteract() {
     const result = Game.interact();
     if (!result) return;
@@ -207,16 +298,15 @@ const Input = (() => {
         document.getElementById('glyph-panel').classList.remove('hidden');
         addGlyphLogEntry(result.message, 'system');
         break;
+      case 'npc':
+      case 'echo_choice':
+      case 'sync_ritual':
+      case 'exit':
+        break;
       case 'none':
         break;
     }
-    render();
   }
 
-  function render() {
-    const state = Game.getState();
-    if (state) Renderer.draw(state, state.timeline);
-  }
-
-  return { init, getCamera, updateCamera };
+  return { init, getCamera, getPlayerDisplay, updateCamera: updateCameraTarget, snapCamera };
 })();

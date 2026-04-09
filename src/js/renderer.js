@@ -42,7 +42,20 @@ const Renderer = (() => {
     const ctx = canvas.getContext('2d');
     const W = canvas.width, H = canvas.height;
     const pal = timeline === 'past' ? Palette.past : Palette.present;
+
+    // Combat mode: full-screen combat renderer
+    if (typeof Combat !== 'undefined' && Combat.isActive()) {
+      Combat.draw(ctx, W, H, pal, state);
+      return;
+    }
+
     const cam = Input.getCamera();
+
+    // Fractional camera offset for smooth scrolling
+    const camIX = Math.floor(cam.x);
+    const camIY = Math.floor(cam.y);
+    const offX = (cam.x - camIX) * TILE;
+    const offY = (cam.y - camIY) * TILE;
 
     // Clear
     ctx.fillStyle = pal.bg;
@@ -50,11 +63,12 @@ const Renderer = (() => {
 
     const px = state.player.x, py = state.player.y;
 
-    // Draw tiles
-    for (let vy = 0; vy < VIEW; vy++) {
-      for (let vx = 0; vx < VIEW; vx++) {
-        const tx = cam.x + vx, ty = cam.y + vy;
-        const sx = vx * TILE, sy = vy * TILE;
+    // Draw tiles (+1 extra row/col to cover fractional edges)
+    for (let vy = -1; vy <= VIEW; vy++) {
+      for (let vx = -1; vx <= VIEW; vx++) {
+        const tx = camIX + vx, ty = camIY + vy;
+        const sx = vx * TILE - offX, sy = vy * TILE - offY;
+        if (sx + TILE < 0 || sx > W || sy + TILE < 0 || sy > H) continue;
         const tile = Map.get(tx, ty);
 
         if (!Game.isExplored(tx, ty)) {
@@ -136,12 +150,13 @@ const Renderer = (() => {
 
     // Draw objects
     for (const obj of Map.getObjects()) {
-      const vx = obj.x - cam.x, vy = obj.y - cam.y;
-      if (vx < 0 || vx >= VIEW || vy < 0 || vy >= VIEW) continue;
+      const screenX = (obj.x - cam.x) * TILE;
+      const screenY = (obj.y - cam.y) * TILE;
+      if (screenX + TILE < 0 || screenX > W || screenY + TILE < 0 || screenY > H) continue;
       if (!Game.isExplored(obj.x, obj.y)) continue;
-      if (obj.type === 'gate') continue; // gates drawn as door tiles
+      if (obj.type === 'gate') continue;
 
-      const sx = vx * TILE + TILE / 2, sy = vy * TILE + TILE / 2;
+      const sx = screenX + TILE / 2, sy = screenY + TILE / 2;
       const used = state.interactedObjects.includes(obj.id);
 
       ctx.globalAlpha = used ? 0.4 : 1;
@@ -203,6 +218,19 @@ const Renderer = (() => {
           ctx.globalAlpha = 1; ctx.lineWidth = 1;
           break;
 
+        case 'enemy':
+          // Menacing figure with pulsing glow
+          ctx.fillStyle = timeline === 'past' ? '#8a2a2a' : '#6a2a6a';
+          ctx.globalAlpha = 0.4 + 0.2 * Math.sin(Date.now() / 300);
+          ctx.beginPath(); ctx.arc(sx, sy, 10, 0, Math.PI * 2); ctx.fill();
+          ctx.globalAlpha = used ? 0.3 : 1;
+          ctx.beginPath(); ctx.arc(sx, sy - 2, 5, 0, Math.PI * 2); ctx.fill();
+          ctx.fillRect(sx - 3, sy + 2, 6, 6);
+          ctx.fillStyle = timeline === 'past' ? '#cc6644' : '#aa44cc';
+          ctx.fillRect(sx - 3, sy - 3, 2, 2);
+          ctx.fillRect(sx + 1, sy - 3, 2, 2);
+          break;
+
         case 'exit':
           // Subtle directional arrow
           ctx.fillStyle = pal.textColor;
@@ -225,18 +253,20 @@ const Renderer = (() => {
       ctx.globalAlpha = 1;
     }
 
-    // Draw player
-    drawCharacter(ctx, (px - cam.x) * TILE, (py - cam.y) * TILE, TILE, pal.player, pal.playerLight);
+    // Draw player (using smooth display position)
+    const pd = Input.getPlayerDisplay();
+    drawCharacter(ctx, (pd.x - cam.x) * TILE, (pd.y - cam.y) * TILE, TILE, pal.player, pal.playerLight);
+    ctx.globalAlpha = 1;
 
     // Fog of war overlay (explored but not visible = dimmed)
-    for (let vy = 0; vy < VIEW; vy++) {
-      for (let vx = 0; vx < VIEW; vx++) {
-        const tx = cam.x + vx, ty = cam.y + vy;
-        if (!Game.isExplored(tx, ty)) continue; // already drawn as solid fog
+    for (let vy = -1; vy <= VIEW; vy++) {
+      for (let vx = -1; vx <= VIEW; vx++) {
+        const tx = camIX + vx, ty = camIY + vy;
+        if (!Game.isExplored(tx, ty)) continue;
 
         if (!Game.isVisible(tx, ty)) {
           ctx.fillStyle = pal.fogExplored;
-          ctx.fillRect(vx * TILE, vy * TILE, TILE, TILE);
+          ctx.fillRect(vx * TILE - offX, vy * TILE - offY, TILE, TILE);
         }
       }
     }
@@ -244,19 +274,20 @@ const Renderer = (() => {
     // Interaction prompt
     const adjObj = Game.getAdjacentObject();
     if (adjObj) {
-      const ovx = adjObj.x - cam.x, ovy = adjObj.y - cam.y;
-      if (ovx >= 0 && ovx < VIEW && ovy >= 0 && ovy < VIEW) {
-        const promptLabels = { examine: 'Examine', gate: 'Inspect', npc: 'Talk', chest: 'Open', discovery: 'Investigate', echo_choice: 'Decide', combined: 'Touch', sync_ritual: 'Begin Ritual', exit: 'Leave' };
+      const osx = (adjObj.x - cam.x) * TILE;
+      const osy = (adjObj.y - cam.y) * TILE;
+      if (osx + TILE > 0 && osx < W && osy + TILE > 0 && osy < H) {
+        const promptLabels = { examine: 'Examine', gate: 'Inspect', npc: 'Talk', chest: 'Open', discovery: 'Investigate', echo_choice: 'Decide', combined: 'Touch', sync_ritual: 'Begin Ritual', exit: 'Leave', enemy: 'Fight' };
         const promptText = promptLabels[adjObj.type] || 'Interact';
-        ctx.fillStyle = pal.textBg;
-        const tw = ctx.measureText(promptText).width + 12;
-        const tx = ovx * TILE + TILE / 2 - tw / 2;
-        const ty = ovy * TILE - 8;
-        ctx.fillRect(tx, ty - 10, tw, 16);
-        ctx.fillStyle = pal.textColor;
         ctx.font = '10px "Courier New", monospace';
+        const tw = ctx.measureText(promptText).width + 12;
+        const ptx = osx + TILE / 2 - tw / 2;
+        const pty = osy - 8;
+        ctx.fillStyle = pal.textBg;
+        ctx.fillRect(ptx, pty - 10, tw, 16);
+        ctx.fillStyle = pal.textColor;
         ctx.textAlign = 'center';
-        ctx.fillText(promptText, ovx * TILE + TILE / 2, ty);
+        ctx.fillText(promptText, osx + TILE / 2, pty);
         ctx.textAlign = 'start';
       }
     }

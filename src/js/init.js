@@ -16,6 +16,10 @@
   }
 })();
 
+// Log build version
+const versionEl = document.querySelector('.version-tag');
+if (versionEl) console.log('[ASHEN BOND]', versionEl.textContent);
+
 // Register service worker for PWA / offline support
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').then(() => {

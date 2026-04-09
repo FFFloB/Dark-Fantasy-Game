@@ -122,6 +122,7 @@ function enterGame() {
   // Init input and render
   const canvas = document.getElementById('game-canvas');
   Input.init(canvas);
+  Input.snapCamera(); // no lerp on initial load
   WakeLock.request();
   updateBondLabel();
   Renderer.draw(state, state.timeline);

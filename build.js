@@ -23,6 +23,7 @@ const JS_FILES = [
   'js/stats.js',
   'js/bond.js',
   'js/dialogue.js',
+  'js/combat.js',
   'js/game.js',
   'js/input.js',
   'js/renderer.js',

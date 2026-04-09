@@ -239,12 +239,116 @@ const Data = (() => {
     ],
   };
 
+  // --- ENEMIES ---
+
+  const enemies = {
+    synod_ward: {
+      id: 'synod_ward', name: 'Warding Construct', timeline: 'past',
+      hp: 18, attack: 5, defense: 2, xp: 8,
+      drops: [{ item: items.health_potion, chance: 0.3 }],
+      dialogue: {
+        encounter: ['A construct of light and law bars your path.', 'Its eyes glow with borrowed authority.'],
+        defeat: ['The construct crumbles. It was only following orders.'],
+        mercy: ['You lower your blade. The construct dims, confused.', 'It steps aside, still humming its purpose.'],
+      },
+      mercyFlag: 'mercy_ward', glyphEvent: 'combat_ward',
+    },
+    synod_enforcer: {
+      id: 'synod_enforcer', name: 'Synod Enforcer', timeline: 'past',
+      hp: 24, attack: 7, defense: 3, xp: 12,
+      drops: [{ item: items.mana_potion, chance: 0.25 }],
+      dialogue: {
+        encounter: ['"You are not authorized. Stand down."'],
+        defeat: ['The enforcer falls. They believed in something. It wasn\'t enough.'],
+        mercy: ['"I... do not understand. Why would you spare me?"', 'The enforcer retreats, uncertain.'],
+      },
+      mercyFlag: 'mercy_enforcer', glyphEvent: 'combat_enforcer',
+    },
+    hollowed_scholar: {
+      id: 'hollowed_scholar', name: 'Hollowed Scholar', timeline: 'present',
+      hp: 14, attack: 4, defense: 1, xp: 7,
+      drops: [{ item: items.health_potion, chance: 0.3 }],
+      dialogue: {
+        encounter: ['A figure shuffles forward, hands still searching for books.', 'Its mouth moves. No sound comes out.'],
+        defeat: ['The hollow collapses. The hands stop moving.'],
+        mercy: ['You reach out gently. The hollow flinches, then stills.', 'Something like recognition crosses its face. It wanders away.'],
+      },
+      mercyFlag: 'mercy_scholar', glyphEvent: 'combat_scholar',
+    },
+    memory_wraith: {
+      id: 'memory_wraith', name: 'Memory Wraith', timeline: 'present',
+      hp: 20, attack: 6, defense: 2, xp: 10,
+      drops: [{ item: items.mana_potion, chance: 0.25 }],
+      dialogue: {
+        encounter: ['A shape coalesces from grief and dust.', 'It wears a face you almost recognize.'],
+        defeat: ['The wraith dissolves. The memory is lost forever.'],
+        mercy: ['You whisper something kind. The wraith pauses.', 'It reaches toward you, then dissipates gently.'],
+      },
+      mercyFlag: 'mercy_wraith', glyphEvent: 'combat_wraith',
+    },
+    curator_past: {
+      id: 'curator_past', name: 'The Curator', timeline: 'past',
+      hp: 50, attack: 8, defense: 4, xp: 30, boss: true,
+      drops: [{ item: items.scholars_key, chance: 1.0 }],
+      phases: [
+        { hpThreshold: 1.0, attack: 8, pattern: ['attack', 'attack', 'catalog'] },
+        { hpThreshold: 0.5, attack: 10, pattern: ['attack', 'catalog', 'silence'] },
+      ],
+      abilities: {
+        catalog: { name: 'Catalog', damage: 0, effect: 'defense_up', desc: 'The Curator reorganizes. Defense hardens.' },
+        silence: { name: 'Silence', damage: 4, effect: 'mp_drain', mpDrain: 3, desc: 'A forbidden word. Your thoughts scatter.' },
+      },
+      dialogue: {
+        encounter: ['"I cannot let you into the restricted section."', '"The knowledge there is too dangerous. I am trying to protect everyone."'],
+        phase2: ['"Why won\'t you listen? I have seen what those texts do to people!"'],
+        defeat: ['"Perhaps... perhaps you need to see for yourself."', 'The Curator steps aside, hands trembling.'],
+        mercy: ['"You would spare me? After all this?"', '"Then go. See what they\'ve done. And come back alive."'],
+      },
+      mercyFlag: 'mercy_curator', glyphEvent: 'combat_curator',
+    },
+    curator_present: {
+      id: 'curator_present', name: 'The Hollowed Curator', timeline: 'present',
+      hp: 45, attack: 7, defense: 3, xp: 30, boss: true,
+      drops: [{ item: items.scholars_key, chance: 1.0 }],
+      phases: [
+        { hpThreshold: 1.0, attack: 7, pattern: ['attack', 'memory_bolt', 'attack'] },
+        { hpThreshold: 0.5, attack: 9, pattern: ['memory_bolt', 'attack', 'grief_wave'] },
+      ],
+      abilities: {
+        memory_bolt: { name: 'Memory Bolt', damage: 6, desc: 'A shard of lost memory strikes you. You see a flash of a life not your own.' },
+        grief_wave: { name: 'Grief Wave', damage: 3, desc: '"The... children. Where are the children?"' },
+      },
+      dialogue: {
+        encounter: ['Something vast hunches in the shadows of the reading hall.', 'It turns. Its eyes hold no recognition — only duty.'],
+        phase2: ['The Curator shudders. For a moment, its hands stop sorting.', '"The... the children. Where are the children?"'],
+        defeat: ['The Hollowed Curator collapses.', 'Its last act is to gently shelve one final invisible book.'],
+        mercy: ['You reach out. The Hollowed flinches.', 'Then, slowly, it takes your hand.', '"Sable..."', 'It remembers. Just for a moment. Then it is at peace.'],
+      },
+      mercyFlag: 'mercy_curator', glyphEvent: 'combat_curator',
+    },
+  };
+
+  // Add enemy objects to Act 1
+  act1_athenaeum.objects.push(
+    { id: 'ath_enemy_ward', x: 10, y: 30, type: 'enemy', enemyId: 'synod_ward',
+      label: { past: 'A construct of light stands guard.', present: null } },
+    { id: 'ath_enemy_enforcer', x: 37, y: 19, type: 'enemy', enemyId: 'synod_enforcer',
+      label: { past: 'A Synod enforcer, hand on blade.', present: null } },
+    { id: 'ath_enemy_scholar', x: 10, y: 30, type: 'enemy', enemyId: 'hollowed_scholar',
+      label: { past: null, present: 'A shambling figure reaches toward you.' } },
+    { id: 'ath_enemy_wraith', x: 37, y: 19, type: 'enemy', enemyId: 'memory_wraith',
+      label: { past: null, present: 'A shape of grief and dust drifts forward.' } },
+    { id: 'ath_curator_boss', x: 25, y: 16, type: 'enemy', enemyId: 'curator_past',
+      label: { past: 'The Curator blocks the way, resolute.', present: null } },
+    { id: 'ath_curator_boss_present', x: 25, y: 16, type: 'enemy', enemyId: 'curator_present',
+      label: { past: null, present: 'The Hollowed Curator turns toward you.' } },
+  );
+
   // --- AREA REGISTRY ---
 
   const areas = {
     act1_athenaeum,
-    // act2_city: defined later
   };
 
-  return { items, areas, ROOMS };
+  return { items, enemies, areas, ROOMS };
 })();

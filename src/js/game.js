@@ -195,6 +195,21 @@ const Game = (() => {
         return { type: 'examine', message: label };
       }
 
+      case 'enemy': {
+        // Filter by timeline
+        if (obj.label && !obj.label[state.timeline]) {
+          return { type: 'none', message: '' };
+        }
+        if (state.interactedObjects.includes(obj.id)) {
+          return { type: 'already', message: 'The threat has passed.' };
+        }
+        const enemyDef = (typeof Data !== 'undefined' && Data.enemies) ? Data.enemies[obj.enemyId] : null;
+        if (enemyDef && typeof Combat !== 'undefined') {
+          Combat.start(enemyDef, obj.id);
+        }
+        return { type: 'combat', message: label };
+      }
+
       case 'exit': {
         if (obj.targetArea) {
           transitionArea(obj.targetArea, obj.targetSpawn);
