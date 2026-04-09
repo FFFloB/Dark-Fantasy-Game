@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/FFFloB/Dark-Fantasy-Game#readme",
   "dependencies": {
+    "playwright": "^1.59.1",
     "qrcode-generator": "^2.0.4"
   }
 }

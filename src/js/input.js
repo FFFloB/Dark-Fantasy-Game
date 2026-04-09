@@ -29,8 +29,8 @@ const Input = (() => {
   function snapCamera() {
     const state = Game.getState();
     if (!state) return;
-    cameraTarget.x = Math.max(0, Math.min(state.player.x - Math.floor(VIEW / 2), Map.W - VIEW));
-    cameraTarget.y = Math.max(0, Math.min(state.player.y - Math.floor(VIEW / 2), Map.H - VIEW));
+    cameraTarget.x = Math.max(0, Math.min(state.player.x - Math.floor(VIEW / 2), GameMap.W - VIEW));
+    cameraTarget.y = Math.max(0, Math.min(state.player.y - Math.floor(VIEW / 2), GameMap.H - VIEW));
     camera.x = cameraTarget.x;
     camera.y = cameraTarget.y;
     playerDisplay.x = state.player.x;
@@ -40,8 +40,8 @@ const Input = (() => {
   function updateCameraTarget() {
     const state = Game.getState();
     if (!state) return;
-    cameraTarget.x = Math.max(0, Math.min(state.player.x - Math.floor(VIEW / 2), Map.W - VIEW));
-    cameraTarget.y = Math.max(0, Math.min(state.player.y - Math.floor(VIEW / 2), Map.H - VIEW));
+    cameraTarget.x = Math.max(0, Math.min(state.player.x - Math.floor(VIEW / 2), GameMap.W - VIEW));
+    cameraTarget.y = Math.max(0, Math.min(state.player.y - Math.floor(VIEW / 2), GameMap.H - VIEW));
   }
 
   function getCamera() { return camera; }
@@ -76,8 +76,8 @@ const Input = (() => {
     }
 
     // Camera follows player display smoothly
-    const camTargetX = Math.max(0, Math.min(playerDisplay.x - Math.floor(VIEW / 2), Map.W - VIEW));
-    const camTargetY = Math.max(0, Math.min(playerDisplay.y - Math.floor(VIEW / 2), Map.H - VIEW));
+    const camTargetX = Math.max(0, Math.min(playerDisplay.x - Math.floor(VIEW / 2), GameMap.W - VIEW));
+    const camTargetY = Math.max(0, Math.min(playerDisplay.y - Math.floor(VIEW / 2), GameMap.H - VIEW));
     const cdx = camTargetX - camera.x;
     const cdy = camTargetY - camera.y;
     camera.x += cdx * 0.15;
@@ -158,18 +158,18 @@ const Input = (() => {
     const state = Game.getState();
     const queue = [{ x: fromX, y: fromY, path: [] }];
     const visited = new Set();
-    visited.add(fromY * Map.W + fromX);
+    visited.add(fromY * GameMap.W + fromX);
 
     while (queue.length > 0) {
       const { x, y, path } = queue.shift();
       for (const [ddx, ddy] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) {
         const nx = x + ddx, ny = y + ddy;
-        const key = ny * Map.W + nx;
+        const key = ny * GameMap.W + nx;
         if (visited.has(key)) continue;
         visited.add(key);
         const newPath = [...path, { x: nx, y: ny }];
         if (nx === toX && ny === toY) return newPath;
-        if (Map.isWalkable(nx, ny, state)) {
+        if (GameMap.isWalkable(nx, ny, state)) {
           queue.push({ x: nx, y: ny, path: newPath });
         }
       }
@@ -197,7 +197,7 @@ const Input = (() => {
     const tileX = Math.floor(((e.clientX - rect.left) * scaleX / TILE) + camera.x);
     const tileY = Math.floor(((e.clientY - rect.top) * scaleY / TILE) + camera.y);
 
-    if (tileX < 0 || tileX >= Map.W || tileY < 0 || tileY >= Map.H) return;
+    if (tileX < 0 || tileX >= GameMap.W || tileY < 0 || tileY >= GameMap.H) return;
     if (!Game.isExplored(tileX, tileY)) return;
 
     const dx = tileX - state.player.x;
@@ -211,12 +211,12 @@ const Input = (() => {
     }
 
     // Tap on object = walk to adjacent + interact
-    const tappedObj = Map.getObjectAt(tileX, tileY);
+    const tappedObj = GameMap.getObjectAt(tileX, tileY);
     if (tappedObj) {
       const adjTiles = [
         { x: tileX, y: tileY - 1 }, { x: tileX, y: tileY + 1 },
         { x: tileX - 1, y: tileY }, { x: tileX + 1, y: tileY },
-      ].filter(t => Map.isWalkable(t.x, t.y, state));
+      ].filter(t => GameMap.isWalkable(t.x, t.y, state));
 
       // Already adjacent?
       for (const adj of adjTiles) {
@@ -243,7 +243,7 @@ const Input = (() => {
     }
 
     // Tap walkable tile = walk there
-    if (Map.isWalkable(tileX, tileY, state)) {
+    if (GameMap.isWalkable(tileX, tileY, state)) {
       const path = findPath(state.player.x, state.player.y, tileX, tileY);
       if (path) startWalking(path, false);
     }

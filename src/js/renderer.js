@@ -69,7 +69,7 @@ const Renderer = (() => {
         const tx = camIX + vx, ty = camIY + vy;
         const sx = vx * TILE - offX, sy = vy * TILE - offY;
         if (sx + TILE < 0 || sx > W || sy + TILE < 0 || sy > H) continue;
-        const tile = Map.get(tx, ty);
+        const tile = GameMap.get(tx, ty);
 
         if (!Game.isExplored(tx, ty)) {
           ctx.fillStyle = pal.fog;
@@ -78,7 +78,7 @@ const Renderer = (() => {
         }
 
         // Floor
-        if (tile === Map.FLOOR || tile === Map.DOOR) {
+        if (tile === GameMap.FLOOR || tile === GameMap.DOOR) {
           ctx.fillStyle = (tileHash(tx, ty) % 5 === 0) ? pal.floorAlt : pal.floor;
           ctx.fillRect(sx, sy, TILE, TILE);
 
@@ -105,7 +105,7 @@ const Renderer = (() => {
         }
 
         // Wall
-        if (tile === Map.WALL) {
+        if (tile === GameMap.WALL) {
           ctx.fillStyle = pal.wall;
           ctx.fillRect(sx, sy, TILE, TILE);
           ctx.strokeStyle = pal.wallStroke;
@@ -135,8 +135,8 @@ const Renderer = (() => {
         }
 
         // Door tile
-        if (tile === Map.DOOR) {
-          const obj = Map.getObjectAt(tx, ty);
+        if (tile === GameMap.DOOR) {
+          const obj = GameMap.getObjectAt(tx, ty);
           const isOpen = obj && obj.unlockedBy && state.appliedGlyphs.includes(obj.unlockedBy);
           if (!isOpen) {
             ctx.fillStyle = pal.objGate;
@@ -149,7 +149,7 @@ const Renderer = (() => {
     }
 
     // Draw objects
-    for (const obj of Map.getObjects()) {
+    for (const obj of GameMap.getObjects()) {
       const screenX = (obj.x - cam.x) * TILE;
       const screenY = (obj.y - cam.y) * TILE;
       if (screenX + TILE < 0 || screenX > W || screenY + TILE < 0 || screenY > H) continue;
@@ -327,7 +327,7 @@ const Renderer = (() => {
         if (!Game.isExplored(tx, ty) || !Game.isVisible(tx, ty)) continue;
         const sx = vx * TILE - offX, sy = vy * TILE - offY;
         const h = tileHash(tx, ty);
-        if (Map.get(tx, ty) !== Map.FLOOR) continue;
+        if (GameMap.get(tx, ty) !== GameMap.FLOOR) continue;
 
         if (timeline === 'past' && h % 19 === 0) {
           // Torchlight flicker — warm glow on specific floor tiles

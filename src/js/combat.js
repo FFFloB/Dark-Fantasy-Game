@@ -521,5 +521,5 @@ const Combat = (() => {
   function isActive() { return state && state.active; }
   function getState() { return state; }
 
-  return { start, isActive, getState, draw, handleTap };
+  return { start, isActive, getState, draw, handleTap, doAttack, doDefend, doItem, doMercy };
 })();

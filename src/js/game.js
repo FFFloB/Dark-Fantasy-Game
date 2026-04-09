@@ -13,7 +13,7 @@ const Game = (() => {
     const areaDef = (typeof Data !== 'undefined' && Data.areas && Data.areas[currentArea])
       ? Data.areas[currentArea] : null;
     const mapData = MapGen.generate(currentArea, session.sharedSeed || 'DEMO', areaDef);
-    Map.load(mapData);
+    GameMap.load(mapData);
 
     state = {
       character: session.character,
@@ -58,9 +58,9 @@ const Game = (() => {
 
   function createExploredArray() {
     const arr = [];
-    for (let y = 0; y < Map.H; y++) {
+    for (let y = 0; y < GameMap.H; y++) {
       arr[y] = [];
-      for (let x = 0; x < Map.W; x++) arr[y][x] = false;
+      for (let x = 0; x < GameMap.W; x++) arr[y][x] = false;
     }
     return arr;
   }
@@ -70,7 +70,7 @@ const Game = (() => {
     for (let dy = -radius; dy <= radius; dy++) {
       for (let dx = -radius; dx <= radius; dx++) {
         const x = px + dx, y = py + dy;
-        if (x >= 0 && x < Map.W && y >= 0 && y < Map.H) {
+        if (x >= 0 && x < GameMap.W && y >= 0 && y < GameMap.H) {
           if (dx * dx + dy * dy <= radius * radius) {
             state.explored[y][x] = true;
           }
@@ -83,7 +83,7 @@ const Game = (() => {
     if (!state) return false;
     const nx = state.player.x + dx;
     const ny = state.player.y + dy;
-    if (!Map.isWalkable(nx, ny, state)) return false;
+    if (!GameMap.isWalkable(nx, ny, state)) return false;
 
     state.player.x = nx;
     state.player.y = ny;
@@ -91,7 +91,7 @@ const Game = (() => {
     revealAround(nx, ny);
 
     // Check for exit tile
-    const exit = Map.getExits().find(e => e.x === nx && e.y === ny);
+    const exit = GameMap.getExits().find(e => e.x === nx && e.y === ny);
     if (exit && typeof transitionArea === 'function') {
       // Defer transition to next frame to let rendering catch up
       setTimeout(() => transitionArea(exit.targetArea, exit.targetSpawn), 50);
@@ -105,14 +105,14 @@ const Game = (() => {
     if (!state) return null;
     const px = state.player.x, py = state.player.y;
 
-    const onTile = Map.getObjectAt(px, py);
+    const onTile = GameMap.getObjectAt(px, py);
     if (onTile) return onTile;
 
     const fx = px + state.lastDir.x, fy = py + state.lastDir.y;
-    const facing = Map.getObjectAt(fx, fy);
+    const facing = GameMap.getObjectAt(fx, fy);
     if (facing) return facing;
 
-    const near = Map.getObjectsNear(px, py);
+    const near = GameMap.getObjectsNear(px, py);
     return near.length > 0 ? near[0] : null;
   }
 
@@ -317,7 +317,7 @@ const Game = (() => {
   function tryApplyGlyph(code) {
     if (!state) return null;
 
-    const possibleIds = Map.getObjects()
+    const possibleIds = GameMap.getObjects()
       .filter(o => o.eventId && (
         o.forTimeline === state.timeline ||
         o.forTimeline === null ||
@@ -326,7 +326,7 @@ const Game = (() => {
       .map(o => o.eventId);
 
     // Also check echo choice event IDs
-    Map.getObjects().forEach(o => {
+    GameMap.getObjects().forEach(o => {
       if (o.choices) o.choices.forEach(c => {
         if (c.eventId) possibleIds.push(c.eventId);
       });
@@ -367,7 +367,7 @@ const Game = (() => {
 
     save();
 
-    const obj = Map.getObjects().find(o => o.eventId === matchedId);
+    const obj = GameMap.getObjects().find(o => o.eventId === matchedId);
     if (obj && obj.type === 'gate') {
       return { eventId: matchedId, description: 'A distant gate grinds open...' };
     }
@@ -390,7 +390,7 @@ const Game = (() => {
     const areaDef = (typeof Data !== 'undefined' && Data.areas && Data.areas[areaId])
       ? Data.areas[areaId] : null;
     const mapData = MapGen.generate(areaId, state.sharedSeed, areaDef);
-    Map.load(mapData);
+    GameMap.load(mapData);
 
     // Restore or create explored array
     state.explored = (session.exploredAreas && session.exploredAreas[areaId])
@@ -424,7 +424,7 @@ const Game = (() => {
   }
 
   function isExplored(x, y) {
-    if (!state || y < 0 || y >= Map.H || x < 0 || x >= Map.W) return false;
+    if (!state || y < 0 || y >= GameMap.H || x < 0 || x >= GameMap.W) return false;
     return state.explored[y][x];
   }
 

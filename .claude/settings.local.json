@@ -12,7 +12,14 @@
       "Bash(rm:*)",
       "Bash(python -m http.server 8080 --directory dist)",
       "Bash(echo \"Server PID: $!\")",
-      "Bash(wc -l src/js/*.js)"
+      "Bash(wc -l src/js/*.js)",
+      "Bash(npx playwright:*)",
+      "Bash(node test/playtest.js)",
+      "Bash(node test/debug.js)",
+      "Bash(sed -i 's/\\\\bMap\\\\b\\\\./GameMap./g; s/const Map = /const GameMap = /; s/Map\\\\.FLOOR/GameMap.FLOOR/g; s/Map\\\\.WALL/GameMap.WALL/g; s/Map\\\\.DOOR/GameMap.DOOR/g' src/js/map.js)",
+      "Bash(sed -i 's/\\\\bMap\\\\./GameMap./g' src/js/game.js src/js/input.js src/js/renderer.js)",
+      "Bash(node test/debug_combat.js)",
+      "Bash(grep -n \"page[AB].*evaluate.*\\\\$\\\\{.*\\\\}.*\\\\$\\\\{\" \"C:/Users/Florian.Block/Code/Dark Fantasy Game/test/playtest.js\")"
     ]
   }
 }

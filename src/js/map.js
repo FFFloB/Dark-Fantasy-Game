@@ -2,7 +2,7 @@
 //  MAP — Loadable tile map with spatial queries
 // ============================================================
 
-const Map = (() => {
+const GameMap = (() => {
   let W = 0, H = 0;
   let tiles = null;
   let objects = [];
