@@ -295,6 +295,7 @@ input:focus { border-color: var(--accent); }
         <button class="icon-btn hidden" id="btn-toggle-timeline" onclick="toggleTimeline()" title="Switch timeline">&#8644;</button>
         <button class="icon-btn" onclick="toggleInventory()" title="Inventory">&#9776;</button>
         <button class="icon-btn" onclick="openGlyphPanel()" title="Glyphs">&#9753;</button>
+        <button class="icon-btn" id="btn-mute" onclick="toggleMute()" title="Sound">&#9834;</button>
       </div>
     </div>
 
@@ -323,7 +324,7 @@ input:focus { border-color: var(--accent); }
 
 </div>
 
-<div class="version-tag">v64a66f3 @ 2026-04-09 06:26</div>
+<div class="version-tag">v6b47044 @ 2026-04-09 15:47</div>
 
 <script>
 // --- js/crypto.js ---
@@ -539,6 +540,22 @@ const Data = (() => {
       desc: { past: 'Pages filled with urgent, cramped writing.', present: 'Fragments. Someone wrote this in fear.' } },
     childs_doll: { id: 'childs_doll', name: 'Cloth Doll', type: 'quest',
       desc: { past: 'A hand-sewn doll, well-loved, missing an eye.', present: 'Faded fabric, one glass eye staring.' } },
+    city_key: { id: 'city_key', name: 'Synod Hall Key', type: 'key',
+      desc: { past: 'A heavy iron key, warm with residual ward-magic.', present: 'Cold iron, the wards long since faded to nothing.' } },
+    thren_badge: { id: 'thren_badge', name: 'Captain\'s Badge', type: 'quest',
+      desc: { past: 'Thren\'s badge of office. A sentinel\'s oath cast in silver.', present: 'Tarnished silver. The oath it carried has gone silent.' } },
+    orphanage_drawing: { id: 'orphanage_drawing', name: 'Child\'s Drawing', type: 'quest',
+      desc: { past: 'A child\'s drawing: a tall building with candles, a stick figure reading to smaller ones.', present: 'Faded crayon on brittle paper. Two figures, one tall, one small. Both smiling.' } },
+    tomb_key: { id: 'tomb_key', name: 'Deep Chamber Key', type: 'key',
+      desc: { past: 'A key of black iron, inscribed with Synod script that writhes when touched.', present: 'The inscriptions have burned into the metal, frozen mid-writhe.' } },
+    ritual_text: { id: 'ritual_text', name: 'Ritual Fragment', type: 'quest',
+      desc: { past: 'A page of the binding ritual. The ink moves like something alive.', present: 'Scorched parchment. The words are burned in, permanent and screaming.' } },
+    greater_mending: { id: 'greater_mending', name: 'Greater Mending Draught', type: 'consumable', effect: { hp: 20 },
+      desc: { past: 'A deep amber flask, the liquid inside warm as hearthlight.', present: 'A sealed flask. The warmth inside defies the cold of seven years.' } },
+    clarity_draught: { id: 'clarity_draught', name: 'Clarity Draught', type: 'consumable', effect: { mp: 15 },
+      desc: { past: 'Distilled silence, bottled before silence became a weapon.', present: 'Liquid clarity. Drinking it feels like remembering a word on the tip of your tongue.' } },
+    memory_shard: { id: 'memory_shard', name: 'Memory Shard', type: 'quest',
+      desc: { past: 'A crystallized fragment of someone\'s happiest moment. It hums with warmth.', present: 'A cold crystal. Press it to your ear and you hear laughter you don\'t recognize.' } },
   };
 
   // --- HAND-AUTHORED ROOM TEMPLATES ---
@@ -601,6 +618,149 @@ const Data = (() => {
       [1,0,0,0,0,0,0,0,0,0,0,0,0,1],
       [1,0,0,0,0,0,0,0,0,0,0,0,0,1],
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    ],
+    // --- Act 2 Rooms ---
+    city_market_square: [
+      [1,1,1,1,1,1,0,0,1,1,1,1,1,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,1,0,0,0,0,0,0,1,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,1,0,0,0,0,0,0,1,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,1,1,1,1,0,0,0,0,1,1,1,1,1],
+    ],
+    city_garden_of_names: [
+      [1,1,1,1,1,1,1,1,1,1],
+      [1,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,1],
+      [1,0,0,1,0,0,1,0,0,1],
+      [0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0],
+      [1,0,0,1,0,0,1,0,0,1],
+      [1,0,0,0,0,0,0,0,0,1],
+      [1,1,1,1,1,1,1,1,1,1],
+    ],
+    city_orphanage: [
+      [1,1,1,1,1,1,1,1],
+      [1,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,1],
+      [2,0,0,0,0,0,0,1],
+      [2,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,1],
+      [1,1,1,1,1,1,1,1],
+    ],
+    city_synod_hall: [
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,1,0,0,0,0,0,0,1,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,1,0,0,0,0,0,0,1,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,1,1,1,1,0,0,0,0,1,1,1,1,1],
+    ],
+    // --- Act 3 Rooms ---
+    tomb_entrance_hall: [
+      [1,1,1,1,1,0,0,1,1,1,1,1],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,1,0,0,0,0,1,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,1,0,0,0,0,1,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [1,1,1,1,1,0,0,1,1,1,1,1],
+    ],
+    tomb_record_chamber: [
+      [1,1,1,1,0,0,1,1,1,1],
+      [1,0,0,0,0,0,0,0,0,1],
+      [1,0,1,0,0,0,0,1,0,1],
+      [1,0,0,0,0,0,0,0,0,1],
+      [1,0,1,0,0,0,0,1,0,1],
+      [1,0,0,0,0,0,0,0,0,1],
+      [1,0,1,0,0,0,0,1,0,1],
+      [1,0,0,0,0,0,0,0,0,1],
+      [1,1,1,1,1,1,1,1,1,1],
+    ],
+    tomb_confession_hall: [
+      [1,1,1,2,2,1,1],
+      [1,0,0,0,0,0,1],
+      [1,0,0,0,0,0,1],
+      [1,0,0,0,0,0,1],
+      [1,0,0,0,0,0,1],
+      [1,0,0,0,0,0,1],
+      [1,1,1,1,1,1,1],
+    ],
+    tomb_ritual_chamber: [
+      [1,1,1,1,1,0,0,1,1,1,1,1],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [1,1,1,1,1,1,1,1,1,1,1,1],
+    ],
+    tomb_deep_stacks: [
+      [1,1,1,1,0,0,1,1,1,1],
+      [1,0,0,0,0,0,0,0,0,1],
+      [1,0,1,0,0,0,0,1,0,1],
+      [1,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,1],
+      [1,0,1,0,0,0,0,1,0,1],
+      [1,0,0,0,0,0,0,0,0,1],
+      [1,1,1,1,1,1,1,1,1,1],
+    ],
+    // --- Act 4 Rooms ---
+    throne_memory_corridor: [
+      [1,1,1,0,0,1,1,1],
+      [1,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,1],
+      [1,1,1,0,0,1,1,1],
+    ],
+    throne_guilt_chamber: [
+      [1,1,1,2,2,1,1,1],
+      [1,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,1],
+      [1,1,1,1,1,1,1,1],
+    ],
+    throne_power_chamber: [
+      [1,1,1,1,1,1,1,1],
+      [1,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,1],
+      [1,1,1,2,2,1,1,1],
+    ],
+    throne_room: [
+      [1,1,1,1,0,0,0,0,1,1,1,1],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [1,1,1,1,0,0,0,0,1,1,1,1],
     ],
   };
 
@@ -760,14 +920,647 @@ const Data = (() => {
     ],
   };
 
+  // --- ENEMIES ---
+
+  const enemies = {
+    synod_ward: {
+      id: 'synod_ward', name: 'Warding Construct', timeline: 'past',
+      hp: 18, attack: 5, defense: 2, xp: 8,
+      drops: [{ item: items.health_potion, chance: 0.3 }],
+      dialogue: {
+        encounter: ['A construct of light and law bars your path.', 'Its eyes glow with borrowed authority.'],
+        defeat: ['The construct crumbles. It was only following orders.'],
+        mercy: ['You lower your blade. The construct dims, confused.', 'It steps aside, still humming its purpose.'],
+      },
+      mercyFlag: 'mercy_ward', glyphEvent: 'combat_ward',
+    },
+    synod_enforcer: {
+      id: 'synod_enforcer', name: 'Synod Enforcer', timeline: 'past',
+      hp: 24, attack: 7, defense: 3, xp: 12,
+      drops: [{ item: items.mana_potion, chance: 0.25 }],
+      dialogue: {
+        encounter: ['"You are not authorized. Stand down."'],
+        defeat: ['The enforcer falls. They believed in something. It wasn\'t enough.'],
+        mercy: ['"I... do not understand. Why would you spare me?"', 'The enforcer retreats, uncertain.'],
+      },
+      mercyFlag: 'mercy_enforcer', glyphEvent: 'combat_enforcer',
+    },
+    hollowed_scholar: {
+      id: 'hollowed_scholar', name: 'Hollowed Scholar', timeline: 'present',
+      hp: 14, attack: 4, defense: 1, xp: 7,
+      drops: [{ item: items.health_potion, chance: 0.3 }],
+      dialogue: {
+        encounter: ['A figure shuffles forward, hands still searching for books.', 'Its mouth moves. No sound comes out.'],
+        defeat: ['The hollow collapses. The hands stop moving.'],
+        mercy: ['You reach out gently. The hollow flinches, then stills.', 'Something like recognition crosses its face. It wanders away.'],
+      },
+      mercyFlag: 'mercy_scholar', glyphEvent: 'combat_scholar',
+    },
+    memory_wraith: {
+      id: 'memory_wraith', name: 'Memory Wraith', timeline: 'present',
+      hp: 20, attack: 6, defense: 2, xp: 10,
+      drops: [{ item: items.mana_potion, chance: 0.25 }],
+      dialogue: {
+        encounter: ['A shape coalesces from grief and dust.', 'It wears a face you almost recognize.'],
+        defeat: ['The wraith dissolves. The memory is lost forever.'],
+        mercy: ['You whisper something kind. The wraith pauses.', 'It reaches toward you, then dissipates gently.'],
+      },
+      mercyFlag: 'mercy_wraith', glyphEvent: 'combat_wraith',
+    },
+    curator_past: {
+      id: 'curator_past', name: 'The Curator', timeline: 'past',
+      hp: 50, attack: 8, defense: 4, xp: 30, boss: true,
+      drops: [{ item: items.scholars_key, chance: 1.0 }],
+      phases: [
+        { hpThreshold: 1.0, attack: 8, pattern: ['attack', 'attack', 'catalog'] },
+        { hpThreshold: 0.5, attack: 10, pattern: ['attack', 'catalog', 'silence'] },
+      ],
+      abilities: {
+        catalog: { name: 'Catalog', damage: 0, effect: 'defense_up', desc: 'The Curator reorganizes. Defense hardens.' },
+        silence: { name: 'Silence', damage: 4, effect: 'mp_drain', mpDrain: 3, desc: 'A forbidden word. Your thoughts scatter.' },
+      },
+      dialogue: {
+        encounter: ['"I cannot let you into the restricted section."', '"The knowledge there is too dangerous. I am trying to protect everyone."'],
+        phase2: ['"Why won\'t you listen? I have seen what those texts do to people!"'],
+        defeat: ['"Perhaps... perhaps you need to see for yourself."', 'The Curator steps aside, hands trembling.'],
+        mercy: ['"You would spare me? After all this?"', '"Then go. See what they\'ve done. And come back alive."'],
+      },
+      mercyFlag: 'mercy_curator', glyphEvent: 'combat_curator',
+    },
+    curator_present: {
+      id: 'curator_present', name: 'The Hollowed Curator', timeline: 'present',
+      hp: 45, attack: 7, defense: 3, xp: 30, boss: true,
+      drops: [{ item: items.scholars_key, chance: 1.0 }],
+      phases: [
+        { hpThreshold: 1.0, attack: 7, pattern: ['attack', 'memory_bolt', 'attack'] },
+        { hpThreshold: 0.5, attack: 9, pattern: ['memory_bolt', 'attack', 'grief_wave'] },
+      ],
+      abilities: {
+        memory_bolt: { name: 'Memory Bolt', damage: 6, desc: 'A shard of lost memory strikes you. You see a flash of a life not your own.' },
+        grief_wave: { name: 'Grief Wave', damage: 3, desc: '"The... children. Where are the children?"' },
+      },
+      dialogue: {
+        encounter: ['Something vast hunches in the shadows of the reading hall.', 'It turns. Its eyes hold no recognition — only duty.'],
+        phase2: ['The Curator shudders. For a moment, its hands stop sorting.', '"The... the children. Where are the children?"'],
+        defeat: ['The Hollowed Curator collapses.', 'Its last act is to gently shelve one final invisible book.'],
+        mercy: ['You reach out. The Hollowed flinches.', 'Then, slowly, it takes your hand.', '"Sable..."', 'It remembers. Just for a moment. Then it is at peace.'],
+      },
+      mercyFlag: 'mercy_curator', glyphEvent: 'combat_curator',
+    },
+
+    // --- ACT 2 ENEMIES ---
+
+    hollowed_citizen: {
+      id: 'hollowed_citizen', name: 'Hollowed Citizen', timeline: 'present',
+      hp: 12, attack: 3, defense: 1, xp: 5,
+      drops: [{ item: items.health_potion, chance: 0.2 }],
+      dialogue: {
+        encounter: ['A figure repeats the motions of a life it cannot remember.', 'Its hands knead invisible dough. Its mouth shapes words that have no sound.'],
+        defeat: ['The citizen crumples. The hands finally stop.', 'Whatever routine held it together has ended.'],
+        mercy: ['You still your blade. The citizen pauses, confused by the absence of pain.', 'It looks at its hands as if seeing them for the first time, then shuffles away.'],
+      },
+      mercyFlag: 'mercy_citizen', glyphEvent: 'combat_citizen',
+    },
+    echo_beast: {
+      id: 'echo_beast', name: 'Echo Beast', timeline: 'present',
+      hp: 22, attack: 6, defense: 2, xp: 11,
+      drops: [{ item: items.greater_mending, chance: 0.2 }],
+      dialogue: {
+        encounter: ['A shape of compressed grief lurches forward, roaring in a dozen stolen voices.', 'It is not one thing. It is many, fused by shared anguish into something bestial.'],
+        defeat: ['The beast unravels into wisps of fading memory.', 'For a moment you hear individual voices, then silence.'],
+        mercy: ['You reach into the cluster with careful, precise magic.', 'The voices separate. Individual Hollowed stagger apart, diminished but distinct.', 'They wander away, each carrying their own small grief again.'],
+      },
+      mercyFlag: 'mercy_echo_beast', glyphEvent: 'combat_echo_beast',
+    },
+    grief_manifestation: {
+      id: 'grief_manifestation', name: 'Grief Manifestation', timeline: 'present',
+      hp: 25, attack: 7, defense: 2, xp: 13,
+      drops: [{ item: items.memory_shard, chance: 0.3 }],
+      dialogue: {
+        encounter: ['"Tell my daughter\u2014" The words choke off. Something else surfaces: "I never meant to\u2014"', 'Raw emotional residue given form. It speaks in last words and final thoughts.'],
+        defeat: ['The manifestation dissipates. The unfinished sentences hang in the air, then fade.', 'You will never know what it needed to say.'],
+        mercy: ['You lower your weapon and listen. The grief speaks its piece.', '"I was just\u2014 I only wanted\u2014 please tell them I\u2014"', 'It finishes. The shape dissolves peacefully, leaving a faint warmth behind.'],
+      },
+      mercyFlag: 'mercy_grief', glyphEvent: 'combat_grief',
+    },
+    captain_thren: {
+      id: 'captain_thren', name: 'Captain Thren', timeline: 'past',
+      hp: 60, attack: 9, defense: 4, xp: 35, boss: true,
+      drops: [{ item: items.thren_badge, chance: 1.0 }],
+      phases: [
+        { hpThreshold: 1.0, attack: 9, pattern: ['attack', 'attack', 'rally'] },
+        { hpThreshold: 0.5, attack: 11, pattern: ['attack', 'challenge', 'disarm'] },
+      ],
+      abilities: {
+        rally: { name: 'Rally', damage: 0, effect: 'defense_up', desc: 'Thren sets his stance. The discipline of a lifetime hardens his guard.' },
+        challenge: { name: 'Challenge', damage: 6, desc: '"Face me properly, stranger. I deserve that much."' },
+        disarm: { name: 'Disarm', damage: 3, effect: 'mp_drain', mpDrain: 4, desc: 'A precise strike sends your focus scattering like dropped papers.' },
+      },
+      dialogue: {
+        encounter: ['"You are trespassing in the Synod\'s chambers. I don\'t want to do this."', '"But duty is duty, and I swore an oath."'],
+        phase2: ['"If what you say is true\u2014 if the Synod really\u2014"', '"No. I can\'t think about that and fight you at the same time."'],
+        defeat: ['"At least tell me it matters. What you\'re doing. Tell me it matters."', 'Thren falls. His sword clatters on stone that will outlast his oath.'],
+        mercy: ['"I\'ve seen the blank ones in the outer districts. I told myself it was illness."', '"Show me what you found. Show me everything."', 'Thren sheathes his blade. His hands are steady. His voice is not.'],
+      },
+      mercyFlag: 'mercy_thren', glyphEvent: 'combat_thren',
+    },
+    twin_sentinels: {
+      id: 'twin_sentinels', name: 'The Twin Sentinels', timeline: 'present',
+      hp: 55, attack: 8, defense: 5, xp: 35, boss: true,
+      drops: [{ item: items.city_key, chance: 1.0 }],
+      phases: [
+        { hpThreshold: 1.0, attack: 8, pattern: ['sync_strike', 'sync_strike', 'shield_wall'] },
+        { hpThreshold: 0.5, attack: 10, pattern: ['attack', 'guard', 'attack'] },
+      ],
+      abilities: {
+        sync_strike: { name: 'Synchronized Strike', damage: 8, desc: 'They move as one. Mirror images of duty without memory.' },
+        shield_wall: { name: 'Shield Wall', damage: 0, effect: 'defense_up', desc: 'Two shields lock together. Even hollowed, the training holds.' },
+        guard: { name: 'Guard', damage: 0, effect: 'defense_up', desc: 'The remaining sentinel braces. It will not leave its partner.' },
+      },
+      dialogue: {
+        encounter: ['Two figures block the corridor, moving in perfect unison.', 'They were partners in life. The Hollowing took everything but this.'],
+        phase2: ['One stumbles. The synchronization breaks.', 'The other turns, reaching for its partner with something like recognition.'],
+        defeat: ['The second sentinel collapses beside the first.', 'Even in the end, they are close enough to touch.'],
+        mercy: ['You step back. The surviving sentinel kneels beside its fallen partner.', 'It places a hand on the other\'s chest. A flicker \u2014 not memory, but the shape memory left.', 'They stay like that. You suspect they will stay like that forever.'],
+      },
+      mercyFlag: 'mercy_sentinels', glyphEvent: 'combat_sentinels',
+    },
+
+    // --- ACT 3 ENEMIES ---
+
+    corrupted_scholar: {
+      id: 'corrupted_scholar', name: 'Corrupted Scholar', timeline: 'both',
+      hp: 20, attack: 5, defense: 2, xp: 9,
+      drops: [{ item: items.clarity_draught, chance: 0.25 }],
+      dialogue: {
+        encounter: ['"The\u2014 the text, it said\u2014 no, that\'s not\u2014 the WORDS, they\u2014"', 'A scholar who read too deeply. The forbidden knowledge ate them from the inside.'],
+        defeat: ['The scholar collapses mid-sentence. The fragment of stolen knowledge dissipates.', 'They were still trying to understand. Even at the end.'],
+        mercy: ['You speak a counter-text \u2014 the words come from instinct, not memory.', 'The scholar\'s eyes clear for a single, terrible moment of comprehension.', '"Oh. Oh, I see now. I wish I hadn\'t." They sit down, calm, and weep quietly.'],
+      },
+      mercyFlag: 'mercy_corrupted', glyphEvent: 'combat_corrupted',
+    },
+    synod_inquisitor: {
+      id: 'synod_inquisitor', name: 'The Inquisitor', timeline: 'past',
+      hp: 55, attack: 8, defense: 3, xp: 40, boss: true,
+      drops: [{ item: items.tomb_key, chance: 1.0 }],
+      phases: [
+        { hpThreshold: 1.0, attack: 8, pattern: ['ritual_bolt', 'ritual_bolt', 'barrier'] },
+        { hpThreshold: 0.5, attack: 10, pattern: ['confession', 'ritual_bolt', 'confession'] },
+      ],
+      abilities: {
+        ritual_bolt: { name: 'Ritual Bolt', damage: 7, desc: 'Academic precision given killing force. She fights by the book because the book is all she trusts.' },
+        barrier: { name: 'Barrier', damage: 0, effect: 'defense_up', desc: 'Wards snap into place. Textbook formation. She learned this yesterday.' },
+        confession: { name: 'Confession', damage: 5, effect: 'reveal', desc: '"I joined them because I believed! I believed knowledge could\u2014 I didn\'t know what they\u2014"' },
+      },
+      dialogue: {
+        encounter: ['"I can\'t let you pass. If I let you pass, then everything I\'ve done\u2014"', '"I need this to have meant something. Please. Just turn back."'],
+        phase2: ['"If you stop them, what happens to me? I\'m part of it now \u2014 I\'ve DONE things\u2014"', 'She\'s crying. The ritual bolts come faster, less controlled.'],
+        defeat: ['She falls quoting Synod scripture. It sounds like a prayer.', 'It sounds like she\'s asking for forgiveness from someone who isn\'t there.'],
+        mercy: ['"You have evidence? Real evidence? Show me. Show me everything."', 'She reads. Goes still. Then, very quietly:', '"I\'ll slow them. I can\'t stop it, but I can slow it. Find the binding. The preservation ward."'],
+      },
+      mercyFlag: 'mercy_inquisitor', glyphEvent: 'combat_inquisitor',
+    },
+    synod_remnant: {
+      id: 'synod_remnant', name: 'The Synod Remnant', timeline: 'present',
+      hp: 80, attack: 10, defense: 4, xp: 50, boss: true,
+      drops: [{ item: items.ritual_text, chance: 1.0 }],
+      phases: [
+        { hpThreshold: 1.0, attack: 10, pattern: ['memory_storm', 'identity_blast', 'memory_storm'] },
+        { hpThreshold: 0.4, attack: 6, pattern: ['plea', 'defend', 'plea'] },
+      ],
+      abilities: {
+        memory_storm: { name: 'Memory Storm', damage: 9, desc: 'Ten thousand lives crash through you at once. You taste cake. You feel rain. You die in a bed surrounded by family.' },
+        identity_blast: { name: 'Identity Blast', damage: 12, desc: 'A concentrated bolt of stolen selfhood. For a moment you forget your own name.' },
+        plea: { name: 'Plea', damage: 0, desc: '"Kill us. Please. We remember everything. Every name we took. Every face we emptied. Kill us."' },
+        defend: { name: 'Defend', damage: 0, effect: 'defense_up', desc: 'The Remnant curls inward, five minds shielding themselves from their own memories.' },
+      },
+      dialogue: {
+        encounter: ['Five scholars fused into one agonized form. They achieved immortality. They are begging for death.', '"We remember. We remember ALL of them. Do you understand what that means?"'],
+        phase2: ['The Remnant stops attacking. Five voices, overlapping, pleading:', '"We are conscious. We have been conscious for seven years. Every stolen name screams inside us."', '"Grant us silence. The silence we inflicted. Please. We have earned it."'],
+        defeat: ['The Remnant shatters. Five consciousnesses scatter into the ambient silence.', 'They will never rest. They will never be whole. They will be noise in the quiet, forever.'],
+        mercy: ['You pull them apart with careful, agonizing precision.', 'Each separation costs you. Their memories flood through you \u2014 lives, loves, regrets.', 'One by one, five scholars who sold their souls for forever finally get to stop.', '"Thank you. Thank you. Thank\u2014" Silence. Real silence. Earned silence.'],
+      },
+      mercyFlag: 'mercy_remnant', glyphEvent: 'combat_remnant',
+    },
+  };
+
+  // Add enemy objects to Act 1
+  act1_athenaeum.objects.push(
+    { id: 'ath_enemy_ward', x: 10, y: 30, type: 'enemy', enemyId: 'synod_ward',
+      label: { past: 'A construct of light stands guard.', present: null } },
+    { id: 'ath_enemy_enforcer', x: 37, y: 19, type: 'enemy', enemyId: 'synod_enforcer',
+      label: { past: 'A Synod enforcer, hand on blade.', present: null } },
+    { id: 'ath_enemy_scholar', x: 10, y: 30, type: 'enemy', enemyId: 'hollowed_scholar',
+      label: { past: null, present: 'A shambling figure reaches toward you.' } },
+    { id: 'ath_enemy_wraith', x: 37, y: 19, type: 'enemy', enemyId: 'memory_wraith',
+      label: { past: null, present: 'A shape of grief and dust drifts forward.' } },
+    { id: 'ath_curator_boss', x: 25, y: 16, type: 'enemy', enemyId: 'curator_past',
+      label: { past: 'The Curator blocks the way, resolute.', present: null } },
+    { id: 'ath_curator_boss_present', x: 25, y: 16, type: 'enemy', enemyId: 'curator_present',
+      label: { past: null, present: 'The Hollowed Curator turns toward you.' } },
+  );
+
+  // --- ACT 2: THE HOLLOWED CITY ---
+
+  const act2_city = {
+    id: 'act2_city',
+    name: 'The Hollowed City',
+    w: 50, h: 50,
+    spawn: { x: 25, y: 48 },
+    rooms: [
+      { id: 'market_square', x: 19, y: 22, template: ROOMS.city_market_square },
+      { id: 'garden_of_names', x: 35, y: 20, template: ROOMS.city_garden_of_names },
+      { id: 'orphanage', x: 7, y: 22, template: ROOMS.city_orphanage },
+      { id: 'synod_hall', x: 18, y: 5, template: ROOMS.city_synod_hall },
+    ],
+    exits: [
+      { x: 25, y: 1, targetArea: 'act3_tomb', targetSpawn: { x: 25, y: 48 }, type: 'exit',
+        label: { past: 'Steps descend beneath the Synod Hall into darkness.', present: 'A gaping hole where the Synod Hall floor collapsed.' } },
+    ],
+    objects: [
+      // --- MARKET SQUARE ---
+      { id: 'city_merchant_npc', x: 22, y: 25, type: 'npc', eventId: null,
+        label: { past: 'A merchant calls her wares in elaborate rhyming couplets.', present: 'A hollow figure, hands weighing invisible goods.' },
+        dialogue: {
+          past: [
+            '"Fine silks and finer words! Step close, friend, step close!"',
+            '"Business is good, though the Synod\'s new taxes pinch."',
+            '"Have you heard? People going blank in the outer districts. Illness, they say."',
+            '"I don\'t believe it\'s illness. But what do I know? I\'m just a merchant."',
+          ],
+          present: [
+            '"Fine\u2014 fine wares\u2014 finest\u2014 what was I\u2014"',
+            '"Fine wares, fine\u2014"',
+            'The loop resets. The hands keep weighing nothing.',
+          ],
+        } },
+      { id: 'city_market_echo', x: 26, y: 28, type: 'echo_choice', eventId: 'city_market_warning',
+        label: {
+          past: 'The merchants here trust you enough to listen. You could warn them.',
+          present: 'The Market of Echoes plays its ghostly loops. Something could change them.',
+        },
+        choices: [
+          { label: 'Warn the merchants', eventId: 'city_merchants_warned',
+            message: 'You tell them what you know. Some pack to flee. Some stare. One thanks you with tears in her eyes.' },
+          { label: 'Stay silent', eventId: 'city_merchants_silent',
+            message: 'You say nothing. What would they do with the truth? Where would they go?' },
+        ] },
+      { id: 'city_market_chest', x: 20, y: 24, type: 'chest', eventId: null,
+        item: items.greater_mending,
+        label: {
+          past: 'A supply crate behind a merchant\'s stall.',
+          present: 'A crate, mostly looted. One flask remains, warm to the touch.',
+        } },
+      { id: 'city_lampposts', x: 24, y: 30, type: 'examine', eventId: null,
+        label: { past: 'Lamplit streets of pale stone. The city glows even at dusk.', present: 'The lamps still burn. Seven years of light with no one to tend them.' } },
+
+      // --- GARDEN OF NAMES ---
+      { id: 'city_garden_carving', x: 38, y: 23, type: 'combined', eventId: 'city_garden_bond',
+        label: {
+          past: 'The Garden of Names: a wall of civic pride. Citizens carve their names here as acts of belonging.',
+          present: 'The Garden of Names. The carved letters glow faintly \u2014 the last embers of identity, refusing to die.',
+        } },
+      { id: 'city_garden_examine', x: 40, y: 25, type: 'examine', eventId: null,
+        label: {
+          past: 'Fresh carvings alongside ancient ones. A living tradition, stretching back centuries.',
+          present: 'The newest carvings are seven years old. Some glow brighter than others.',
+        } },
+      { id: 'city_garden_npc', x: 37, y: 21, type: 'npc', eventId: null,
+        label: { past: 'An old stonemason, carefully carving a new name.', present: 'A hollow, tracing letters it can no longer read.' },
+        dialogue: {
+          past: [
+            '"Every name matters, friend. That\'s what the garden teaches."',
+            '"I\'ve carved three thousand names in my lifetime. Each one a promise."',
+            '"A promise that says: you were here. You mattered."',
+          ],
+          present: [
+            'The hollow\'s finger traces a name. Over and over.',
+            'The same letters. The same path. It remembers the shape, if not the meaning.',
+          ],
+        } },
+
+      // --- ORPHANAGE ---
+      { id: 'city_orphanage_keeper', x: 10, y: 24, type: 'npc', eventId: null,
+        label: { past: 'The orphanage keeper, a kind-faced woman sorting children\'s clothes.', present: null },
+        dialogue: {
+          past: [
+            '"The children are well, ser. Busy with lessons, as they should be."',
+            '"We had a girl here once \u2014 quiet thing, always reading. The Archivist took a shine to her."',
+            '"Gave her a name, even. Sable, after the ink. Said she was the color that carries every word."',
+            '"She\'s at the Athenaeum now. Happier than she ever was here, I think."',
+          ],
+          present: null,
+        } },
+      { id: 'city_orphanage_drawings', x: 12, y: 26, type: 'discovery', eventId: 'city_drawings_found',
+        forTimeline: 'present',
+        label: {
+          past: 'Children\'s drawings pinned to the wall. Bright colors, clumsy hands, enormous hearts.',
+          present: 'Faded drawings on brittle paper. A tall building with candles. A stick figure with glasses reading to smaller figures.',
+        } },
+      { id: 'city_orphanage_chest', x: 9, y: 27, type: 'chest', eventId: null,
+        item: items.orphanage_drawing,
+        label: {
+          past: 'A chest of children\'s keepsakes. Small treasures, fiercely guarded.',
+          present: 'A chest, half-open. Inside: a child\'s drawing of two figures, one tall, one small. Both smiling.',
+        } },
+      { id: 'city_hollowed_child', x: 11, y: 25, type: 'npc', eventId: null,
+        label: { past: null, present: 'A small hollowed figure. It reaches for your hand.' },
+        dialogue: {
+          past: null,
+          present: [
+            'The child reaches for your hand. Its eyes are blank but not quite blank.',
+            'It walks beside you for a time, occasionally looking up.',
+            'Your magic flickers when it\'s near. It leans toward the warmth like a flower toward light.',
+            'It does not speak. But its hand tightens around yours.',
+          ],
+        } },
+      { id: 'city_orphanage_girl', x: 10, y: 23, type: 'npc', eventId: null,
+        label: { past: 'A young girl reads alone in the corner, dark-haired, silent.', present: null },
+        dialogue: {
+          past: [
+            'She looks up with sharp, curious eyes.',
+            '"You\'re not a real knight, are you?"',
+            '"I can tell. Real knights don\'t look at bookshelves like that."',
+            '"Like they\'re remembering something they forgot they knew."',
+          ],
+          present: null,
+        } },
+
+      // --- SYNOD HALL ---
+      { id: 'city_synod_gate', x: 25, y: 14, type: 'gate', eventId: 'city_synod_open',
+        unlockedBy: 'city_drawings_found',
+        gateTiles: [[25, 14]],
+        label: {
+          past: 'The Synod Hall\'s inner chambers. Guarded, but you know the layout \u2014 somehow.',
+          present: 'Collapsed corridors. But a path remains, as though someone mapped it years ago.',
+        } },
+      { id: 'city_synod_evidence', x: 24, y: 8, type: 'discovery', eventId: 'city_synod_evidence_found',
+        forTimeline: 'past',
+        label: {
+          past: 'Synod preparation chambers. Wards inscribed. Rooms cleared. A list of volunteers for the next test.',
+          present: 'Scorched walls where wards detonated. The ritual preparations are burned into the stone.',
+        } },
+      { id: 'city_synod_layout', x: 26, y: 10, type: 'discovery', eventId: 'city_synod_layout_found',
+        forTimeline: 'past',
+        label: {
+          past: 'You map the Synod Hall\'s layout instinctively. Corridors, guard rotations, hidden passages. How do you know this?',
+          present: 'Path markers glow faintly on the walls \u2014 knowledge from the past, echoing forward as a guide.',
+        } },
+      { id: 'city_synod_potion', x: 22, y: 7, type: 'chest', eventId: null,
+        item: items.clarity_draught,
+        label: {
+          past: 'A locked cabinet of Synod supplies.',
+          present: 'A shattered cabinet. One draught survived, sealed in crystal.',
+        } },
+
+      // --- BOSS POSITIONS ---
+      { id: 'city_thren_boss', x: 25, y: 9, type: 'enemy', enemyId: 'captain_thren',
+        label: { past: 'Captain Thren stands at the inner door, hand on sword, face conflicted.', present: null } },
+      { id: 'city_sentinels_boss', x: 25, y: 9, type: 'enemy', enemyId: 'twin_sentinels',
+        label: { past: null, present: 'Two hollowed guards block the corridor, moving in perfect unison.' } },
+
+      // --- ENEMIES ---
+      { id: 'city_enemy_citizen1', x: 30, y: 35, type: 'enemy', enemyId: 'hollowed_citizen',
+        label: { past: null, present: 'A hollowed citizen kneads invisible dough, fists clenching and unclenching.' } },
+      { id: 'city_enemy_citizen2', x: 15, y: 40, type: 'enemy', enemyId: 'hollowed_citizen',
+        label: { past: null, present: 'A hollowed figure sweeps a spotless floor, over and over.' } },
+      { id: 'city_enemy_echo_beast', x: 35, y: 38, type: 'enemy', enemyId: 'echo_beast',
+        label: { past: null, present: 'A mass of compressed grief lurches between the market stalls.' } },
+      { id: 'city_enemy_enforcer1', x: 30, y: 12, type: 'enemy', enemyId: 'synod_enforcer',
+        label: { past: 'A Synod enforcer patrols the hall approach.', present: null } },
+      { id: 'city_enemy_enforcer2', x: 20, y: 15, type: 'enemy', enemyId: 'synod_enforcer',
+        label: { past: 'An enforcer guards the inner corridor.', present: null } },
+      { id: 'city_enemy_grief', x: 12, y: 30, type: 'enemy', enemyId: 'grief_manifestation',
+        label: { past: null, present: 'Raw emotional residue pools near the orphanage. It speaks in unfinished sentences.' } },
+
+      // --- EXIT ---
+      { id: 'city_exit', x: 25, y: 1, type: 'exit', eventId: null,
+        targetArea: 'act3_tomb', targetSpawn: { x: 25, y: 48 },
+        label: {
+          past: 'Steps descend into the Synod\'s underground chambers.',
+          present: 'A jagged hole where the floor gave way. Darkness below.',
+        } },
+
+      // --- SYNC RITUAL POINT ---
+      { id: 'city_ritual_point', x: 25, y: 32, type: 'sync_ritual', eventId: 'city_ritual',
+        label: {
+          past: 'A fountain in the market square. The water reflects a sky that doesn\'t match.',
+          present: 'A dry fountain. The basin still holds warmth, impossibly, as though something flows beneath.',
+        } },
+    ],
+  };
+
+  // --- ACT 3: THE SYNOD'S TOMB ---
+
+  const act3_tomb = {
+    id: 'act3_tomb',
+    name: 'The Synod\'s Tomb',
+    w: 50, h: 50,
+    spawn: { x: 25, y: 48 },
+    rooms: [
+      { id: 'entrance_hall', x: 19, y: 38, template: ROOMS.tomb_entrance_hall },
+      { id: 'record_chamber', x: 20, y: 28, template: ROOMS.tomb_record_chamber },
+      { id: 'confession_hall_1', x: 8, y: 22, template: ROOMS.tomb_confession_hall },
+      { id: 'confession_hall_2', x: 36, y: 22, template: ROOMS.tomb_confession_hall },
+      { id: 'ritual_chamber', x: 19, y: 10, template: ROOMS.tomb_ritual_chamber },
+      { id: 'deep_stacks', x: 20, y: 2, template: ROOMS.tomb_deep_stacks },
+    ],
+    exits: [
+      { x: 25, y: 1, targetArea: 'act4_throne', targetSpawn: { x: 20, y: 38 }, type: 'exit',
+        label: { past: 'Beyond the ritual chamber, reality thins. The walls breathe.', present: 'The boundary of the metaphysical space. Past and present dissolve here.' } },
+    ],
+    objects: [
+      // --- ENTRANCE HALL ---
+      { id: 'tomb_entrance_text', x: 22, y: 42, type: 'examine', eventId: null,
+        label: {
+          past: 'The walls are covered in text \u2014 not carved but written in ink that moves when observed indirectly.',
+          present: 'The text on the walls writhes, more agitated now, like something alive and in pain.',
+        } },
+      { id: 'tomb_entrance_chest', x: 20, y: 40, type: 'chest', eventId: null,
+        item: items.greater_mending,
+        label: {
+          past: 'A supply cache, tucked into an alcove.',
+          present: 'A cache, undisturbed for seven years. The supplies inside still hold warmth.',
+        } },
+
+      // --- RECORD CHAMBER ---
+      { id: 'tomb_records', x: 25, y: 31, type: 'discovery', eventId: 'tomb_records_found',
+        forTimeline: 'past',
+        label: {
+          past: 'The Chamber of Records. Readable texts detailing the history of the ritual, the theory of identity consumption, and \u2014 critically \u2014 the binding technique.',
+          present: 'Fragmented records, scrambled beyond reading. But if someone in the past could map them...',
+        } },
+      { id: 'tomb_records_examine', x: 23, y: 30, type: 'examine', eventId: null,
+        label: {
+          past: 'Research notes in several hands. The progression is clear: curiosity, excitement, justification, madness.',
+          present: 'Scorched pages. One phrase repeats across dozens of fragments: "The cost is acceptable."',
+        } },
+      { id: 'tomb_records_chest', x: 27, y: 33, type: 'chest', eventId: null,
+        item: items.ritual_text,
+        label: {
+          past: 'A sealed case containing a fragment of the binding ritual.',
+          present: 'A case, cracked open by the ritual\'s detonation. The fragment inside glows faintly.',
+        } },
+
+      // --- CONFESSION HALLS ---
+      { id: 'tomb_confession_1', x: 11, y: 24, type: 'confession', eventId: 'tomb_confession_cael',
+        label: {
+          past: 'A room with acoustic properties that force honesty. The walls ask: "What do you fear most?"',
+          present: 'The room remembers. Whispers of past confessions echo from the stone \u2014 fears, justifications, the slow slide from preservation to consumption.',
+        } },
+      { id: 'tomb_confession_2', x: 39, y: 24, type: 'confession', eventId: 'tomb_confession_sable',
+        label: {
+          past: 'A second confession hall. The walls ask: "Whom have you failed?"',
+          present: 'This room echoes with older confessions. Synod members\' voices, layered over years of deliberation. One voice is younger than the rest, uncertain.',
+        } },
+
+      // --- INQUISITOR NPC (before boss trigger) ---
+      { id: 'tomb_inquisitor_npc', x: 25, y: 18, type: 'npc', eventId: null,
+        label: { past: 'A young woman in Synod robes, barely older than a student. She blocks the stairway, trembling.', present: null },
+        dialogue: {
+          past: [
+            '"You shouldn\'t be here. No one should be here."',
+            '"I joined the Synod because I believed in preservation. In knowledge."',
+            '"They told me the tests were necessary. That the volunteers understood."',
+            '"I don\'t sleep anymore. I hear the volunteers in my dreams. They don\'t have words, but they scream."',
+          ],
+          present: null,
+        } },
+
+      // --- ENEMIES ---
+      { id: 'tomb_enemy_scholar1', x: 22, y: 35, type: 'enemy', enemyId: 'corrupted_scholar',
+        label: { past: 'A scholar who read too deeply, muttering fragments of forbidden text.', present: 'A hollowed scholar, still reciting words that burn the air around them.' } },
+      { id: 'tomb_enemy_scholar2', x: 28, y: 25, type: 'enemy', enemyId: 'corrupted_scholar',
+        label: { past: 'Another corrupted researcher, hands clawing at invisible pages.', present: 'A figure wreathed in stolen script, the text writhing across its skin.' } },
+      { id: 'tomb_enemy_scholar3', x: 15, y: 15, type: 'enemy', enemyId: 'corrupted_scholar',
+        label: { past: 'A scholar backed into a corner, speaking in tongues.', present: 'Corrupted knowledge given form, pacing the corridor in agitation.' } },
+
+      // --- BOSS POSITIONS ---
+      { id: 'tomb_inquisitor_boss', x: 25, y: 16, type: 'enemy', enemyId: 'synod_inquisitor',
+        label: { past: 'The Inquisitor raises her hands. Ritual energy crackles between her fingers.', present: null } },
+      { id: 'tomb_remnant_boss', x: 25, y: 14, type: 'enemy', enemyId: 'synod_remnant',
+        label: { past: null, present: 'Five minds in one agonized form. The Synod Remnant radiates stolen memories like heat from a furnace.' } },
+
+      // --- ECHO CHOICE ---
+      { id: 'tomb_inquisitor_choice', x: 25, y: 17, type: 'echo_choice', eventId: 'tomb_inquisitor_echo',
+        label: {
+          past: 'The Inquisitor wavers. You could show her the evidence, or press past her by force.',
+          present: 'Echoes of a confrontation linger here. Someone faced a terrible choice.',
+        },
+        choices: [
+          { label: 'Show her the evidence', eventId: 'tomb_inquisitor_mercy',
+            message: 'You offer everything you\'ve gathered. She reads. Goes pale. Goes still. Then nods.' },
+          { label: 'Force your way through', eventId: 'tomb_inquisitor_force',
+            message: 'There is no time for persuasion. You push forward. She raises her hands.' },
+        ] },
+
+      // --- DISCOVERIES ---
+      { id: 'tomb_binding_text', x: 25, y: 5, type: 'discovery', eventId: 'tomb_binding_found',
+        forTimeline: 'past',
+        label: {
+          past: 'The Archivist\'s private collection. And there \u2014 the preservation ward. A binding technique for protecting texts from erasure. Never meant for people.',
+          present: 'Empty shelves. Whatever was here was taken on the last night. Used. Spent.',
+        } },
+
+      // --- EXIT ---
+      { id: 'tomb_exit', x: 25, y: 1, type: 'exit', eventId: null,
+        targetArea: 'act4_throne', targetSpawn: { x: 20, y: 38 },
+        label: {
+          past: 'Beyond this point, the architecture stops making sense. The walls are made of text.',
+          present: 'The boundary dissolves. You step through and the timelines blur.',
+        } },
+
+      // --- SYNC RITUAL POINT ---
+      { id: 'tomb_ritual_point', x: 25, y: 20, type: 'sync_ritual', eventId: 'tomb_ritual',
+        label: {
+          past: 'A circle of concentric script on the floor. It pulses with the rhythm of a heartbeat.',
+          present: 'The circle is burned into the stone. But the heartbeat persists, faint and stubborn.',
+        } },
+    ],
+  };
+
+  // --- ACT 4: THE ASHEN THRONE ---
+
+  const act4_throne = {
+    id: 'act4_throne',
+    name: 'The Ashen Throne',
+    w: 40, h: 40,
+    spawn: { x: 20, y: 38 },
+    rooms: [
+      { id: 'memory_corridor', x: 16, y: 28, template: ROOMS.throne_memory_corridor },
+      { id: 'guilt_chamber', x: 6, y: 18, template: ROOMS.throne_guilt_chamber },
+      { id: 'power_chamber', x: 26, y: 18, template: ROOMS.throne_power_chamber },
+      { id: 'throne_room', x: 14, y: 8, template: ROOMS.throne_room },
+    ],
+    exits: [],
+    objects: [
+      // --- MEMORY CORRIDOR ---
+      { id: 'throne_corridor_examine', x: 20, y: 33, type: 'examine', eventId: null,
+        label: {
+          past: 'A vast library with infinite shelves, every book open, every page turning. The stolen memories are here, preserved as text.',
+          present: 'A vast silence with shapes in it \u2014 the negative space of every word, the outlines of memories viewed from the inside.',
+        } },
+      { id: 'throne_memory_fragment1', x: 18, y: 31, type: 'examine', eventId: null,
+        label: {
+          past: 'A book lies open. You read a page and live a merchant\'s wedding day. The joy is borrowed but it aches.',
+          present: 'A shape in the silence. Press close and you feel the outline of a celebration you never attended.',
+        } },
+      { id: 'throne_memory_fragment2', x: 22, y: 35, type: 'examine', eventId: null,
+        label: {
+          past: 'Another book. A child\'s first word. A mother\'s face. The weight of ten thousand such moments threatens to drown you.',
+          present: 'Another absence. The shape of a voice saying a name for the first time. The silence where love was.',
+        } },
+
+      // --- GUILT CHAMBER (Cael's Trial, past timeline) ---
+      { id: 'throne_guilt_memory', x: 9, y: 21, type: 'trial', eventId: 'throne_guilt_trial',
+        label: {
+          past: 'The Unvoicing replays around you. Your perspective first \u2014 running, carrying a book and a terrified girl. Then from others. A merchant. A child. A guard. You feel what it is to lose yourself.',
+          present: null,
+        } },
+      { id: 'throne_guilt_examine', x: 11, y: 20, type: 'examine', eventId: null,
+        label: {
+          past: 'You see yourself clearly for the first time. A thin, frightened scholar in borrowed steel. The armor was never yours. The sword was never yours. Only the guilt.',
+          present: null,
+        } },
+
+      // --- POWER CHAMBER (Sable's Trial, present timeline) ---
+      { id: 'throne_power_temptation', x: 29, y: 21, type: 'trial', eventId: 'throne_power_trial',
+        label: {
+          past: null,
+          present: '"You are us," the silence says. "Every spell you cast, every ability you used \u2014 that was us. We are your power. Why would you give that up?"',
+        } },
+      { id: 'throne_power_examine', x: 31, y: 22, type: 'examine', eventId: null,
+        label: {
+          past: null,
+          present: 'The Unvoicing offers itself like a gift. Total power. Every stolen identity as fuel. You could be a god of borrowed memories. The temptation is a warmth that feels like home.',
+        } },
+
+      // --- THRONE ROOM ---
+      { id: 'throne_ashen_throne', x: 20, y: 12, type: 'throne_choice', eventId: 'throne_final_choice',
+        label: {
+          past: 'The Ashen Throne. A simple stone chair in a room made of every word ever spoken in Vaelthorne. It is warm here. It is beautiful. It is an ocean that wants you to drown.',
+          present: 'The Ashen Throne. It radiates the power you have carried since the silence. It feels like coming home to a home you didn\'t know you had. It is cold. It is terrifying. It is yours.',
+        } },
+
+      // --- SYNC RITUAL POINT (final) ---
+      { id: 'throne_ritual_point', x: 20, y: 14, type: 'sync_ritual', eventId: 'throne_final_ritual',
+        label: {
+          past: 'The final circle. Both timelines converge here. You feel the other presence \u2014 closer than ever, separated by seven years and a single choice.',
+          present: 'The final circle. The timelines thin to nothing. Someone is here with you, on the other side of silence, waiting.',
+        } },
+    ],
+  };
+
   // --- AREA REGISTRY ---
 
   const areas = {
     act1_athenaeum,
-    // act2_city: defined later
+    act2_city,
+    act3_tomb,
+    act4_throne,
   };
 
-  return { items, areas, ROOMS };
+  return { items, enemies, areas, ROOMS };
 })();
 
 
@@ -1186,6 +1979,22 @@ const Bond = (() => {
         'Someone else is being wrapped in something warm, even as the world ends.',
         'Then silence. The silence that ate everything.',
         'You return to yourself, shaking.'] },
+    { threshold: 70, character: null, title: 'The Unraveling',
+      lines: [
+        'The vision is different this time. Sharper. Closer.',
+        'You see the ritual from INSIDE the circle.',
+        'Five robed figures, hands raised, mouths forming words that eat meaning.',
+        'A man runs toward them. He is not armed. He carries a book.',
+        'He reaches for one of the figures — the youngest — and screams something.',
+        'The youngest hesitates. The ritual stutters.',
+        'But it does not stop.',
+        'The man turns. He sees a girl, frozen at the edge of the light.',
+        'He runs to her. He wraps something around her — not cloth. Not light.',
+        'Himself. He wraps himself around her.',
+        'The world goes silent.',
+        'You understand now. The enemies. The hollow faces.',
+        'They were people. All of them. Every one you fought.',
+        'You return to yourself. The knowledge sits heavy as stone.'] },
     { threshold: 80, character: 'knight', title: 'The Truth',
       lines: [
         'Memory crashes over you like a wave—',
@@ -1353,6 +2162,925 @@ const Dialogue = (() => {
   function isActive() { return active; }
 
   return { show, showChoice, advance, close, isActive };
+})();
+
+
+// --- js/combat.js ---
+// ============================================================
+//  COMBAT — Full-screen turn-based combat system
+// ============================================================
+
+const Combat = (() => {
+  let state = null;
+
+  // Action button layout (on 480x480 canvas)
+  const BUTTONS = [
+    { id: 'attack', label: 'Attack',  x: 24,  y: 346, w: 210, h: 52 },
+    { id: 'defend', label: 'Defend',  x: 246, y: 346, w: 210, h: 52 },
+    { id: 'item',   label: 'Item',    x: 24,  y: 410, w: 210, h: 52 },
+    { id: 'mercy',  label: 'Mercy',   x: 246, y: 410, w: 210, h: 52 },
+  ];
+
+  function start(enemyDef, mapObjId) {
+    const gs = Game.getState();
+
+    // Clone enemy for combat instance
+    const enemy = {
+      ...enemyDef,
+      currentHp: enemyDef.hp,
+      maxHp: enemyDef.hp,
+      currentDef: enemyDef.defense,
+      phaseIdx: 0,
+      turnCount: 0,
+    };
+
+    // Cross-timeline glyph weakening (e.g., past mercy weakens present boss)
+    if (enemyDef.glyphEvent && gs.appliedGlyphs.includes(enemyDef.glyphEvent)) {
+      const weaken = enemyDef.boss ? 10 : 4;
+      enemy.currentHp = Math.max(1, enemy.currentHp - weaken);
+      enemy.maxHp = enemy.currentHp;
+    }
+
+    state = {
+      active: true,
+      enemy,
+      enemyObjId: mapObjId,
+      turn: 'intro',
+      log: [],
+      defendActive: false,
+      damageNumbers: [],
+      shakeTimer: 0,
+      flashTarget: null,
+      flashTimer: 0,
+      result: null,
+      animFrame: null,
+    };
+
+    // Show encounter dialogue, then start player turn
+    Dialogue.show(enemyDef.dialogue.encounter, () => {
+      state.turn = 'player';
+      startAnimLoop();
+    });
+  }
+
+  // --- ANIMATION LOOP (for combat screen) ---
+
+  function startAnimLoop() {
+    if (state.animFrame) return;
+    state.animFrame = requestAnimationFrame(combatAnimLoop);
+  }
+
+  function combatAnimLoop(now) {
+    if (!state || !state.active) return;
+
+    // Update timers
+    if (state.shakeTimer > 0) state.shakeTimer = Math.max(0, state.shakeTimer - 16);
+    if (state.flashTimer > 0) state.flashTimer = Math.max(0, state.flashTimer - 16);
+
+    // Update damage numbers
+    state.damageNumbers = state.damageNumbers.filter(d => {
+      d.y -= 0.8;
+      d.opacity -= 0.02;
+      return d.opacity > 0;
+    });
+
+    // Render
+    const gs = Game.getState();
+    if (gs) Renderer.draw(gs, gs.timeline);
+
+    // Continue if there are active animations
+    if (state.shakeTimer > 0 || state.flashTimer > 0 || state.damageNumbers.length > 0) {
+      state.animFrame = requestAnimationFrame(combatAnimLoop);
+    } else {
+      state.animFrame = null;
+    }
+  }
+
+  function addDamageNumber(value, target) {
+    state.damageNumbers.push({
+      value, x: target === 'enemy' ? 240 : 120, y: target === 'enemy' ? 130 : 300,
+      opacity: 1, color: target === 'enemy' ? '#cc4444' : '#ff6666',
+    });
+    startAnimLoop();
+  }
+
+  function triggerShake() { state.shakeTimer = 200; startAnimLoop(); }
+  function triggerFlash(target) { state.flashTarget = target; state.flashTimer = 150; startAnimLoop(); }
+
+  // --- PLAYER ACTIONS ---
+
+  function doAttack() {
+    if (!state || state.turn !== 'player') return;
+    state.turn = 'animating';
+    state.defendActive = false;
+
+    const gs = Game.getState();
+    const level = gs.stats ? gs.stats.level : 1;
+    const raw = level * 2 + 4 + Math.floor(Math.random() * 3);
+    const dmg = Math.max(1, raw - state.enemy.currentDef);
+
+    state.enemy.currentHp = Math.max(0, state.enemy.currentHp - dmg);
+    addDamageNumber(dmg, 'enemy');
+    triggerFlash('enemy');
+    if (typeof Audio !== 'undefined') Audio.hit();
+    state.log.push('You strike for ' + dmg + ' damage.');
+
+    checkPhaseTransition();
+
+    if (state.enemy.currentHp <= 0) {
+      setTimeout(() => endCombat('victory'), 600);
+    } else {
+      setTimeout(() => enemyTurn(), 500);
+    }
+  }
+
+  function doDefend() {
+    if (!state || state.turn !== 'player') return;
+    state.turn = 'animating';
+    state.defendActive = true;
+    state.log.push('You brace yourself.');
+    setTimeout(() => enemyTurn(), 400);
+  }
+
+  function doItem() {
+    if (!state || state.turn !== 'player') return;
+    const gs = Game.getState();
+    if (!gs || !gs.stats) return;
+
+    const consumables = gs.stats.items.filter(i => i.type === 'consumable');
+    if (consumables.length === 0) {
+      state.log.push('No items to use.');
+      Renderer.draw(gs, gs.timeline);
+      return;
+    }
+
+    state.turn = 'animating';
+    Dialogue.showChoice('Use which item?', consumables.map(i => i.name), (idx) => {
+      const item = Stats.useItem(gs.stats, consumables[idx].id);
+      if (item) {
+        state.log.push('Used ' + item.name + '.');
+        Game.save();
+      }
+      state.defendActive = false;
+      setTimeout(() => enemyTurn(), 400);
+    });
+  }
+
+  function doMercy() {
+    if (!state || state.turn !== 'player') return;
+    const gs = Game.getState();
+
+    // Mercy works: normal enemies always, bosses only below 25% HP
+    if (state.enemy.boss && state.enemy.currentHp > state.enemy.maxHp * 0.25) {
+      state.log.push('The enemy is too strong to reach. Weaken them first.');
+      Renderer.draw(gs, gs.timeline);
+      return;
+    }
+
+    state.turn = 'animating';
+    endCombat('mercy');
+  }
+
+  // --- ENEMY TURN ---
+
+  function enemyTurn() {
+    if (!state) return;
+    state.turn = 'enemy';
+    state.enemy.turnCount++;
+
+    const gs = Game.getState();
+    const enemy = state.enemy;
+    let action = 'attack';
+
+    // Boss pattern
+    if (enemy.phases) {
+      const phase = enemy.phases[enemy.phaseIdx];
+      if (phase && phase.pattern) {
+        action = phase.pattern[(enemy.turnCount - 1) % phase.pattern.length];
+      }
+    }
+
+    if (action === 'attack') {
+      const raw = enemy.attack + Math.floor(Math.random() * 3);
+      let dmg = Math.max(1, state.defendActive ? Math.floor(raw / 2) : raw);
+      if (gs.stats) {
+        Stats.takeDamage(gs.stats, dmg);
+        Game.save();
+      }
+      addDamageNumber(dmg, 'player');
+      triggerShake();
+      triggerFlash('player');
+      if (typeof Audio !== 'undefined') Audio.hit();
+      const verb = state.defendActive ? ' (blocked)' : '';
+      state.log.push(enemy.name + ' attacks for ' + dmg + verb + '.');
+    } else if (enemy.abilities && enemy.abilities[action]) {
+      const ability = enemy.abilities[action];
+      state.log.push(ability.desc);
+      if (ability.damage > 0 && gs.stats) {
+        let dmg = state.defendActive ? Math.floor(ability.damage / 2) : ability.damage;
+        Stats.takeDamage(gs.stats, dmg);
+        addDamageNumber(dmg, 'player');
+        triggerFlash('player');
+      }
+      if (ability.effect === 'defense_up') enemy.currentDef += 2;
+      if (ability.mpDrain && gs.stats) gs.stats.mp = Math.max(0, gs.stats.mp - ability.mpDrain);
+      Game.save();
+    }
+
+    state.defendActive = false;
+
+    // Check player death
+    if (gs.stats && gs.stats.hp <= 0) {
+      setTimeout(() => endCombat('defeat'), 600);
+      return;
+    }
+
+    setTimeout(() => { state.turn = 'player'; Renderer.draw(gs, gs.timeline); }, 500);
+  }
+
+  function checkPhaseTransition() {
+    const enemy = state.enemy;
+    if (!enemy.phases || enemy.phaseIdx >= enemy.phases.length - 1) return;
+
+    const nextPhase = enemy.phases[enemy.phaseIdx + 1];
+    if (enemy.currentHp / enemy.maxHp <= nextPhase.hpThreshold) {
+      enemy.phaseIdx++;
+      enemy.attack = nextPhase.attack || enemy.attack;
+      if (enemy.dialogue && enemy.dialogue.phase2) {
+        const gs = Game.getState();
+        state.turn = 'animating';
+        Dialogue.show(enemy.dialogue.phase2, () => {
+          state.turn = 'player';
+          Renderer.draw(gs, gs.timeline);
+        });
+      }
+    }
+  }
+
+  // --- COMBAT END ---
+
+  function endCombat(result) {
+    if (!state) return;
+    const gs = Game.getState();
+    const enemy = state.enemy;
+    state.result = result;
+
+    const lines = enemy.dialogue[result === 'mercy' ? 'mercy' : 'defeat'] || ['The fight is over.'];
+
+    if (result === 'victory') {
+      // XP
+      if (gs.stats) {
+        const leveled = Stats.gainXp(gs.stats, enemy.xp, gs.character);
+        lines.push('Gained ' + enemy.xp + ' experience.' + (leveled ? ' Level up!' : ''));
+      }
+      // Drops
+      for (const drop of (enemy.drops || [])) {
+        if (Math.random() < drop.chance && gs.stats) {
+          if (Stats.addItem(gs.stats, drop.item)) {
+            lines.push('Found: ' + drop.item.name);
+          }
+        }
+      }
+      // Story flag
+      if (enemy.mercyFlag) Game.setStoryFlag(enemy.mercyFlag, 'kill');
+    }
+
+    if (result === 'mercy') {
+      if (enemy.mercyFlag) Game.setStoryFlag(enemy.mercyFlag, 'mercy');
+      // Bond increase
+      if (gs.bond) {
+        const vision = Bond.increase(gs.bond, enemy.boss ? 10 : 5, gs.character);
+        if (vision) {
+          lines.push('');
+          lines.push(...vision.lines);
+        }
+      }
+    }
+
+    if (result === 'defeat') {
+      // Restore to 1 HP, don't remove enemy
+      if (gs.stats) { gs.stats.hp = 1; }
+      lines.push('You stagger back, barely conscious.');
+      Game.save();
+      Dialogue.show(lines, () => { state.active = false; state = null; });
+      return;
+    }
+
+    // Victory/mercy: generate glyph, remove enemy from map
+    if (enemy.glyphEvent) {
+      const glyph = Crypto.generateGlyph(gs.sharedSeed, enemy.glyphEvent);
+      lines.push('A glyph emerges: ' + glyph);
+      lines.push('Share this with your partner.');
+      // Also add to glyph log
+      setTimeout(() => {
+        if (typeof showGeneratedGlyph === 'function') {
+          showGeneratedGlyph(glyph, result === 'mercy' ? 'Your mercy echoes across time...' : 'The battle resonates across timelines...');
+        }
+      }, 500);
+    }
+
+    // Remove enemy from map
+    gs.interactedObjects.push(state.enemyObjId);
+    Game.save();
+
+    Dialogue.show(lines, () => {
+      state.active = false;
+      state = null;
+      // Re-render map
+      Renderer.draw(gs, gs.timeline);
+    });
+  }
+
+  // --- COMBAT RENDERER ---
+
+  function draw(ctx, W, H, pal, gs) {
+    // Shake offset
+    const sx = state.shakeTimer > 0 ? (Math.random() - 0.5) * 4 : 0;
+    const sy = state.shakeTimer > 0 ? (Math.random() - 0.5) * 4 : 0;
+    ctx.save();
+    ctx.translate(sx, sy);
+
+    // Background
+    ctx.fillStyle = pal.bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // Divider lines
+    ctx.strokeStyle = pal.wallStroke;
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, 200); ctx.lineTo(W, 200); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, 330); ctx.lineTo(W, 330); ctx.stroke();
+
+    // --- ENEMY AREA (top) ---
+    const ex = W / 2, ey = 120;
+
+    // Flash
+    if (state.flashTimer > 0 && state.flashTarget === 'enemy') {
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.fillRect(W / 2 - 40, 60, 80, 120);
+    }
+
+    // Enemy sprite (simple but distinct)
+    drawEnemySprite(ctx, ex, ey, state.enemy, pal);
+
+    // Enemy name + HP
+    ctx.fillStyle = pal.textColor;
+    ctx.font = '13px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(state.enemy.name, ex, 40);
+    ctx.textAlign = 'start';
+
+    // Enemy HP bar
+    const ehpW = 160, ehpH = 6;
+    const ehpX = ex - ehpW / 2, ehpY = 48;
+    ctx.fillStyle = 'rgba(10,10,15,0.6)';
+    ctx.fillRect(ehpX - 1, ehpY - 1, ehpW + 2, ehpH + 2);
+    ctx.fillStyle = '#8a2a2a';
+    ctx.fillRect(ehpX, ehpY, ehpW * Math.max(0, state.enemy.currentHp / state.enemy.maxHp), ehpH);
+    ctx.fillStyle = '#cc4444';
+    ctx.fillRect(ehpX, ehpY, ehpW * Math.max(0, state.enemy.currentHp / state.enemy.maxHp), 2);
+
+    // --- PLAYER HUD (below enemy) ---
+    if (state.flashTimer > 0 && state.flashTarget === 'player') {
+      ctx.fillStyle = 'rgba(255,100,100,0.15)';
+      ctx.fillRect(0, 205, W, 120);
+    }
+
+    if (gs.stats) {
+      const phx = 24, phy = 210;
+      ctx.fillStyle = pal.textDim;
+      ctx.font = '11px "Courier New", monospace';
+      ctx.fillText('HP', phx, phy + 10);
+      ctx.fillStyle = 'rgba(10,10,15,0.6)';
+      ctx.fillRect(phx + 24, phy, 140, 8);
+      ctx.fillStyle = '#8a2a2a';
+      ctx.fillRect(phx + 24, phy, 140 * (gs.stats.hp / gs.stats.maxHp), 8);
+      ctx.fillStyle = '#cc4444';
+      ctx.fillRect(phx + 24, phy, 140 * (gs.stats.hp / gs.stats.maxHp), 2);
+      ctx.fillStyle = pal.textDim;
+      ctx.fillText(gs.stats.hp + '/' + gs.stats.maxHp, phx + 170, phy + 8);
+
+      ctx.fillText('MP', phx, phy + 26);
+      ctx.fillStyle = 'rgba(10,10,15,0.6)';
+      ctx.fillRect(phx + 24, phy + 16, 140, 8);
+      ctx.fillStyle = '#2a3a8a';
+      ctx.fillRect(phx + 24, phy + 16, 140 * (gs.stats.mp / gs.stats.maxMp), 8);
+      ctx.fillStyle = '#4466cc';
+      ctx.fillRect(phx + 24, phy + 16, 140 * (gs.stats.mp / gs.stats.maxMp), 2);
+      ctx.fillStyle = pal.textDim;
+      ctx.fillText(gs.stats.mp + '/' + gs.stats.maxMp, phx + 170, phy + 24);
+    }
+
+    // --- COMBAT LOG ---
+    ctx.fillStyle = pal.textDim;
+    ctx.font = '10px "Courier New", monospace';
+    const logLines = state.log.slice(-3);
+    for (let i = 0; i < logLines.length; i++) {
+      ctx.fillText(logLines[i], 24, 260 + i * 18);
+    }
+
+    // Turn indicator
+    if (state.turn === 'player') {
+      ctx.fillStyle = pal.textColor;
+      ctx.font = '11px "Courier New", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('— Your Turn —', W / 2, 310);
+      ctx.textAlign = 'start';
+    } else if (state.turn === 'enemy') {
+      ctx.fillStyle = '#8a2a2a';
+      ctx.font = '11px "Courier New", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('— Enemy Turn —', W / 2, 310);
+      ctx.textAlign = 'start';
+    }
+
+    // --- ACTION BUTTONS ---
+    if (state.turn === 'player') {
+      const bondLevel = gs.bond ? gs.bond.level : 0;
+      for (const btn of BUTTONS) {
+        const isMercy = btn.id === 'mercy';
+        const mercyAvailable = bondLevel >= 60;
+        const disabled = isMercy && !mercyAvailable;
+
+        ctx.fillStyle = disabled ? pal.bg : pal.wall;
+        ctx.fillRect(btn.x, btn.y, btn.w, btn.h);
+        ctx.strokeStyle = disabled ? pal.wallStroke : pal.textColor;
+        ctx.strokeRect(btn.x + 0.5, btn.y + 0.5, btn.w - 1, btn.h - 1);
+
+        ctx.fillStyle = disabled ? pal.wallStroke : pal.textColor;
+        ctx.font = '14px "Courier New", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(isMercy && !mercyAvailable ? '???' : btn.label, btn.x + btn.w / 2, btn.y + btn.h / 2 + 5);
+        ctx.textAlign = 'start';
+      }
+    }
+
+    // --- DAMAGE NUMBERS ---
+    for (const d of state.damageNumbers) {
+      ctx.globalAlpha = d.opacity;
+      ctx.fillStyle = d.color;
+      ctx.font = 'bold 18px "Courier New", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('-' + d.value, d.x, d.y);
+      ctx.textAlign = 'start';
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.restore();
+  }
+
+  function drawEnemySprite(ctx, x, y, enemy, pal) {
+    const isBoss = enemy.boss;
+    const sz = isBoss ? 36 : 24;
+
+    // Glow
+    const grad = ctx.createRadialGradient(x, y, sz * 0.3, x, y, sz * 1.5);
+    grad.addColorStop(0, (enemy.timeline === 'past' ? '#8a2a2a' : '#6a2a6a') + '40');
+    grad.addColorStop(1, 'transparent');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x - sz * 2, y - sz * 2, sz * 4, sz * 4);
+
+    // Body
+    ctx.fillStyle = enemy.timeline === 'past' ? '#8a2a2a' : '#6a2a6a';
+    ctx.beginPath();
+    ctx.arc(x, y - sz * 0.3, sz * 0.45, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(x - sz * 0.3, y, sz * 0.6, sz * 0.5);
+
+    // Eyes
+    ctx.fillStyle = enemy.timeline === 'past' ? '#cc6644' : '#aa44cc';
+    ctx.fillRect(x - 4, y - sz * 0.4, 3, 3);
+    ctx.fillRect(x + 2, y - sz * 0.4, 3, 3);
+
+    // Boss crown/marker
+    if (isBoss) {
+      ctx.fillStyle = pal.textColor;
+      ctx.beginPath();
+      ctx.moveTo(x - 8, y - sz * 0.7);
+      ctx.lineTo(x, y - sz * 0.9);
+      ctx.lineTo(x + 8, y - sz * 0.7);
+      ctx.stroke();
+    }
+  }
+
+  // --- TAP HANDLING ---
+
+  function handleTap(e, canvas) {
+    if (!state || state.turn !== 'player') return;
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const cx = (e.clientX - rect.left) * scaleX;
+    const cy = (e.clientY - rect.top) * scaleY;
+
+    for (const btn of BUTTONS) {
+      if (cx >= btn.x && cx <= btn.x + btn.w && cy >= btn.y && cy <= btn.y + btn.h) {
+        switch (btn.id) {
+          case 'attack': doAttack(); break;
+          case 'defend': doDefend(); break;
+          case 'item':   doItem(); break;
+          case 'mercy':  doMercy(); break;
+        }
+        return;
+      }
+    }
+  }
+
+  function isActive() { return state && state.active; }
+  function getState() { return state; }
+
+  return { start, isActive, getState, draw, handleTap };
+})();
+
+
+// --- js/endings.js ---
+// ============================================================
+//  ENDINGS — Calculate and display game endings
+// ============================================================
+
+const Endings = (() => {
+  // Count mercy choices across all storyFlags
+  function countMercy(storyFlags) {
+    let mercy = 0, total = 0;
+    for (const [key, val] of Object.entries(storyFlags)) {
+      if (key.startsWith('mercy_')) {
+        total++;
+        if (val === 'mercy') mercy++;
+      }
+    }
+    return { mercy, total, allMercy: total > 0 && mercy === total };
+  }
+
+  function calculate(state) {
+    const myChoice = state.storyFlags.throne_choice; // 'sacrifice' or 'refuse'
+    const partnerChoice = state.storyFlags.partner_throne_choice; // from glyph
+    const bond = state.bond ? state.bond.level : 0;
+    const { mercy, allMercy } = countMercy(state.storyFlags);
+
+    // Ending 6: The Paradox (hidden, hardest)
+    if (bond >= 100 && allMercy && myChoice === 'sacrifice' && partnerChoice === 'sacrifice') {
+      return 'paradox';
+    }
+    // Ending 5: Strangers (low bond)
+    if (bond < 40) return 'strangers';
+
+    // Ending 3: Unbroken Binding (both sacrifice, high bond)
+    if (myChoice === 'sacrifice' && partnerChoice === 'sacrifice' && bond >= 90) {
+      return 'unbroken';
+    }
+    // Ending 4: Long Silence (neither sacrifices)
+    if (myChoice === 'refuse' && partnerChoice === 'refuse') {
+      return 'silence';
+    }
+    // Ending 1: Archivist's Last Act (knight sacrifices)
+    if (myChoice === 'sacrifice' && state.character === 'knight' && bond >= 60) {
+      return 'archivist';
+    }
+    if (partnerChoice === 'sacrifice' && state.character === 'whisper' && bond >= 60) {
+      return 'archivist';
+    }
+    // Ending 2: Whisper Becomes Word (whisper sacrifices)
+    if (myChoice === 'sacrifice' && state.character === 'whisper' && bond >= 60) {
+      return 'whisper_word';
+    }
+    if (partnerChoice === 'sacrifice' && state.character === 'knight' && bond >= 60) {
+      return 'whisper_word';
+    }
+    // Fallback
+    return 'silence';
+  }
+
+  // Ending text per character perspective
+  const ENDINGS = {
+    archivist: {
+      title: 'The Archivist\'s Last Act',
+      knight: [
+        'You sit upon the Ashen Throne.',
+        'The armor dissolves. It was never yours.',
+        'Beneath it: a scholar\'s robe, ink-stained and worn.',
+        'Ten thousand lives pour into you — every joy, every grief, every name.',
+        'You were always the keeper of knowledge.',
+        'This is what you were meant to do. Not fight. Not fail.',
+        'Hold.',
+        'The kingdom stirs. Light returns to hollow eyes.',
+        'You cannot see it. But you can feel them remembering.',
+        'On a shelf in the restored Athenaeum, a book appears in your handwriting:',
+        '"For Sable — everything I remember about you, so you\'ll know you were loved."',
+      ],
+      whisper: [
+        'He sits on the Throne. The armor falls away.',
+        'Underneath is not a warrior. It never was.',
+        'A scholar. Tired. Kind. His eyes fill with stolen lives.',
+        'The Hollowed shudder. Color seeps back into their faces.',
+        'A baker remembers flour. A mother remembers a name.',
+        'Your magic fades. The Unvoicing leaves you like a held breath released.',
+        'The world is quieter now. But it is a warm quiet.',
+        'In the Athenaeum, on the shelf where you once slept as a child,',
+        'you find a book. His handwriting. Your name on the cover.',
+        'You open it, and you remember everything.',
+      ],
+    },
+    whisper_word: {
+      title: 'The Whisper Becomes the Word',
+      knight: [
+        'She takes the Throne.',
+        'The darkness doesn\'t consume her. She was always carrying it.',
+        'The Unvoicing was inside her — a weapon, a wound, a voice waiting to speak.',
+        'Now it speaks. Her voice, reading.',
+        'Patient and gentle, like someone once read to her.',
+        'The kingdom wakes to the sound of a young woman\'s voice.',
+        'You stand in the restored Athenaeum, a scholar\'s robe on the desk.',
+        'You put it on. It fits. It always did.',
+        'From the shelves, her voice reads to you.',
+        'You listen, and you remember everything.',
+      ],
+      whisper: [
+        'You sit upon the Ashen Throne.',
+        'The darkness rises to meet you. It has always been yours.',
+        'Not a curse. Not a weapon. A voice.',
+        'Ten thousand stolen words pour through you — and you give them back.',
+        'Each name. Each memory. Each small, precious thing.',
+        'You read them aloud, one by one, gentle and patient,',
+        'the way someone once read to you.',
+        'The kingdom wakes hearing your voice.',
+        'You cannot see them. But you can feel them remembering.',
+        'Somewhere, a man in a scholar\'s robe listens, and smiles.',
+      ],
+    },
+    unbroken: {
+      title: 'The Unbroken Binding',
+      knight: [
+        'You both sit the Throne.',
+        'The split you created seven years ago — the desperate, loving wound —',
+        'begins to close. Not into one person. Into something new.',
+        'The Athenaeum glows. Warm light for the first time in seven years.',
+        'Every shelf fills. Every page recovers its words.',
+        'The building breathes.',
+        'You are the library now. Both of you. A living place',
+        'where every lost memory is kept safe.',
+        'The Hollowed come. They sit. They read.',
+        'They find themselves again, one page at a time.',
+        'In the children\'s corner, a girl opens a book.',
+        'From the shelves, a voice asks: "Would you like help with that one?"',
+      ],
+      whisper: [
+        'You both sit the Throne.',
+        'The binding that saved your life — that split a man in half for love —',
+        'finally, gently, heals.',
+        'Not into who you were. Into what you both became.',
+        'The Athenaeum fills with light. Books open themselves.',
+        'The silence breaks — not with a scream, but with a whisper.',
+        'Your whisper. His whisper. The same voice, finally.',
+        'The Hollowed wander in. Sit down. Pick up a book.',
+        'And remember.',
+        'In the children\'s corner, you see a girl who looks like you once did.',
+        'She opens a book. From somewhere in the shelves:',
+        '"Would you like help with that one?"',
+      ],
+    },
+    silence: {
+      title: 'The Long Silence',
+      knight: [
+        'You look at the Throne. At the weight of ten thousand lives.',
+        'And you turn away.',
+        '"I already lost her once," you think.',
+        '"I won\'t choose duty over her again."',
+        'You walk out of the Ashen Throne room.',
+        'The kingdom stays silent. The Hollowed keep wandering.',
+        'But beside you walks someone who sees you clearly.',
+        'And you see her.',
+        'The Athenaeum\'s windows are dark behind you.',
+        'The silence is heavier now. But it is shared.',
+      ],
+      whisper: [
+        'The Throne waits. The power calls.',
+        'You could take it. Become the voice.',
+        'But you are tired of carrying what others broke.',
+        'You turn away.',
+        'He walks beside you. You don\'t know why that feels right.',
+        'The city is behind you. The silence follows.',
+        'But for once, the silence isn\'t empty.',
+        'Someone is walking next to you.',
+        'And that is enough. It has to be enough.',
+      ],
+    },
+    strangers: {
+      title: 'Strangers',
+      knight: [
+        'You reach for the Throne — or turn away. It doesn\'t matter.',
+        'The binding was never completed. Half a soul cannot mend a world.',
+        'You stumble out of the Throne room, confused.',
+        'The armor feels heavier than ever.',
+        'You can\'t remember why you came here.',
+        'There was someone... a companion...',
+        'But the name won\'t come.',
+        'The silence feels heavier today.',
+        'Like it\'s waiting for something you were supposed to say.',
+      ],
+      whisper: [
+        'The Throne pulses. Your magic surges.',
+        'But the power has no anchor. No second half.',
+        'The ritual fails. The memories stay stolen.',
+        'You walk out alone. The magic crackles in your hands,',
+        'destructive and purposeless.',
+        'There was a man in armor. You think.',
+        'He seemed familiar. But you can\'t place him.',
+        'The world remains silent.',
+        'You remain powerful, and incomplete.',
+      ],
+    },
+    paradox: {
+      title: 'The Paradox',
+      knight: [
+        'You both sit the Throne.',
+        'But something is different this time.',
+        'Every enemy you faced — you showed mercy.',
+        'Every life you could have ended — you let stand.',
+        'Every fragment of compassion you exchanged across time —',
+        'it wasn\'t just kind. It was structural.',
+        'The Throne cracks.',
+        'Light pours from the fractures — not stolen light. Returned light.',
+        'The memories don\'t need a keeper. They never did.',
+        'They needed permission to go home.',
+        'The Throne shatters. The memories rise like pages caught in wind.',
+        'Each one finds its owner. Each name returns to its face.',
+        'You stand in the ruins of the Throne room. Whole. Separate. Free.',
+        'Scholar\'s robes. Ink-stained hands. Your own face in the mirror.',
+        'In the Athenaeum, a girl sits reading in the children\'s corner.',
+        'You walk over.',
+        '"Would you like help with that one?"',
+        'She looks up. She smiles.',
+        'She knows your name.',
+      ],
+      whisper: [
+        'You both sit the Throne.',
+        'But the pattern is different. Every thread of mercy,',
+        'every glyph exchanged, every moment of trust —',
+        'they weren\'t just choices. They were architecture.',
+        'The Throne cracks.',
+        'Your magic — the Unvoicing — flows outward. But gently.',
+        'Not as a weapon. As a return.',
+        'Every stolen voice flows back to its throat.',
+        'Every lost name settles into its bones.',
+        'The Throne shatters. You don\'t need to carry this.',
+        'Nobody needs to carry this.',
+        'You stand in the ruins. Free. Whole. Yourself.',
+        'The Athenaeum glows around you. Books open. Candles light.',
+        'You walk to the children\'s corner. Your corner.',
+        'You sit down. Pick up a book.',
+        'A voice from behind you — patient, gentle, stumbling over the dramatic parts:',
+        '"Would you like help with that one?"',
+        'You look up.',
+        'You know his name.',
+      ],
+    },
+  };
+
+  function show(endingId, state) {
+    const ending = ENDINGS[endingId];
+    if (!ending) return;
+
+    const charKey = state.character === 'knight' ? 'knight' : 'whisper';
+    const lines = [
+      '— ' + ending.title + ' —',
+      '',
+      ...(ending[charKey] || ending.knight),
+      '',
+      '— The End —',
+    ];
+
+    Dialogue.show(lines, () => {
+      // After ending, show credits/reset option
+      addGlyphLogEntry('The story is complete.', 'system');
+      addGlyphLogEntry('Ending: ' + ending.title, 'generated');
+    });
+  }
+
+  return { calculate, show, countMercy };
+})();
+
+
+// --- js/audio.js ---
+// ============================================================
+//  AUDIO — Procedural sound effects via Web Audio API
+// ============================================================
+
+const Audio = (() => {
+  let ctx = null;
+  let muted = false;
+
+  function getCtx() {
+    if (!ctx) {
+      try { ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+      catch { return null; }
+    }
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+
+  function tone(freq, duration, type, volume, delay) {
+    if (muted) return;
+    const c = getCtx();
+    if (!c) return;
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(volume || 0.15, c.currentTime + (delay || 0));
+    gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + (delay || 0) + duration);
+    osc.connect(gain);
+    gain.connect(c.destination);
+    osc.start(c.currentTime + (delay || 0));
+    osc.stop(c.currentTime + (delay || 0) + duration);
+  }
+
+  function noise(duration, volume) {
+    if (muted) return;
+    const c = getCtx();
+    if (!c) return;
+    const bufferSize = c.sampleRate * duration;
+    const buffer = c.createBuffer(1, bufferSize, c.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * 0.5;
+    const src = c.createBufferSource();
+    const gain = c.createGain();
+    src.buffer = buffer;
+    gain.gain.setValueAtTime(volume || 0.08, c.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + duration);
+    src.connect(gain);
+    gain.connect(c.destination);
+    src.start();
+  }
+
+  // --- SOUND EFFECTS ---
+
+  function hit() {
+    tone(200, 0.08, 'square', 0.12);
+    noise(0.06, 0.1);
+    tone(120, 0.1, 'sine', 0.08, 0.03);
+  }
+
+  function miss() {
+    noise(0.12, 0.04);
+  }
+
+  function heal() {
+    tone(440, 0.15, 'sine', 0.1);
+    tone(660, 0.15, 'sine', 0.08, 0.1);
+    tone(880, 0.2, 'sine', 0.06, 0.2);
+  }
+
+  function glyph() {
+    tone(330, 0.3, 'sine', 0.1);
+    tone(440, 0.3, 'sine', 0.07, 0.15);
+    tone(550, 0.4, 'sine', 0.05, 0.3);
+  }
+
+  function mercy() {
+    tone(523, 0.4, 'sine', 0.08);
+    tone(659, 0.3, 'sine', 0.06, 0.2);
+    tone(784, 0.5, 'sine', 0.05, 0.35);
+  }
+
+  function step() {
+    noise(0.04, 0.03);
+  }
+
+  function boss() {
+    tone(55, 0.6, 'sawtooth', 0.1);
+    tone(65, 0.5, 'sawtooth', 0.08, 0.2);
+    tone(45, 0.8, 'sine', 0.06, 0.1);
+  }
+
+  function victory() {
+    tone(392, 0.2, 'square', 0.08);
+    tone(494, 0.2, 'square', 0.07, 0.15);
+    tone(588, 0.2, 'square', 0.06, 0.3);
+    tone(784, 0.4, 'sine', 0.08, 0.45);
+  }
+
+  function defeat() {
+    tone(300, 0.3, 'sine', 0.1);
+    tone(250, 0.3, 'sine', 0.08, 0.2);
+    tone(180, 0.5, 'sine', 0.06, 0.4);
+  }
+
+  function interact() {
+    tone(600, 0.06, 'square', 0.06);
+    tone(800, 0.08, 'square', 0.04, 0.05);
+  }
+
+  function vision() {
+    tone(220, 0.8, 'sine', 0.06);
+    tone(330, 0.6, 'sine', 0.05, 0.3);
+    tone(440, 0.5, 'sine', 0.04, 0.6);
+    tone(550, 0.4, 'sine', 0.03, 0.9);
+  }
+
+  function toggleMute() { muted = !muted; return muted; }
+  function isMuted() { return muted; }
+
+  return { hit, miss, heal, glyph, mercy, step, boss, victory, defeat, interact, vision, toggleMute, isMuted };
 })();
 
 
@@ -1554,6 +3282,101 @@ const Game = (() => {
         return { type: 'examine', message: label };
       }
 
+      case 'enemy': {
+        // Filter by timeline
+        if (obj.label && !obj.label[state.timeline]) {
+          return { type: 'none', message: '' };
+        }
+        if (state.interactedObjects.includes(obj.id)) {
+          return { type: 'already', message: 'The threat has passed.' };
+        }
+        const enemyDef = (typeof Data !== 'undefined' && Data.enemies) ? Data.enemies[obj.enemyId] : null;
+        if (enemyDef && typeof Combat !== 'undefined') {
+          Combat.start(enemyDef, obj.id);
+        }
+        return { type: 'combat', message: label };
+      }
+
+      case 'confession': {
+        if (state.interactedObjects.includes(obj.id)) {
+          return { type: 'already', message: 'You have already spoken here.' };
+        }
+        const questions = obj.questions ? (obj.questions[state.character] || obj.questions.knight || []) : [];
+        if (questions.length > 0 && typeof Dialogue !== 'undefined') {
+          let qIdx = 0;
+          function askNext() {
+            if (qIdx >= questions.length) {
+              state.interactedObjects.push(obj.id);
+              save();
+              return;
+            }
+            const q = questions[qIdx];
+            Dialogue.showChoice(q.prompt, q.options, (idx) => {
+              const answer = q.glyphIds[idx];
+              const glyph = Crypto.generateGlyph(state.sharedSeed, answer);
+              showGeneratedGlyph(glyph, q.echoText || 'Your words echo across time...');
+              qIdx++;
+              setTimeout(askNext, 300);
+            });
+          }
+          askNext();
+        }
+        return { type: 'confession', message: label };
+      }
+
+      case 'trial': {
+        // Guilt (past) or power (present) trial objects
+        const meterKey = state.timeline === 'past' ? 'guilt_meter' : 'power_meter';
+        if (!state[meterKey]) state[meterKey] = 0;
+
+        // Mercy history reduces impact
+        const mercyData = (typeof Endings !== 'undefined') ? Endings.countMercy(state.storyFlags) : { mercy: 0 };
+        const reduction = Math.min(0.5, mercyData.mercy * 0.1); // each mercy reduces by 10%, max 50%
+        const impact = Math.round((obj.impact || 15) * (1 - reduction));
+
+        state[meterKey] = Math.min(100, state[meterKey] + impact);
+        save();
+
+        if (state[meterKey] >= 100) {
+          // Trial failed — reset meter, push player back
+          state[meterKey] = 50;
+          save();
+          return { type: 'trial_fail', message: state.timeline === 'past'
+            ? 'The guilt overwhelms you. You stagger back, gasping.'
+            : 'The power surges. You lose control for a moment. Pull back.' };
+        }
+
+        const meterPct = state[meterKey];
+        const desc = obj.trialText ? (obj.trialText[state.timeline] || label) : label;
+        return { type: 'trial', message: desc + ` (${meterKey}: ${meterPct}%)` };
+      }
+
+      case 'throne_choice': {
+        if (state.storyFlags.throne_choice) {
+          return { type: 'already', message: 'You have made your choice. The Throne remembers.' };
+        }
+        if (typeof Dialogue !== 'undefined') {
+          Dialogue.showChoice(
+            'The Ashen Throne waits. What do you choose?',
+            ['Sacrifice — sit the Throne', 'Refuse — walk away'],
+            (idx) => {
+              const choice = idx === 0 ? 'sacrifice' : 'refuse';
+              state.storyFlags.throne_choice = choice;
+
+              // Generate sync ritual code for partner
+              const ritualCode = Crypto.generateSyncCode(state.sharedSeed, 'throne_final');
+              save();
+
+              const choiceMsg = choice === 'sacrifice'
+                ? 'You choose to sit the Throne. The weight of ten thousand lives awaits.'
+                : 'You turn away. Some burdens are too great to carry alone.';
+              showGeneratedGlyph(ritualCode, choiceMsg + ' Share this final code with your partner.');
+            }
+          );
+        }
+        return { type: 'throne_choice', message: label };
+      }
+
       case 'exit': {
         if (obj.targetArea) {
           transitionArea(obj.targetArea, obj.targetSpawn);
@@ -1595,6 +3418,22 @@ const Game = (() => {
         if (c.eventId) possibleIds.push(c.eventId);
       });
     });
+
+    // Check for throne sync ritual (partner's final choice)
+    if (state.storyFlags.throne_choice && !state.storyFlags.partner_throne_choice) {
+      if (Crypto.validateSyncCode(state.sharedSeed, code, 'throne_final')) {
+        state.storyFlags.partner_throne_choice = 'sacrifice'; // if code validates, partner chose sacrifice
+        // Determine and show ending
+        if (typeof Endings !== 'undefined') {
+          const endingId = Endings.calculate(state);
+          save();
+          setTimeout(() => Endings.show(endingId, state), 500);
+          return { eventId: 'throne_final', description: 'The Throne resonates. The ending approaches...' };
+        }
+      }
+      // If sync code doesn't match sacrifice, partner chose refuse
+      // (they wouldn't have a sync code — the glyph text itself is the signal)
+    }
 
     const matchedId = Crypto.validateGlyph(state.sharedSeed, code, possibleIds);
     if (!matchedId) return null;
@@ -1712,79 +3551,128 @@ const Game = (() => {
 
 // --- js/input.js ---
 // ============================================================
-//  INPUT — Touch-first input with BFS pathfinding
+//  INPUT — Touch-first input with smooth movement
 // ============================================================
 
 const Input = (() => {
   let canvas = null;
   let camera = { x: 0, y: 0 };
+  let cameraTarget = { x: 0, y: 0 };
+  let playerDisplay = { x: 0, y: 0 };
   const TILE = 24;
   const VIEW = 20;
-  let walkPath = null;  // queued path tiles [{x,y}, ...]
-  let walkTimer = null;
+
+  // Walk queue
+  let walkPath = null;
+  let walkInteractAtEnd = false;
+
+  // Animation
+  let animFrame = null;
+  let animating = false;
+  let lastFrameTime = 0;
 
   function init(canvasEl) {
     canvas = canvasEl;
     canvas.addEventListener('pointerdown', onPointer);
-    document.addEventListener('keydown', onKey); // dev convenience, hidden from UI
-    updateCamera();
+    document.addEventListener('keydown', onKey);
+    snapCamera();
   }
 
-  function updateCamera() {
+  function snapCamera() {
     const state = Game.getState();
     if (!state) return;
-    camera.x = Math.max(0, Math.min(state.player.x - Math.floor(VIEW / 2), Map.W - VIEW));
-    camera.y = Math.max(0, Math.min(state.player.y - Math.floor(VIEW / 2), Map.H - VIEW));
+    cameraTarget.x = Math.max(0, Math.min(state.player.x - Math.floor(VIEW / 2), Map.W - VIEW));
+    cameraTarget.y = Math.max(0, Math.min(state.player.y - Math.floor(VIEW / 2), Map.H - VIEW));
+    camera.x = cameraTarget.x;
+    camera.y = cameraTarget.y;
+    playerDisplay.x = state.player.x;
+    playerDisplay.y = state.player.y;
+  }
+
+  function updateCameraTarget() {
+    const state = Game.getState();
+    if (!state) return;
+    cameraTarget.x = Math.max(0, Math.min(state.player.x - Math.floor(VIEW / 2), Map.W - VIEW));
+    cameraTarget.y = Math.max(0, Math.min(state.player.y - Math.floor(VIEW / 2), Map.H - VIEW));
   }
 
   function getCamera() { return camera; }
+  function getPlayerDisplay() { return playerDisplay; }
 
-  // --- BFS pathfinding ---
-  function findPath(fromX, fromY, toX, toY) {
+  // --- ANIMATION LOOP ---
+
+  function ensureAnimating() {
+    if (animating) return;
+    animating = true;
+    lastFrameTime = performance.now();
+    console.log('[SMOOTH] Animation loop STARTED');
+    animFrame = requestAnimationFrame(animLoop);
+  }
+
+  function animLoop(now) {
+    const dt = Math.min(now - lastFrameTime, 50) / 1000;
+    lastFrameTime = now;
+
     const state = Game.getState();
-    // Allow walking TO an object tile even if it's not normally walkable (for interaction)
-    const targetObj = Map.getObjectAt(toX, toY);
-    const queue = [{ x: fromX, y: fromY, path: [] }];
-    const visited = new Set();
-    visited.add(fromY * Map.W + fromX);
+    if (!state) { animating = false; return; }
 
-    while (queue.length > 0) {
-      const { x, y, path } = queue.shift();
-
-      for (const [dx, dy] of [[0,-1],[0,1],[-1,0],[1,0]]) {
-        const nx = x + dx, ny = y + dy;
-        const key = ny * Map.W + nx;
-        if (visited.has(key)) continue;
-        visited.add(key);
-
-        const newPath = [...path, { x: nx, y: ny }];
-
-        if (nx === toX && ny === toY) return newPath;
-
-        if (Map.isWalkable(nx, ny, state)) {
-          queue.push({ x: nx, y: ny, path: newPath });
-        }
-      }
-
-      // Limit search depth
-      if (queue.length > 800) return null;
+    // Move player display toward actual position at fixed speed (tiles per second)
+    const MOVE_SPEED = 4; // tiles per second
+    const pdx = state.player.x - playerDisplay.x;
+    const pdy = state.player.y - playerDisplay.y;
+    const pDist = Math.sqrt(pdx * pdx + pdy * pdy);
+    if (pDist > 0.01) {
+      const step = Math.min(MOVE_SPEED * dt, pDist);
+      playerDisplay.x += (pdx / pDist) * step;
+      playerDisplay.y += (pdy / pDist) * step;
     }
-    return null;
-  }
 
-  // --- Walk along path with animation ---
-  function startWalking(path, interactAtEnd) {
-    cancelWalk();
-    walkPath = path;
-    walkStep(interactAtEnd);
-  }
+    // Camera follows player display smoothly
+    const camTargetX = Math.max(0, Math.min(playerDisplay.x - Math.floor(VIEW / 2), Map.W - VIEW));
+    const camTargetY = Math.max(0, Math.min(playerDisplay.y - Math.floor(VIEW / 2), Map.H - VIEW));
+    const cdx = camTargetX - camera.x;
+    const cdy = camTargetY - camera.y;
+    camera.x += cdx * 0.15;
+    camera.y += cdy * 0.15;
 
-  function walkStep(interactAtEnd) {
-    if (!walkPath || walkPath.length === 0) {
-      walkPath = null;
-      if (interactAtEnd) doInteract();
+    // Take next walk step when player display is close to current tile
+    const playerSettled = pDist < 0.2;
+    if (playerSettled && walkPath && walkPath.length > 0) {
+      advanceWalkStep();
+    }
+
+    // Render
+    Renderer.draw(state, state.timeline);
+
+    // Check if everything has settled
+    const camSettled = Math.abs(cdx) < 0.01 && Math.abs(cdy) < 0.01;
+    const playerDone = pDist < 0.01;
+    const walkDone = !walkPath || walkPath.length === 0;
+
+    if (camSettled && playerDone && walkDone) {
+      camera.x = cameraTarget.x;
+      camera.y = cameraTarget.y;
+      playerDisplay.x = state.player.x;
+      playerDisplay.y = state.player.y;
+      animating = false;
+      console.log('[SMOOTH] Animation loop SETTLED');
+      Renderer.draw(state, state.timeline);
+      // Handle end-of-walk interaction
+      if (walkInteractAtEnd && walkDone) {
+        walkInteractAtEnd = false;
+        doInteract();
+        Renderer.draw(Game.getState(), Game.getState().timeline);
+      }
       return;
     }
+
+    animFrame = requestAnimationFrame(animLoop);
+  }
+
+  // --- WALK PATH ---
+
+  function advanceWalkStep() {
+    if (!walkPath || walkPath.length === 0) return;
 
     const next = walkPath.shift();
     const state = Game.getState();
@@ -1792,97 +3680,135 @@ const Input = (() => {
     const dy = next.y - state.player.y;
 
     if (Game.movePlayer(dx, dy)) {
-      updateCamera();
-      render();
-      // Next step after a short delay (animated walk feel)
-      walkTimer = setTimeout(() => walkStep(interactAtEnd), 120);
+      updateCameraTarget();
     } else {
-      // Path blocked (door closed, etc.) — stop
+      // Blocked — cancel remaining path
       walkPath = null;
     }
   }
 
-  function cancelWalk() {
-    walkPath = null;
-    if (walkTimer) { clearTimeout(walkTimer); walkTimer = null; }
+  function startWalking(path, interactAtEnd) {
+    cancelWalk();
+    if (!path || path.length === 0) return;
+    walkPath = path;
+    walkInteractAtEnd = interactAtEnd;
+    console.log('[SMOOTH] Walking path of', path.length, 'steps, interactAtEnd:', interactAtEnd);
+
+    // Take the first step immediately
+    advanceWalkStep();
+    ensureAnimating();
   }
 
-  // --- Pointer (touch/mouse) ---
+  function cancelWalk() {
+    walkPath = null;
+    walkInteractAtEnd = false;
+  }
+
+  // --- BFS PATHFINDING ---
+
+  function findPath(fromX, fromY, toX, toY) {
+    const state = Game.getState();
+    const queue = [{ x: fromX, y: fromY, path: [] }];
+    const visited = new Set();
+    visited.add(fromY * Map.W + fromX);
+
+    while (queue.length > 0) {
+      const { x, y, path } = queue.shift();
+      for (const [ddx, ddy] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) {
+        const nx = x + ddx, ny = y + ddy;
+        const key = ny * Map.W + nx;
+        if (visited.has(key)) continue;
+        visited.add(key);
+        const newPath = [...path, { x: nx, y: ny }];
+        if (nx === toX && ny === toY) return newPath;
+        if (Map.isWalkable(nx, ny, state)) {
+          queue.push({ x: nx, y: ny, path: newPath });
+        }
+      }
+      if (queue.length > 800) return null;
+    }
+    return null;
+  }
+
+  // --- POINTER (TOUCH/MOUSE) ---
+
   function onPointer(e) {
     const state = Game.getState();
     if (!state) return;
     if (typeof Dialogue !== 'undefined' && Dialogue.isActive()) return;
+    if (typeof Combat !== 'undefined' && Combat.isActive()) {
+      Combat.handleTap(e, canvas);
+      return;
+    }
 
     cancelWalk();
 
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    const tileX = Math.floor((e.clientX - rect.left) * scaleX / TILE) + camera.x;
-    const tileY = Math.floor((e.clientY - rect.top) * scaleY / TILE) + camera.y;
+    const tileX = Math.floor(((e.clientX - rect.left) * scaleX / TILE) + camera.x);
+    const tileY = Math.floor(((e.clientY - rect.top) * scaleY / TILE) + camera.y);
 
-    // Out of bounds
     if (tileX < 0 || tileX >= Map.W || tileY < 0 || tileY >= Map.H) return;
-
-    // Not explored — can't tap there
     if (!Game.isExplored(tileX, tileY)) return;
 
     const dx = tileX - state.player.x;
     const dy = tileY - state.player.y;
 
-    // Tap on self = interact with object here
+    // Tap on self = interact
     if (dx === 0 && dy === 0) {
       doInteract();
+      Renderer.draw(state, state.timeline);
       return;
     }
 
-    // Check if tapped tile has an object
+    // Tap on object = walk to adjacent + interact
     const tappedObj = Map.getObjectAt(tileX, tileY);
-
     if (tappedObj) {
-      // Walk to an adjacent tile and interact
       const adjTiles = [
         { x: tileX, y: tileY - 1 }, { x: tileX, y: tileY + 1 },
         { x: tileX - 1, y: tileY }, { x: tileX + 1, y: tileY },
       ].filter(t => Map.isWalkable(t.x, t.y, state));
 
-      // Find shortest path to any adjacent tile
-      let bestPath = null;
+      // Already adjacent?
       for (const adj of adjTiles) {
-        // Already adjacent?
         if (adj.x === state.player.x && adj.y === state.player.y) {
-          // Set facing direction toward object
-          Game.getState().lastDir = { x: tileX - state.player.x, y: tileY - state.player.y };
+          state.lastDir = { x: tileX - state.player.x, y: tileY - state.player.y };
           doInteract();
-          render();
+          Renderer.draw(state, state.timeline);
           return;
         }
+      }
+
+      // Find path to nearest adjacent tile
+      let bestPath = null;
+      for (const adj of adjTiles) {
         const path = findPath(state.player.x, state.player.y, adj.x, adj.y);
         if (path && (!bestPath || path.length < bestPath.length)) bestPath = path;
       }
       if (bestPath) {
-        // Face the object at the end
         const lastStep = bestPath[bestPath.length - 1];
+        state.lastDir = { x: tileX - lastStep.x, y: tileY - lastStep.y };
         startWalking(bestPath, true);
-        // Set facing toward object after walk
-        Game.getState().lastDir = { x: tileX - lastStep.x, y: tileY - lastStep.y };
       }
       return;
     }
 
-    // Tap walkable tile — pathfind there
+    // Tap walkable tile = walk there
     if (Map.isWalkable(tileX, tileY, state)) {
       const path = findPath(state.player.x, state.player.y, tileX, tileY);
       if (path) startWalking(path, false);
     }
   }
 
-  // --- Keyboard (dev convenience) ---
+  // --- KEYBOARD (DEV) ---
+
   function onKey(e) {
     const state = Game.getState();
     if (!state) return;
     if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
     if (typeof Dialogue !== 'undefined' && Dialogue.isActive()) return;
+    if (typeof Combat !== 'undefined' && Combat.isActive()) return;
 
     cancelWalk();
 
@@ -1898,10 +3824,14 @@ const Input = (() => {
     }
 
     e.preventDefault();
-    if (Game.movePlayer(dx, dy)) { updateCamera(); render(); }
+    if (Game.movePlayer(dx, dy)) {
+      updateCameraTarget();
+      ensureAnimating();
+    }
   }
 
-  // --- Interact ---
+  // --- INTERACT ---
+
   function doInteract() {
     const result = Game.interact();
     if (!result) return;
@@ -1920,18 +3850,17 @@ const Input = (() => {
         document.getElementById('glyph-panel').classList.remove('hidden');
         addGlyphLogEntry(result.message, 'system');
         break;
+      case 'npc':
+      case 'echo_choice':
+      case 'sync_ritual':
+      case 'exit':
+        break;
       case 'none':
         break;
     }
-    render();
   }
 
-  function render() {
-    const state = Game.getState();
-    if (state) Renderer.draw(state, state.timeline);
-  }
-
-  return { init, getCamera, updateCamera };
+  return { init, getCamera, getPlayerDisplay, updateCamera: updateCameraTarget, snapCamera };
 })();
 
 
@@ -1980,7 +3909,20 @@ const Renderer = (() => {
     const ctx = canvas.getContext('2d');
     const W = canvas.width, H = canvas.height;
     const pal = timeline === 'past' ? Palette.past : Palette.present;
+
+    // Combat mode: full-screen combat renderer
+    if (typeof Combat !== 'undefined' && Combat.isActive()) {
+      Combat.draw(ctx, W, H, pal, state);
+      return;
+    }
+
     const cam = Input.getCamera();
+
+    // Fractional camera offset for smooth scrolling
+    const camIX = Math.floor(cam.x);
+    const camIY = Math.floor(cam.y);
+    const offX = (cam.x - camIX) * TILE;
+    const offY = (cam.y - camIY) * TILE;
 
     // Clear
     ctx.fillStyle = pal.bg;
@@ -1988,11 +3930,12 @@ const Renderer = (() => {
 
     const px = state.player.x, py = state.player.y;
 
-    // Draw tiles
-    for (let vy = 0; vy < VIEW; vy++) {
-      for (let vx = 0; vx < VIEW; vx++) {
-        const tx = cam.x + vx, ty = cam.y + vy;
-        const sx = vx * TILE, sy = vy * TILE;
+    // Draw tiles (+1 extra row/col to cover fractional edges)
+    for (let vy = -1; vy <= VIEW; vy++) {
+      for (let vx = -1; vx <= VIEW; vx++) {
+        const tx = camIX + vx, ty = camIY + vy;
+        const sx = vx * TILE - offX, sy = vy * TILE - offY;
+        if (sx + TILE < 0 || sx > W || sy + TILE < 0 || sy > H) continue;
         const tile = Map.get(tx, ty);
 
         if (!Game.isExplored(tx, ty)) {
@@ -2074,12 +4017,13 @@ const Renderer = (() => {
 
     // Draw objects
     for (const obj of Map.getObjects()) {
-      const vx = obj.x - cam.x, vy = obj.y - cam.y;
-      if (vx < 0 || vx >= VIEW || vy < 0 || vy >= VIEW) continue;
+      const screenX = (obj.x - cam.x) * TILE;
+      const screenY = (obj.y - cam.y) * TILE;
+      if (screenX + TILE < 0 || screenX > W || screenY + TILE < 0 || screenY > H) continue;
       if (!Game.isExplored(obj.x, obj.y)) continue;
-      if (obj.type === 'gate') continue; // gates drawn as door tiles
+      if (obj.type === 'gate') continue;
 
-      const sx = vx * TILE + TILE / 2, sy = vy * TILE + TILE / 2;
+      const sx = screenX + TILE / 2, sy = screenY + TILE / 2;
       const used = state.interactedObjects.includes(obj.id);
 
       ctx.globalAlpha = used ? 0.4 : 1;
@@ -2141,6 +4085,19 @@ const Renderer = (() => {
           ctx.globalAlpha = 1; ctx.lineWidth = 1;
           break;
 
+        case 'enemy':
+          // Menacing figure with pulsing glow
+          ctx.fillStyle = timeline === 'past' ? '#8a2a2a' : '#6a2a6a';
+          ctx.globalAlpha = 0.4 + 0.2 * Math.sin(Date.now() / 300);
+          ctx.beginPath(); ctx.arc(sx, sy, 10, 0, Math.PI * 2); ctx.fill();
+          ctx.globalAlpha = used ? 0.3 : 1;
+          ctx.beginPath(); ctx.arc(sx, sy - 2, 5, 0, Math.PI * 2); ctx.fill();
+          ctx.fillRect(sx - 3, sy + 2, 6, 6);
+          ctx.fillStyle = timeline === 'past' ? '#cc6644' : '#aa44cc';
+          ctx.fillRect(sx - 3, sy - 3, 2, 2);
+          ctx.fillRect(sx + 1, sy - 3, 2, 2);
+          break;
+
         case 'exit':
           // Subtle directional arrow
           ctx.fillStyle = pal.textColor;
@@ -2148,6 +4105,33 @@ const Renderer = (() => {
           ctx.beginPath();
           ctx.moveTo(sx, sy - 6); ctx.lineTo(sx + 5, sy + 2); ctx.lineTo(sx - 5, sy + 2);
           ctx.closePath(); ctx.fill();
+          ctx.globalAlpha = 1;
+          break;
+
+        case 'confession':
+          // Glowing speech marks
+          ctx.fillStyle = pal.objDiscovery;
+          ctx.font = '14px "Courier New", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('"', sx, sy);
+          ctx.textAlign = 'start';
+          break;
+
+        case 'trial':
+          // Warning pulse
+          ctx.fillStyle = timeline === 'past' ? '#aa6622' : '#6622aa';
+          ctx.globalAlpha = 0.4 + 0.3 * Math.sin(Date.now() / 500);
+          ctx.beginPath(); ctx.arc(sx, sy, 7, 0, Math.PI * 2); ctx.fill();
+          ctx.globalAlpha = 1;
+          break;
+
+        case 'throne_choice':
+          // Grand pulsing throne marker
+          ctx.fillStyle = pal.textColor;
+          ctx.globalAlpha = 0.5 + 0.3 * Math.sin(Date.now() / 600);
+          ctx.beginPath(); ctx.arc(sx, sy, 10, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = pal.playerLight;
+          ctx.beginPath(); ctx.arc(sx, sy, 5, 0, Math.PI * 2); ctx.fill();
           ctx.globalAlpha = 1;
           break;
 
@@ -2163,18 +4147,20 @@ const Renderer = (() => {
       ctx.globalAlpha = 1;
     }
 
-    // Draw player
-    drawCharacter(ctx, (px - cam.x) * TILE, (py - cam.y) * TILE, TILE, pal.player, pal.playerLight);
+    // Draw player (using smooth display position)
+    const pd = Input.getPlayerDisplay();
+    drawCharacter(ctx, (pd.x - cam.x) * TILE, (pd.y - cam.y) * TILE, TILE, pal.player, pal.playerLight);
+    ctx.globalAlpha = 1;
 
     // Fog of war overlay (explored but not visible = dimmed)
-    for (let vy = 0; vy < VIEW; vy++) {
-      for (let vx = 0; vx < VIEW; vx++) {
-        const tx = cam.x + vx, ty = cam.y + vy;
-        if (!Game.isExplored(tx, ty)) continue; // already drawn as solid fog
+    for (let vy = -1; vy <= VIEW; vy++) {
+      for (let vx = -1; vx <= VIEW; vx++) {
+        const tx = camIX + vx, ty = camIY + vy;
+        if (!Game.isExplored(tx, ty)) continue;
 
         if (!Game.isVisible(tx, ty)) {
           ctx.fillStyle = pal.fogExplored;
-          ctx.fillRect(vx * TILE, vy * TILE, TILE, TILE);
+          ctx.fillRect(vx * TILE - offX, vy * TILE - offY, TILE, TILE);
         }
       }
     }
@@ -2182,20 +4168,50 @@ const Renderer = (() => {
     // Interaction prompt
     const adjObj = Game.getAdjacentObject();
     if (adjObj) {
-      const ovx = adjObj.x - cam.x, ovy = adjObj.y - cam.y;
-      if (ovx >= 0 && ovx < VIEW && ovy >= 0 && ovy < VIEW) {
-        const promptLabels = { examine: 'Examine', gate: 'Inspect', npc: 'Talk', chest: 'Open', discovery: 'Investigate', echo_choice: 'Decide', combined: 'Touch', sync_ritual: 'Begin Ritual', exit: 'Leave' };
+      const osx = (adjObj.x - cam.x) * TILE;
+      const osy = (adjObj.y - cam.y) * TILE;
+      if (osx + TILE > 0 && osx < W && osy + TILE > 0 && osy < H) {
+        const promptLabels = { examine: 'Examine', gate: 'Inspect', npc: 'Talk', chest: 'Open', discovery: 'Investigate', echo_choice: 'Decide', combined: 'Touch', sync_ritual: 'Begin Ritual', exit: 'Leave', enemy: 'Fight', confession: 'Confess', trial: 'Approach', throne_choice: 'Choose' };
         const promptText = promptLabels[adjObj.type] || 'Interact';
-        ctx.fillStyle = pal.textBg;
-        const tw = ctx.measureText(promptText).width + 12;
-        const tx = ovx * TILE + TILE / 2 - tw / 2;
-        const ty = ovy * TILE - 8;
-        ctx.fillRect(tx, ty - 10, tw, 16);
-        ctx.fillStyle = pal.textColor;
         ctx.font = '10px "Courier New", monospace';
+        const tw = ctx.measureText(promptText).width + 12;
+        const ptx = osx + TILE / 2 - tw / 2;
+        const pty = osy - 8;
+        ctx.fillStyle = pal.textBg;
+        ctx.fillRect(ptx, pty - 10, tw, 16);
+        ctx.fillStyle = pal.textColor;
         ctx.textAlign = 'center';
-        ctx.fillText(promptText, ovx * TILE + TILE / 2, ty);
+        ctx.fillText(promptText, osx + TILE / 2, pty);
         ctx.textAlign = 'start';
+      }
+    }
+
+    // --- PARTICLE EFFECTS ---
+    const time = Date.now();
+    for (let vy = -1; vy <= VIEW; vy++) {
+      for (let vx = -1; vx <= VIEW; vx++) {
+        const tx = camIX + vx, ty = camIY + vy;
+        if (!Game.isExplored(tx, ty) || !Game.isVisible(tx, ty)) continue;
+        const sx = vx * TILE - offX, sy = vy * TILE - offY;
+        const h = tileHash(tx, ty);
+        if (Map.get(tx, ty) !== Map.FLOOR) continue;
+
+        if (timeline === 'past' && h % 19 === 0) {
+          // Torchlight flicker — warm glow on specific floor tiles
+          const flicker = 0.03 + 0.02 * Math.sin(time / 400 + h);
+          ctx.fillStyle = 'rgba(184,134,11,' + flicker + ')';
+          ctx.beginPath();
+          ctx.arc(sx + TILE / 2, sy + TILE / 2, TILE * 0.8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        if (timeline === 'present' && h % 23 === 0) {
+          // Fog wisp — cold drifting shapes
+          const drift = Math.sin(time / 1200 + h) * 6;
+          ctx.fillStyle = 'rgba(42,42,80,0.06)';
+          ctx.beginPath();
+          ctx.arc(sx + TILE / 2 + drift, sy + TILE / 2, TILE * 0.6, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
     }
 
@@ -2396,6 +4412,7 @@ function enterGame() {
   // Init input and render
   const canvas = document.getElementById('game-canvas');
   Input.init(canvas);
+  Input.snapCamera(); // no lerp on initial load
   WakeLock.request();
   updateBondLabel();
   Renderer.draw(state, state.timeline);
@@ -2470,6 +4487,7 @@ function enterGlyph() {
 
   const result = Game.tryApplyGlyph(code);
   if (result) {
+    if (typeof Audio !== 'undefined') Audio.glyph();
     addGlyphLogEntry(result.description, 'system');
     updateBondLabel();
     const state = Game.getState();
@@ -2549,6 +4567,15 @@ function tryCompleteSyncRitual(code) {
   return false;
 }
 
+// --- AUDIO ---
+
+function toggleMute() {
+  if (typeof Audio !== 'undefined') {
+    const muted = Audio.toggleMute();
+    document.getElementById('btn-mute').style.opacity = muted ? '0.3' : '1';
+  }
+}
+
 // --- RESET ---
 
 function resetGame() {
@@ -2577,6 +4604,10 @@ function resetGame() {
     c.appendChild(e);
   }
 })();
+
+// Log build version
+const versionEl = document.querySelector('.version-tag');
+if (versionEl) console.log('[ASHEN BOND]', versionEl.textContent);
 
 // Register service worker for PWA / offline support
 if ('serviceWorker' in navigator) {
