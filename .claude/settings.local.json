@@ -11,7 +11,8 @@
       "Bash(bash deploy.sh)",
       "Bash(rm:*)",
       "Bash(python -m http.server 8080 --directory dist)",
-      "Bash(echo \"Server PID: $!\")"
+      "Bash(echo \"Server PID: $!\")",
+      "Bash(wc -l src/js/*.js)"
     ]
   }
 }

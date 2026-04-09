@@ -210,6 +210,86 @@ const Game = (() => {
         return { type: 'combat', message: label };
       }
 
+      case 'confession': {
+        if (state.interactedObjects.includes(obj.id)) {
+          return { type: 'already', message: 'You have already spoken here.' };
+        }
+        const questions = obj.questions ? (obj.questions[state.character] || obj.questions.knight || []) : [];
+        if (questions.length > 0 && typeof Dialogue !== 'undefined') {
+          let qIdx = 0;
+          function askNext() {
+            if (qIdx >= questions.length) {
+              state.interactedObjects.push(obj.id);
+              save();
+              return;
+            }
+            const q = questions[qIdx];
+            Dialogue.showChoice(q.prompt, q.options, (idx) => {
+              const answer = q.glyphIds[idx];
+              const glyph = Crypto.generateGlyph(state.sharedSeed, answer);
+              showGeneratedGlyph(glyph, q.echoText || 'Your words echo across time...');
+              qIdx++;
+              setTimeout(askNext, 300);
+            });
+          }
+          askNext();
+        }
+        return { type: 'confession', message: label };
+      }
+
+      case 'trial': {
+        // Guilt (past) or power (present) trial objects
+        const meterKey = state.timeline === 'past' ? 'guilt_meter' : 'power_meter';
+        if (!state[meterKey]) state[meterKey] = 0;
+
+        // Mercy history reduces impact
+        const mercyData = (typeof Endings !== 'undefined') ? Endings.countMercy(state.storyFlags) : { mercy: 0 };
+        const reduction = Math.min(0.5, mercyData.mercy * 0.1); // each mercy reduces by 10%, max 50%
+        const impact = Math.round((obj.impact || 15) * (1 - reduction));
+
+        state[meterKey] = Math.min(100, state[meterKey] + impact);
+        save();
+
+        if (state[meterKey] >= 100) {
+          // Trial failed — reset meter, push player back
+          state[meterKey] = 50;
+          save();
+          return { type: 'trial_fail', message: state.timeline === 'past'
+            ? 'The guilt overwhelms you. You stagger back, gasping.'
+            : 'The power surges. You lose control for a moment. Pull back.' };
+        }
+
+        const meterPct = state[meterKey];
+        const desc = obj.trialText ? (obj.trialText[state.timeline] || label) : label;
+        return { type: 'trial', message: desc + ` (${meterKey}: ${meterPct}%)` };
+      }
+
+      case 'throne_choice': {
+        if (state.storyFlags.throne_choice) {
+          return { type: 'already', message: 'You have made your choice. The Throne remembers.' };
+        }
+        if (typeof Dialogue !== 'undefined') {
+          Dialogue.showChoice(
+            'The Ashen Throne waits. What do you choose?',
+            ['Sacrifice — sit the Throne', 'Refuse — walk away'],
+            (idx) => {
+              const choice = idx === 0 ? 'sacrifice' : 'refuse';
+              state.storyFlags.throne_choice = choice;
+
+              // Generate sync ritual code for partner
+              const ritualCode = Crypto.generateSyncCode(state.sharedSeed, 'throne_final');
+              save();
+
+              const choiceMsg = choice === 'sacrifice'
+                ? 'You choose to sit the Throne. The weight of ten thousand lives awaits.'
+                : 'You turn away. Some burdens are too great to carry alone.';
+              showGeneratedGlyph(ritualCode, choiceMsg + ' Share this final code with your partner.');
+            }
+          );
+        }
+        return { type: 'throne_choice', message: label };
+      }
+
       case 'exit': {
         if (obj.targetArea) {
           transitionArea(obj.targetArea, obj.targetSpawn);
@@ -251,6 +331,22 @@ const Game = (() => {
         if (c.eventId) possibleIds.push(c.eventId);
       });
     });
+
+    // Check for throne sync ritual (partner's final choice)
+    if (state.storyFlags.throne_choice && !state.storyFlags.partner_throne_choice) {
+      if (Crypto.validateSyncCode(state.sharedSeed, code, 'throne_final')) {
+        state.storyFlags.partner_throne_choice = 'sacrifice'; // if code validates, partner chose sacrifice
+        // Determine and show ending
+        if (typeof Endings !== 'undefined') {
+          const endingId = Endings.calculate(state);
+          save();
+          setTimeout(() => Endings.show(endingId, state), 500);
+          return { eventId: 'throne_final', description: 'The Throne resonates. The ending approaches...' };
+        }
+      }
+      // If sync code doesn't match sacrifice, partner chose refuse
+      // (they wouldn't have a sync code — the glyph text itself is the signal)
+    }
 
     const matchedId = Crypto.validateGlyph(state.sharedSeed, code, possibleIds);
     if (!matchedId) return null;

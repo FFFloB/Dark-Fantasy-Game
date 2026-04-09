@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ashen-bond-v6';
+const CACHE_NAME = 'ashen-bond-v7';
 const ASSETS = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', (e) => {

@@ -114,6 +114,7 @@ const Combat = (() => {
     state.enemy.currentHp = Math.max(0, state.enemy.currentHp - dmg);
     addDamageNumber(dmg, 'enemy');
     triggerFlash('enemy');
+    if (typeof Audio !== 'undefined') Audio.hit();
     state.log.push('You strike for ' + dmg + ' damage.');
 
     checkPhaseTransition();
@@ -201,6 +202,7 @@ const Combat = (() => {
       addDamageNumber(dmg, 'player');
       triggerShake();
       triggerFlash('player');
+      if (typeof Audio !== 'undefined') Audio.hit();
       const verb = state.defendActive ? ' (blocked)' : '';
       state.log.push(enemy.name + ' attacks for ' + dmg + verb + '.');
     } else if (enemy.abilities && enemy.abilities[action]) {

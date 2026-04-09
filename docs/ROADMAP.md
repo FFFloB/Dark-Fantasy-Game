@@ -1,49 +1,37 @@
 # Ashen Bond — Development Roadmap
 
 ## Phase 1: Foundation ✓
-- [x] Project setup, build system, PWA, GitHub Pages
-- [x] Glyph code system (HMAC crypto, seed exchange, all glyph types)
-- [x] Dual-timeline rendering (past=amber, present=teal)
-- [x] Touch-first movement with BFS pathfinding + smooth camera
-- [x] Interactive objects, fog of war, demo mode
-
 ## Phase 2: Core Engine ✓
-- [x] Loadable map system (MapGen + Map.load)
-- [x] Stats, inventory, leveling, bond meter, dialogue, HUD
-- [x] NPC interaction, echo choices, sync rituals
-- [x] Procedural dungeon generation + Act 1 Athenaeum content
-- [x] Area transitions, story bible rewrite (glyph-first narrative)
-
 ## Phase 3: Combat ✓
-- [x] Full-screen combat mode (canvas-rendered)
-- [x] Turn-based: Attack / Defend / Item / Mercy
-- [x] Enemy definitions (past: Constructs, Enforcers / present: Hollowed, Wraiths)
-- [x] Visible enemies on map (timeline-filtered, red/purple glow)
-- [x] Boss: The Curator (past=alive with Silence, present=Hollowed with Memory Bolt)
-- [x] Boss phases (pattern changes at 50% HP)
-- [x] Cross-timeline glyph effects (mercy weakens enemy in other timeline)
-- [x] Mercy system (Bond≥60 unlocks, boss requires HP<25%)
-- [x] Combat rewards (XP, drops, glyph generation)
-- [x] Story flag tracking (mercy vs kill for ending calculation)
-- [x] Visual effects (damage numbers, screen shake, flash)
-- [x] Defeat = HP restored to 1, retry
 
-## Phase 4: Narrative & Endings ← NEXT
-- [ ] Act 2: The Hollowed City (map, NPCs, enemies, boss)
-- [ ] Act 3: The Synod's Tomb (map, NPCs, enemies, boss)
-- [ ] Act 4: The Ashen Throne (metaphysical map, inner challenges)
-- [ ] Full vision scene chain (all bond thresholds)
-- [ ] Final choice system (sync ritual at Throne)
-- [ ] Multiple endings based on bond + choices + mercy history
-- [ ] Confession Halls mechanic (private answers → cross-timeline echoes)
+## Phase 4: Narrative & Endings ✓
+- [x] Act 2: The Hollowed City (map, NPCs, enemies, Thren/Twin Sentinels bosses)
+- [x] Act 3: The Synod's Tomb (map, Confession Halls, Inquisitor/Synod Remnant bosses)
+- [x] Act 4: The Ashen Throne (metaphysical map, guilt/power trials, throne choice)
+- [x] Confession mechanic (private questions → echo glyphs)
+- [x] Trial mechanics (guilt meter / power meter, mercy history affects difficulty)
+- [x] Throne choice system (Sacrifice/Refuse → sync ritual → ending)
+- [x] Ending system (6 endings: Archivist, Whisper, Unbroken, Silence, Strangers, Paradox)
+- [x] Bond visions 4-6 complete (Unraveling at 70, Truth at 80, Name at 90)
+- [x] All area transitions wired (Act 1→2→3→4)
+- [x] Timeline-specific enemies across all acts
+- [x] New items (city_key, thren_badge, greater_mending, clarity_draught, etc.)
 
-## Phase 5: Polish
-- [ ] Pixel art sprites
-- [ ] Particle effects (torchlight, fog, magic)
-- [ ] Sound effects (Web Audio API)
-- [ ] Touch optimization
-- [ ] Difficulty balancing
-- [ ] Playtesting
+## Phase 5: Polish ✓
+- [x] Procedural sound effects (Web Audio API, no external files)
+  - Hit, heal, glyph, mercy, step, boss, victory, defeat, vision sounds
+  - Mute toggle in game header
+- [x] Particle effects
+  - Past: torchlight flicker (warm radial glow on floor tiles)
+  - Present: fog wisps (cold drifting shapes)
+- [x] New interaction types rendered (confession, trial, throne)
+
+## Remaining (Playtesting & Optional)
+- [ ] Procedural pixel art sprites (replace geometric shapes)
+- [ ] Touch tap feedback (visual highlight on tap)
+- [ ] Difficulty balancing (enemy HP/damage curves, mercy path tuning)
+- [ ] Full 2-player playtest (both timelines, all endings)
+- [ ] Deploy final version to GitHub Pages
 
 ---
 *Last updated: 2026-04-09*

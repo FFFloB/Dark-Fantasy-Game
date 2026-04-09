@@ -24,6 +24,8 @@ const JS_FILES = [
   'js/bond.js',
   'js/dialogue.js',
   'js/combat.js',
+  'js/endings.js',
+  'js/audio.js',
   'js/game.js',
   'js/input.js',
   'js/renderer.js',

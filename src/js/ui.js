@@ -197,6 +197,7 @@ function enterGlyph() {
 
   const result = Game.tryApplyGlyph(code);
   if (result) {
+    if (typeof Audio !== 'undefined') Audio.glyph();
     addGlyphLogEntry(result.description, 'system');
     updateBondLabel();
     const state = Game.getState();
@@ -274,6 +275,15 @@ function tryCompleteSyncRitual(code) {
     return true;
   }
   return false;
+}
+
+// --- AUDIO ---
+
+function toggleMute() {
+  if (typeof Audio !== 'undefined') {
+    const muted = Audio.toggleMute();
+    document.getElementById('btn-mute').style.opacity = muted ? '0.3' : '1';
+  }
 }
 
 // --- RESET ---

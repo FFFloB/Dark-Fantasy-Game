@@ -241,6 +241,33 @@ const Renderer = (() => {
           ctx.globalAlpha = 1;
           break;
 
+        case 'confession':
+          // Glowing speech marks
+          ctx.fillStyle = pal.objDiscovery;
+          ctx.font = '14px "Courier New", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('"', sx, sy);
+          ctx.textAlign = 'start';
+          break;
+
+        case 'trial':
+          // Warning pulse
+          ctx.fillStyle = timeline === 'past' ? '#aa6622' : '#6622aa';
+          ctx.globalAlpha = 0.4 + 0.3 * Math.sin(Date.now() / 500);
+          ctx.beginPath(); ctx.arc(sx, sy, 7, 0, Math.PI * 2); ctx.fill();
+          ctx.globalAlpha = 1;
+          break;
+
+        case 'throne_choice':
+          // Grand pulsing throne marker
+          ctx.fillStyle = pal.textColor;
+          ctx.globalAlpha = 0.5 + 0.3 * Math.sin(Date.now() / 600);
+          ctx.beginPath(); ctx.arc(sx, sy, 10, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = pal.playerLight;
+          ctx.beginPath(); ctx.arc(sx, sy, 5, 0, Math.PI * 2); ctx.fill();
+          ctx.globalAlpha = 1;
+          break;
+
         case 'examine':
         default:
           // Sparkle dots
@@ -277,7 +304,7 @@ const Renderer = (() => {
       const osx = (adjObj.x - cam.x) * TILE;
       const osy = (adjObj.y - cam.y) * TILE;
       if (osx + TILE > 0 && osx < W && osy + TILE > 0 && osy < H) {
-        const promptLabels = { examine: 'Examine', gate: 'Inspect', npc: 'Talk', chest: 'Open', discovery: 'Investigate', echo_choice: 'Decide', combined: 'Touch', sync_ritual: 'Begin Ritual', exit: 'Leave', enemy: 'Fight' };
+        const promptLabels = { examine: 'Examine', gate: 'Inspect', npc: 'Talk', chest: 'Open', discovery: 'Investigate', echo_choice: 'Decide', combined: 'Touch', sync_ritual: 'Begin Ritual', exit: 'Leave', enemy: 'Fight', confession: 'Confess', trial: 'Approach', throne_choice: 'Choose' };
         const promptText = promptLabels[adjObj.type] || 'Interact';
         ctx.font = '10px "Courier New", monospace';
         const tw = ctx.measureText(promptText).width + 12;
@@ -289,6 +316,35 @@ const Renderer = (() => {
         ctx.textAlign = 'center';
         ctx.fillText(promptText, osx + TILE / 2, pty);
         ctx.textAlign = 'start';
+      }
+    }
+
+    // --- PARTICLE EFFECTS ---
+    const time = Date.now();
+    for (let vy = -1; vy <= VIEW; vy++) {
+      for (let vx = -1; vx <= VIEW; vx++) {
+        const tx = camIX + vx, ty = camIY + vy;
+        if (!Game.isExplored(tx, ty) || !Game.isVisible(tx, ty)) continue;
+        const sx = vx * TILE - offX, sy = vy * TILE - offY;
+        const h = tileHash(tx, ty);
+        if (Map.get(tx, ty) !== Map.FLOOR) continue;
+
+        if (timeline === 'past' && h % 19 === 0) {
+          // Torchlight flicker — warm glow on specific floor tiles
+          const flicker = 0.03 + 0.02 * Math.sin(time / 400 + h);
+          ctx.fillStyle = 'rgba(184,134,11,' + flicker + ')';
+          ctx.beginPath();
+          ctx.arc(sx + TILE / 2, sy + TILE / 2, TILE * 0.8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        if (timeline === 'present' && h % 23 === 0) {
+          // Fog wisp — cold drifting shapes
+          const drift = Math.sin(time / 1200 + h) * 6;
+          ctx.fillStyle = 'rgba(42,42,80,0.06)';
+          ctx.beginPath();
+          ctx.arc(sx + TILE / 2 + drift, sy + TILE / 2, TILE * 0.6, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
     }
 
