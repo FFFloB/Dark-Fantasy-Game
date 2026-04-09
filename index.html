@@ -159,8 +159,67 @@ input:focus { border-color: var(--accent); }
 .glyph-input-row input { flex: 1; margin-bottom: 0; text-transform: uppercase; font-size: 1em; letter-spacing: 0.1em; }
 .glyph-input-row button { width: auto; margin-bottom: 0; padding: 10px 16px; font-size: 1.1em; }
 
+.game-header-btns { display: flex; gap: 4px; }
+
+.controls-hint { color: var(--text-dim); font-size: 0.7em; text-align: center; margin: 6px 0; opacity: 0.6; }
+
+.demo-btn { margin-top: 16px; opacity: 0.6; }
+.demo-btn:hover { opacity: 1; }
+
 .reset-btn { margin-top: 12px; opacity: 0.5; }
 .reset-btn:hover { opacity: 1; }
+
+/* ===== DIALOGUE OVERLAY ===== */
+
+.dialogue-overlay {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(10,10,15,0.92); border-top: 1px solid var(--border);
+  padding: 20px; min-height: 120px; z-index: 100;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  cursor: pointer;
+}
+.dialogue-text {
+  color: var(--text); font-size: 0.95em; line-height: 1.6;
+  text-align: center; max-width: 440px; padding: 0 10px;
+}
+.dialogue-hint {
+  color: var(--text-dim); font-size: 0.7em; margin-top: 12px;
+  letter-spacing: 0.1em; opacity: 0.6;
+}
+.dialogue-choices {
+  display: flex; flex-direction: column; gap: 8px; margin-top: 16px; width: 100%; max-width: 300px;
+}
+.dialogue-choice-btn {
+  background: var(--bg-panel); color: var(--accent); border: 1px solid var(--accent);
+  padding: 14px 20px; font-family: 'Courier New', monospace; font-size: 0.9em;
+  cursor: pointer; text-align: center; min-height: 48px;
+}
+.dialogue-choice-btn:active { background: var(--accent); color: var(--bg-dark); }
+
+/* ===== INVENTORY DRAWER ===== */
+
+.inventory-drawer {
+  background: var(--bg-panel); border: 1px solid var(--border); border-radius: 4px;
+  padding: 16px; margin-top: 8px;
+}
+.inventory-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+}
+.inventory-slot {
+  background: var(--bg-dark); border: 1px solid var(--border); border-radius: 2px;
+  padding: 8px; font-size: 0.7em; color: var(--text-dim); text-align: center;
+  min-height: 48px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.inventory-slot.filled { color: var(--text); border-color: var(--accent); }
+.inventory-slot.filled:active { background: var(--accent); color: var(--bg-dark); }
+
+/* ===== BOND DISPLAY ===== */
+
+.bond-label {
+  font-size: 0.7em; color: var(--accent); letter-spacing: 0.1em;
+  text-transform: uppercase; opacity: 0.8;
+}
 
 /* ===== VERSION TAG ===== */
 
@@ -202,6 +261,7 @@ input:focus { border-color: var(--accent); }
     </div>
 
     <button id="btn-confirm-char" class="primary hidden" onclick="confirmCharacter()">Begin</button>
+    <button id="btn-demo" class="small demo-btn" onclick="enterDemoMode()">Demo Mode (solo test)</button>
   </div>
 
   <!-- ===== SEED EXCHANGE ===== -->
@@ -227,11 +287,20 @@ input:focus { border-color: var(--accent); }
   <!-- ===== GAME SCREEN ===== -->
   <div id="screen-game" class="screen hidden">
     <div class="game-header">
-      <span class="game-role" id="game-role-label">---</span>
-      <button class="icon-btn" onclick="openGlyphPanel()" title="Glyphs">&#9753;</button>
+      <div>
+        <span class="game-role" id="game-role-label">---</span>
+        <span class="bond-label" id="bond-label"></span>
+      </div>
+      <div class="game-header-btns">
+        <button class="icon-btn hidden" id="btn-toggle-timeline" onclick="toggleTimeline()" title="Switch timeline">&#8644;</button>
+        <button class="icon-btn" onclick="toggleInventory()" title="Inventory">&#9776;</button>
+        <button class="icon-btn" onclick="openGlyphPanel()" title="Glyphs">&#9753;</button>
+      </div>
     </div>
 
     <canvas id="game-canvas" width="480" height="480"></canvas>
+
+    <p class="controls-hint">Tap to move — Tap objects to interact</p>
 
     <!-- Glyph Exchange Panel (toggleable) -->
     <div id="glyph-panel" class="panel glyph-panel hidden">
@@ -243,12 +312,18 @@ input:focus { border-color: var(--accent); }
       </div>
     </div>
 
+    <!-- Inventory Drawer -->
+    <div id="inventory-drawer" class="inventory-drawer hidden">
+      <h2>Items</h2>
+      <div class="inventory-grid" id="inventory-grid"></div>
+    </div>
+
     <button class="small reset-btn" onclick="resetGame()">Reset Game</button>
   </div>
 
 </div>
 
-<div class="version-tag">v98c6d39 @ 2026-04-08 17:50</div>
+<div class="version-tag">v64a66f3 @ 2026-04-09 06:26</div>
 
 <script>
 // --- js/crypto.js ---
@@ -434,7 +509,7 @@ const WakeLock = (() => {
   // Re-acquire wake lock when page becomes visible again
   // (lock is automatically released when tab is hidden)
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && !lock && connected) {
+    if (document.visibilityState === 'visible' && !lock) {
       request();
     }
   });
@@ -443,140 +518,1757 @@ const WakeLock = (() => {
 })();
 
 
-// --- js/renderer.js ---
+// --- js/data.js ---
 // ============================================================
-//  RENDERER — Dual-timeline canvas rendering
+//  DATA — Game content definitions (areas, items, NPCs, rooms)
+//  NOTE: This file contains narrative content. Spoiler-sensitive.
 // ============================================================
 
-const Palette = {
-  past: {
-    bg: '#1a1510',
-    floor: '#1e1a12',
-    floorAlt: 'rgba(80, 65, 30, 0.3)',
-    wall: '#2a2218',
-    wallStroke: '#3d3428',
-    player: '#b8860b',
-    playerLight: '#d4a024',
-    glow: 'rgba(184, 134, 11, 0.06)',
-    fog: '#1a1510',
-    textColor: '#b8860b',
-    textDim: '#6b5a30',
-    label: 'The world that was...',
-  },
-  present: {
-    bg: '#0a0a14',
-    floor: '#0e0e18',
-    floorAlt: 'rgba(30, 40, 64, 0.3)',
-    wall: '#141428',
-    wallStroke: '#222240',
-    player: '#2a7a7a',
-    playerLight: '#4ac0c0',
-    glow: 'rgba(42, 122, 122, 0.06)',
-    fog: '#0a0a14',
-    textColor: '#2a7a7a',
-    textDim: '#30506b',
-    label: 'The world that remains...',
+const Data = (() => {
+
+  // --- ITEMS ---
+
+  const items = {
+    health_potion: { id: 'health_potion', name: 'Mending Draught', type: 'consumable', effect: { hp: 12 },
+      desc: { past: 'A warm vial, amber liquid swirling.', present: 'A cold flask, the liquid still faintly glows.' } },
+    mana_potion: { id: 'mana_potion', name: 'Whisper Essence', type: 'consumable', effect: { mp: 8 },
+      desc: { past: 'Captured breath of the deep archives.', present: 'Bottled silence, dense as grief.' } },
+    scholars_key: { id: 'scholars_key', name: 'Scholar\'s Key', type: 'key',
+      desc: { past: 'A brass key, still warm from its owner.', present: 'Tarnished brass, the teeth worn smooth.' } },
+    torn_journal: { id: 'torn_journal', name: 'Torn Journal', type: 'quest',
+      desc: { past: 'Pages filled with urgent, cramped writing.', present: 'Fragments. Someone wrote this in fear.' } },
+    childs_doll: { id: 'childs_doll', name: 'Cloth Doll', type: 'quest',
+      desc: { past: 'A hand-sewn doll, well-loved, missing an eye.', present: 'Faded fabric, one glass eye staring.' } },
+  };
+
+  // --- HAND-AUTHORED ROOM TEMPLATES ---
+  // 0=floor, 1=wall, 2=door
+  // Each is a small 2D array placed at a fixed position in the area
+
+  const ROOMS = {
+    athenaeum_entrance: [
+      [1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,1,0,0,0,0,1,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,1,0,0,0,0,1,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [1,1,1,1,1,0,0,1,1,1,1,1],
+    ],
+    athenaeum_main_hall: [
+      [1,1,1,1,1,0,0,1,1,1,1,1],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,1,0,0,0,0,1,0,0,1],
+      [0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0],
+      [1,0,0,1,0,0,0,0,1,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,1],
+      [1,1,1,1,0,0,0,0,1,1,1,1],
+    ],
+    athenaeum_children: [
+      [1,1,1,2,2,1,1],
+      [1,0,0,0,0,0,1],
+      [1,0,0,0,0,0,1],
+      [1,0,0,0,0,0,1],
+      [1,0,0,0,0,0,1],
+      [1,1,1,1,1,1,1],
+    ],
+    athenaeum_archive: [
+      [1,1,1,1,0,0,1,1,1,1],
+      [1,0,0,0,0,0,0,0,0,1],
+      [1,0,1,0,0,0,0,1,0,1],
+      [1,0,0,0,0,0,0,0,0,1],
+      [1,0,1,0,0,0,0,1,0,1],
+      [1,0,0,0,0,0,0,0,0,1],
+      [1,0,1,0,0,0,0,1,0,1],
+      [1,0,0,0,0,0,0,0,0,1],
+      [1,1,1,1,1,1,1,1,1,1],
+    ],
+    athenaeum_reading_hall: [
+      [1,1,1,1,0,0,0,0,1,1,1,1,1,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,1,0,0,0,0,0,0,1,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,1,0,0,0,0,0,0,1,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    ],
+  };
+
+  // --- ACT 1: THE ATHENAEUM ---
+
+  const act1_athenaeum = {
+    id: 'act1_athenaeum',
+    name: 'The Athenaeum',
+    w: 50, h: 50,
+    spawn: { x: 25, y: 43 },
+    rooms: [
+      { id: 'entrance', x: 19, y: 38, template: ROOMS.athenaeum_entrance },
+      { id: 'main_hall', x: 19, y: 26, template: ROOMS.athenaeum_main_hall },
+      { id: 'archive_west', x: 5, y: 28, template: ROOMS.athenaeum_archive },
+      { id: 'archive_east', x: 35, y: 28, template: ROOMS.athenaeum_archive },
+      { id: 'children', x: 7, y: 20, template: ROOMS.athenaeum_children },
+      { id: 'reading_hall', x: 18, y: 12, template: ROOMS.athenaeum_reading_hall },
+    ],
+    exits: [
+      { x: 25, y: 1, targetArea: 'act2_city', targetSpawn: { x: 25, y: 48 }, type: 'exit',
+        label: { past: 'The doors to the city beyond.', present: 'A shattered archway, leading out.' } },
+    ],
+    objects: [
+      // --- ENTRANCE ---
+      { id: 'ath_candles', x: 22, y: 42, type: 'examine', eventId: null,
+        label: { past: 'Candles burn steadily on the reading desk.', present: 'Candles still burning. After seven years. How?' } },
+      { id: 'ath_scholar_npc', x: 24, y: 40, type: 'npc', eventId: null,
+        label: { past: 'A scholar, sorting manuscripts.', present: 'A hollow figure, hands shuffling empty air.' },
+        dialogue: {
+          past: [
+            '"The western archives need re-cataloguing again."',
+            '"If you\'re looking for the restricted texts, speak to the Curator."',
+            '"Careful with the older volumes. Some of them... resist being read."',
+          ],
+          present: [
+            '"Al... alpha... the system. What was the system?"',
+            '"Chron... no. No. The order. The..."',
+            'The figure trails off, hands still moving.',
+          ],
+        } },
+
+      // --- MAIN HALL ---
+      { id: 'ath_mural', x: 25, y: 27, type: 'echo_choice', eventId: 'ath_mural_choice',
+        label: {
+          past: 'A grand mural depicts the Synod — five robed figures, serene and powerful.',
+          present: 'The mural looms. Your head splits with pain just looking at it.',
+        },
+        choices: [
+          { label: 'Cover the mural', eventId: 'ath_mural_covered',
+            message: 'You drape cloth over the painted faces. Something in you says: she shouldn\'t see this.' },
+          { label: 'Leave it exposed', eventId: 'ath_mural_exposed',
+            message: 'You leave the truth visible. Whatever this means, hiding it helps no one.' },
+        ] },
+      { id: 'ath_research_notes', x: 21, y: 28, type: 'discovery', eventId: 'ath_research_found',
+        forTimeline: 'present',
+        label: {
+          past: 'Research notes, hidden beneath a false shelf bottom. The handwriting is frantic.',
+          present: 'Scorched fragments of paper, scattered like leaves. Some words still glow faintly.',
+        } },
+      { id: 'ath_hall_chest', x: 29, y: 30, type: 'chest', eventId: 'ath_hall_chest_open',
+        unlockedBy: 'ath_research_found',
+        item: items.torn_journal,
+        label: {
+          past: 'A locked chest behind the main desk.',
+          present: 'A rusted chest. The lock is fused shut.',
+        } },
+
+      // --- ARCHIVES ---
+      { id: 'ath_sealed_door', x: 14, y: 30, type: 'gate', eventId: 'ath_sealed_open',
+        unlockedBy: 'ath_children_name',
+        gateTiles: [[14, 30]],
+        label: {
+          past: 'A sealed archive section. The lock hums faintly.',
+          present: 'A sealed door. Something prevents it from opening.',
+        } },
+      { id: 'ath_east_potion', x: 40, y: 32, type: 'chest', eventId: null,
+        item: items.health_potion,
+        label: {
+          past: 'A supply cabinet, neatly organized.',
+          present: 'A cabinet, mostly empty. One vial remains.',
+        } },
+      { id: 'ath_archive_scholar', x: 8, y: 31, type: 'npc', eventId: null,
+        label: { past: 'An elderly scholar, deep in thought.', present: 'A hollow, rocking gently.' },
+        dialogue: {
+          past: [
+            '"The Synod\'s latest acquisitions are... troubling."',
+            '"Old texts. Forbidden ones. They shouldn\'t be reading those."',
+            '"I reported my concerns. Nothing happened. Nothing ever does."',
+          ],
+          present: [
+            '"Trou... bling..."',
+            'A single tear runs down the hollow face.',
+            'Then nothing.',
+          ],
+        } },
+
+      // --- CHILDREN'S CORNER ---
+      { id: 'ath_children_cot', x: 10, y: 22, type: 'discovery', eventId: 'ath_children_name',
+        forTimeline: 'past',
+        label: {
+          past: 'A child\'s cot, neatly made. Small books stacked beside it.',
+          present: 'A cot with a name scratched into the frame. Five letters, half-faded: S-A-B-L-E.',
+        } },
+      { id: 'ath_children_doll', x: 9, y: 23, type: 'chest', eventId: null,
+        item: items.childs_doll,
+        label: {
+          past: 'A small toy chest. Someone loved these things.',
+          present: 'Scattered toys. One cloth doll, missing an eye.',
+        } },
+
+      // --- READING HALL (Boss Area) ---
+      { id: 'ath_curator_npc', x: 25, y: 17, type: 'npc', eventId: null,
+        label: {
+          past: 'The Curator sits at the great desk, surrounded by towers of books.',
+          present: 'Something vast hunches in the shadows of the reading hall.',
+        },
+        dialogue: {
+          past: [
+            '"Welcome to the Athenaeum. All knowledge lives here."',
+            '"The restricted section? Only Synod members may access it."',
+            '"Hmm? The Synod\'s research? That\'s above my authority, I\'m afraid."',
+            '"But between us... I don\'t like what they\'ve been requesting."',
+          ],
+          present: [
+            '"The... collection... must be... organized."',
+            'It doesn\'t see you. It sees books that aren\'t there.',
+            'Its hands sort phantom pages, vast fingers gentle as grief.',
+            'This was a person. This was someone who loved their work.',
+          ],
+        } },
+      { id: 'ath_reading_potion', x: 23, y: 19, type: 'chest', eventId: null,
+        item: items.mana_potion,
+        label: {
+          past: 'A case of scholarly supplies.',
+          present: 'Broken glass and dust. One vial survived.',
+        } },
+      { id: 'ath_combined_mirror', x: 25, y: 14, type: 'combined', eventId: 'ath_mirror_bond',
+        label: {
+          past: 'A tall mirror in an ornate frame. Your reflection looks... older. Sadder.',
+          present: 'A cracked mirror. In the fractures, you see a face that is not yours.',
+        } },
+
+      // --- EXIT ---
+      { id: 'ath_exit', x: 25, y: 1, type: 'exit', eventId: null,
+        targetArea: 'act2_city', targetSpawn: { x: 25, y: 48 },
+        label: {
+          past: 'The great doors. The city lies beyond.',
+          present: 'A shattered archway. Cold air rushes in.',
+        } },
+
+      // --- SYNC RITUAL POINT ---
+      { id: 'ath_ritual_point', x: 25, y: 32, type: 'sync_ritual', eventId: 'ath_first_ritual',
+        label: {
+          past: 'A circle of inlaid stone in the floor. It hums beneath your feet.',
+          present: 'A circle of cracked stone. Faint warmth rises from it, impossibly.',
+        } },
+    ],
+  };
+
+  // --- AREA REGISTRY ---
+
+  const areas = {
+    act1_athenaeum,
+    // act2_city: defined later
+  };
+
+  return { items, areas, ROOMS };
+})();
+
+
+// --- js/mapgen.js ---
+// ============================================================
+//  MAPGEN — Procedural map generation + area definitions
+// ============================================================
+
+const MapGen = (() => {
+  const FLOOR = 0, WALL = 1, DOOR = 2;
+
+  // Deterministic RNG seeded from string
+  function makeRng(seed) {
+    let h = 0;
+    for (let i = 0; i < seed.length; i++) {
+      h = Math.imul(h ^ seed.charCodeAt(i), 2654435761);
+      h = (h ^ (h >>> 16)) >>> 0;
+    }
+    return function () {
+      h = Math.imul(h ^ (h >>> 16), 2246822507);
+      h = Math.imul(h ^ (h >>> 13), 3266489909);
+      h = (h ^ (h >>> 16)) >>> 0;
+      return h / 4294967296;
+    };
   }
-};
 
-function drawTestScene(character) {
-  const canvas = document.getElementById('game-canvas');
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  const pal = character === 'knight' ? Palette.past : Palette.present;
+  function carveRect(tiles, w, x1, y1, x2, y2) {
+    for (let y = y1; y <= y2; y++)
+      for (let x = x1; x <= x2; x++)
+        if (x >= 0 && x < w && y >= 0 && y < Math.floor(tiles.length / w))
+          tiles[y * w + x] = FLOOR;
+  }
 
-  ctx.fillStyle = pal.bg;
-  ctx.fillRect(0, 0, W, H);
+  function carveCorridor(tiles, w, h, x1, y1, x2, y2) {
+    // L-shaped corridor
+    const mx = x2, my = y1;
+    for (let x = Math.min(x1, mx); x <= Math.max(x1, mx); x++)
+      if (x >= 0 && x < w && y1 >= 0 && y1 < h) tiles[y1 * w + x] = FLOOR;
+    for (let y = Math.min(my, y2); y <= Math.max(my, y2); y++)
+      if (mx >= 0 && mx < w && y >= 0 && y < h) tiles[y * w + mx] = FLOOR;
+  }
 
-  const TILE = 24;
-  const COLS = Math.floor(W / TILE), ROWS = Math.floor(H / TILE);
-  const room = generateTestRoom(COLS, ROWS);
+  // Check if all floor tiles are connected via BFS
+  function isConnected(tiles, w, h) {
+    let startIdx = -1;
+    for (let i = 0; i < tiles.length; i++) {
+      if (tiles[i] === FLOOR) { startIdx = i; break; }
+    }
+    if (startIdx === -1) return false;
 
-  for (let y = 0; y < ROWS; y++) {
-    for (let x = 0; x < COLS; x++) {
-      const px = x * TILE, py = y * TILE;
-      if (room[y][x] === 1) {
-        ctx.fillStyle = pal.wall;
-        ctx.fillRect(px, py, TILE, TILE);
-        ctx.strokeStyle = pal.wallStroke;
-        ctx.strokeRect(px + 0.5, py + 0.5, TILE - 1, TILE - 1);
-      } else {
-        ctx.fillStyle = pal.floor;
-        ctx.fillRect(px, py, TILE, TILE);
-        if ((x + y) % 3 === 0) {
-          ctx.fillStyle = pal.floorAlt;
-          ctx.fillRect(px + 2, py + 2, TILE - 4, TILE - 4);
+    const visited = new Uint8Array(tiles.length);
+    const queue = [startIdx];
+    visited[startIdx] = 1;
+    let count = 0;
+
+    while (queue.length > 0) {
+      const idx = queue.shift();
+      count++;
+      const x = idx % w, y = Math.floor(idx / w);
+      for (const [dx, dy] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) {
+        const nx = x + dx, ny = y + dy;
+        if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+          const ni = ny * w + nx;
+          if (!visited[ni] && tiles[ni] !== WALL) {
+            visited[ni] = 1;
+            queue.push(ni);
+          }
+        }
+      }
+    }
+
+    let totalFloor = 0;
+    for (let i = 0; i < tiles.length; i++) if (tiles[i] !== WALL) totalFloor++;
+    return count >= totalFloor * 0.9; // 90% connected is fine
+  }
+
+  // --- DEMO MAP (reproduces Phase 1 layout) ---
+
+  function generateDemo() {
+    const w = 40, h = 40;
+    const tiles = new Uint8Array(w * h);
+    tiles.fill(WALL);
+
+    carveRect(tiles, w, 13, 13, 26, 26); // central hall
+    const pillars = [[16, 16], [23, 16], [16, 23], [23, 23]];
+    for (const [px, py] of pillars) tiles[py * w + px] = WALL;
+
+    carveRect(tiles, w, 19, 3, 20, 12);  // N corridor
+    carveRect(tiles, w, 15, 1, 24, 5);   // N chamber
+    carveRect(tiles, w, 19, 27, 20, 36); // S corridor
+    carveRect(tiles, w, 15, 34, 24, 38); // S chamber
+    carveRect(tiles, w, 3, 19, 12, 20);  // W corridor
+    carveRect(tiles, w, 1, 15, 5, 24);   // W chamber
+    carveRect(tiles, w, 27, 19, 36, 20); // E corridor
+    carveRect(tiles, w, 34, 15, 38, 24); // E chamber
+    carveRect(tiles, w, 13, 17, 13, 22); // W alcove
+    carveRect(tiles, w, 26, 17, 26, 22); // E alcove
+
+    // Sealed gate (N chamber entrance)
+    tiles[6 * w + 19] = DOOR;
+    tiles[6 * w + 20] = DOOR;
+
+    const objects = [
+      { id: 'demo_altar', x: 20, y: 20, type: 'discovery', eventId: 'demo_altar_found', forTimeline: 'present',
+        label: { past: 'An ancient altar, flames dancing', present: 'A cracked altar, long cold' } },
+      { id: 'demo_pillar', x: 3, y: 20, type: 'discovery', eventId: 'demo_pillar_found', forTimeline: 'past',
+        label: { past: 'A pillar inscribed with living runes', present: 'A shattered pillar, runes faded' } },
+      { id: 'demo_chest', x: 36, y: 20, type: 'chest', eventId: 'demo_chest_unlock', forTimeline: null,
+        label: { past: 'A sealed chest, warm to the touch', present: 'A rusted chest, sealed shut' }, unlockedBy: 'demo_altar_found' },
+      { id: 'demo_gate', x: 19, y: 6, type: 'gate', eventId: 'demo_gate_open', forTimeline: null,
+        label: { past: 'A heavy gate, sealed by old magic', present: 'A gate of black iron, frozen shut' },
+        unlockedBy: 'demo_pillar_found', gateTiles: [[19, 6], [20, 6]] },
+      { id: 'demo_mirror', x: 20, y: 3, type: 'combined', eventId: 'demo_mirror_half', forTimeline: null,
+        label: { past: 'A mirror reflecting a face not your own', present: 'A cracked mirror, showing fragments' } },
+      { id: 'demo_brazier', x: 19, y: 36, type: 'examine', eventId: null, forTimeline: null,
+        label: { past: 'A roaring brazier, warmth pours from it', present: 'Cold iron, filled with old ash' } },
+    ];
+
+    return { tiles, objects, w, h, spawn: { x: 20, y: 19 }, exits: [] };
+  }
+
+  // --- PROCEDURAL GENERATION ---
+
+  function generateProcedural(areaId, seed, areaDef) {
+    const w = areaDef.w || 50, h = areaDef.h || 50;
+    const rng = makeRng(seed + ':' + areaId);
+    let tiles, attempts = 0;
+
+    do {
+      tiles = new Uint8Array(w * h);
+      tiles.fill(WALL);
+
+      const rooms = [];
+
+      // Place required hand-authored rooms first
+      for (const room of (areaDef.rooms || [])) {
+        if (room.template) {
+          placeTemplate(tiles, w, room.x, room.y, room.template);
+        } else {
+          carveRect(tiles, w, room.x, room.y, room.x + (room.w || 8) - 1, room.y + (room.h || 8) - 1);
+        }
+        rooms.push({ cx: room.x + (room.w || 8) / 2, cy: room.y + (room.h || 8) / 2 });
+      }
+
+      // Place random filler rooms
+      for (let i = 0; i < 12; i++) {
+        const rw = 4 + Math.floor(rng() * 6);
+        const rh = 4 + Math.floor(rng() * 5);
+        const rx = 2 + Math.floor(rng() * (w - rw - 4));
+        const ry = 2 + Math.floor(rng() * (h - rh - 4));
+
+        // Check no overlap with existing rooms (simple AABB)
+        let overlap = false;
+        for (const r of rooms) {
+          if (Math.abs(rx + rw / 2 - r.cx) < rw && Math.abs(ry + rh / 2 - r.cy) < rh) {
+            overlap = true; break;
+          }
+        }
+        if (overlap) continue;
+
+        carveRect(tiles, w, rx, ry, rx + rw - 1, ry + rh - 1);
+        rooms.push({ cx: rx + rw / 2, cy: ry + rh / 2 });
+      }
+
+      // Connect rooms with corridors (minimum spanning tree approach)
+      for (let i = 1; i < rooms.length; i++) {
+        const a = rooms[i];
+        // Connect to nearest previous room
+        let best = 0, bestDist = Infinity;
+        for (let j = 0; j < i; j++) {
+          const d = Math.abs(a.cx - rooms[j].cx) + Math.abs(a.cy - rooms[j].cy);
+          if (d < bestDist) { bestDist = d; best = j; }
+        }
+        const b = rooms[best];
+        carveCorridor(tiles, w, h,
+          Math.round(a.cx), Math.round(a.cy),
+          Math.round(b.cx), Math.round(b.cy));
+      }
+
+      attempts++;
+    } while (!isConnected(tiles, w, h) && attempts < 5);
+
+    // Place door tiles at area exits
+    for (const exit of (areaDef.exits || [])) {
+      if (exit.x >= 0 && exit.x < w && exit.y >= 0 && exit.y < h) {
+        tiles[exit.y * w + exit.x] = FLOOR;
+      }
+    }
+
+    return {
+      tiles, w, h,
+      objects: areaDef.objects || [],
+      spawn: areaDef.spawn || { x: Math.round(w / 2), y: Math.round(h / 2) },
+      exits: areaDef.exits || [],
+    };
+  }
+
+  function placeTemplate(tiles, mapW, ox, oy, template) {
+    const h = template.length, w = template[0].length;
+    for (let y = 0; y < h; y++)
+      for (let x = 0; x < w; x++) {
+        const tx = ox + x, ty = oy + y;
+        if (tx >= 0 && tx < mapW && ty >= 0 && ty < Math.floor(tiles.length / mapW)) {
+          tiles[ty * mapW + tx] = template[y][x];
+        }
+      }
+  }
+
+  // --- PUBLIC ---
+
+  function generate(areaId, seed, areaDef) {
+    if (areaId === 'demo') return generateDemo();
+    if (areaDef) return generateProcedural(areaId, seed, areaDef);
+    return generateDemo(); // fallback
+  }
+
+  return { generate, FLOOR, WALL, DOOR };
+})();
+
+
+// --- js/map.js ---
+// ============================================================
+//  MAP — Loadable tile map with spatial queries
+// ============================================================
+
+const Map = (() => {
+  let W = 0, H = 0;
+  let tiles = null;
+  let objects = [];
+  let exits = [];
+  const FLOOR = 0, WALL = 1, DOOR = 2;
+
+  function load(areaData) {
+    W = areaData.w;
+    H = areaData.h;
+    tiles = areaData.tiles;
+    objects = areaData.objects || [];
+    exits = areaData.exits || [];
+  }
+
+  function get(x, y) {
+    if (!tiles || x < 0 || x >= W || y < 0 || y >= H) return WALL;
+    return tiles[y * W + x];
+  }
+
+  function isWalkable(x, y, state) {
+    const t = get(x, y);
+    if (t === FLOOR) return true;
+    if (t === DOOR) {
+      const obj = getObjectAt(x, y);
+      if (obj && obj.type === 'gate') {
+        return state.appliedGlyphs && state.appliedGlyphs.includes(obj.unlockedBy);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  function getObjects() { return objects; }
+  function getExits() { return exits; }
+
+  function getObjectAt(x, y) {
+    return objects.find(o => o.x === x && o.y === y) || null;
+  }
+
+  function getObjectsNear(x, y) {
+    return objects.filter(o => Math.abs(o.x - x) <= 1 && Math.abs(o.y - y) <= 1);
+  }
+
+  function getWidth() { return W; }
+  function getHeight() { return H; }
+
+  return {
+    load, get, isWalkable, getObjects, getExits, getObjectAt, getObjectsNear,
+    getWidth, getHeight,
+    get W() { return W; }, get H() { return H; },
+    FLOOR, WALL, DOOR,
+  };
+})();
+
+
+// --- js/stats.js ---
+// ============================================================
+//  STATS — Character stats, inventory, leveling
+// ============================================================
+
+const Stats = (() => {
+  const CLASS_BASE = {
+    knight: { hp: 35, mp: 8, hpPerLevel: 8, mpPerLevel: 2 },
+    whisper: { hp: 20, mp: 20, hpPerLevel: 4, mpPerLevel: 5 },
+  };
+
+  function init(character) {
+    const base = CLASS_BASE[character] || CLASS_BASE.knight;
+    return {
+      hp: base.hp, maxHp: base.hp,
+      mp: base.mp, maxMp: base.mp,
+      level: 1, xp: 0, xpNext: 20,
+      items: [],
+    };
+  }
+
+  function takeDamage(stats, amount) {
+    stats.hp = Math.max(0, stats.hp - amount);
+    return stats.hp <= 0;
+  }
+
+  function heal(stats, amount) {
+    stats.hp = Math.min(stats.maxHp, stats.hp + amount);
+  }
+
+  function useMp(stats, amount) {
+    if (stats.mp < amount) return false;
+    stats.mp -= amount;
+    return true;
+  }
+
+  function restoreMp(stats, amount) {
+    stats.mp = Math.min(stats.maxMp, stats.mp + amount);
+  }
+
+  function addItem(stats, item) {
+    if (stats.items.length >= 8) return false;
+    stats.items.push({ ...item });
+    return true;
+  }
+
+  function removeItem(stats, itemId) {
+    const idx = stats.items.findIndex(i => i.id === itemId);
+    if (idx >= 0) { stats.items.splice(idx, 1); return true; }
+    return false;
+  }
+
+  function hasItem(stats, itemId) {
+    return stats.items.some(i => i.id === itemId);
+  }
+
+  function useItem(stats, itemId) {
+    const item = stats.items.find(i => i.id === itemId);
+    if (!item || item.type !== 'consumable') return null;
+    if (item.effect) {
+      if (item.effect.hp) heal(stats, item.effect.hp);
+      if (item.effect.mp) restoreMp(stats, item.effect.mp);
+    }
+    removeItem(stats, itemId);
+    return item;
+  }
+
+  function gainXp(stats, amount, character) {
+    stats.xp += amount;
+    let leveled = false;
+    while (stats.xp >= stats.xpNext && stats.level < 5) {
+      stats.xp -= stats.xpNext;
+      stats.level++;
+      const base = CLASS_BASE[character] || CLASS_BASE.knight;
+      stats.maxHp += base.hpPerLevel;
+      stats.hp += base.hpPerLevel;
+      stats.maxMp += base.mpPerLevel;
+      stats.mp += base.mpPerLevel;
+      stats.xpNext = Math.floor(stats.xpNext * 1.6);
+      leveled = true;
+    }
+    return leveled;
+  }
+
+  return { init, takeDamage, heal, useMp, restoreMp, addItem, removeItem, hasItem, useItem, gainXp };
+})();
+
+
+// --- js/bond.js ---
+// ============================================================
+//  BOND — Bond meter and vision scene triggers
+// ============================================================
+
+const Bond = (() => {
+  const LABELS = [
+    [0, 'Strangers'],
+    [20, 'Allies'],
+    [40, 'Recognized'],
+    [60, 'Unraveling'],
+    [80, 'Whole'],
+  ];
+
+  // Vision scenes at bond thresholds
+  // character: null = both see it, 'knight' or 'whisper' = only that character
+  const VISIONS = [
+    { threshold: 20, character: null, title: 'A Shared Memory',
+      lines: [
+        'A flash of warmth—',
+        'You see a vast library, shelves reaching to cathedral ceilings.',
+        'Lamplight pools on ancient wood. The smell of old paper and candle wax.',
+        'It feels like home. You don\'t know why.',
+        'The vision fades.'] },
+    { threshold: 40, character: 'knight', title: 'The Girl',
+      lines: [
+        'A vision surfaces, unbidden—',
+        'A young girl, reading by candlelight.',
+        'Her lips move silently, tracing the words.',
+        'You feel a tenderness so fierce it hurts.',
+        'You don\'t know who she is. But you would do anything for her.',
+        'The vision fades, leaving warmth behind.'] },
+    { threshold: 40, character: 'whisper', title: 'The Voice',
+      lines: [
+        'A sound reaches you from nowhere—',
+        'A voice, reading aloud. Patient. Gentle.',
+        'It stumbles over the dramatic parts, and someone laughs.',
+        'The laugh is yours. You are sure of it.',
+        'But you can\'t see the reader\'s face.',
+        'The sound fades, leaving silence heavier than before.'] },
+    { threshold: 60, character: null, title: 'The Night',
+      lines: [
+        'The world goes white—',
+        'You see a ritual circle, blazing with stolen light.',
+        'Figures in robes, chanting. The air screams.',
+        'Someone is running toward the light.',
+        'Someone else is being wrapped in something warm, even as the world ends.',
+        'Then silence. The silence that ate everything.',
+        'You return to yourself, shaking.'] },
+    { threshold: 80, character: 'knight', title: 'The Truth',
+      lines: [
+        'Memory crashes over you like a wave—',
+        'You remember. All of it.',
+        'You were not a knight. You were never a knight.',
+        'You were a scholar. A keeper of books. This armor isn\'t yours.',
+        'You remember finding the forbidden texts. Confronting them. Failing.',
+        'You remember the girl. Your apprentice. The closest thing to—',
+        'You split yourself to save her. Tore your own mind in half.',
+        'The guilt is staggering. The love is worse.',
+        'You remember everything, and you wish you didn\'t.'] },
+    { threshold: 90, character: 'whisper', title: 'The Name',
+      lines: [
+        'A name surfaces from the deep—',
+        'You remember him. Not the armored figure walking beside you.',
+        'A kind, bookish man who taught you to read.',
+        'Who gave you a home when you had none.',
+        'Who stumbled over the dramatic parts of stories, and made you laugh.',
+        'He sacrificed half of himself so you would survive.',
+        'The power you carry — your magic — it\'s not a gift.',
+        'It\'s the scar of what he couldn\'t prevent.',
+        'You know his name now. And it changes everything.'] },
+  ];
+
+  function init(level) {
+    return {
+      level: level || 0,
+      exchanges: 0,
+      visionsSeen: [],
+    };
+  }
+
+  function increase(bondState, amount, character) {
+    bondState.level = Math.min(100, bondState.level + amount);
+    bondState.exchanges++;
+
+    // Check for vision triggers
+    for (const v of VISIONS) {
+      if (bondState.level >= v.threshold && !bondState.visionsSeen.includes(v.threshold + ':' + (v.character || 'all'))) {
+        if (v.character === null || v.character === character) {
+          bondState.visionsSeen.push(v.threshold + ':' + (v.character || 'all'));
+          return { title: v.title, lines: v.lines, threshold: v.threshold };
+        }
+      }
+    }
+    return null;
+  }
+
+  function getLabel(bondState) {
+    if (!bondState) return 'Strangers';
+    let label = 'Strangers';
+    for (const [threshold, name] of LABELS) {
+      if (bondState.level >= threshold) label = name;
+    }
+    return label;
+  }
+
+  return { init, increase, getLabel, LABELS };
+})();
+
+
+// --- js/dialogue.js ---
+// ============================================================
+//  DIALOGUE — Modal text display and choice selection
+// ============================================================
+
+const Dialogue = (() => {
+  let active = false;
+  let lines = [];
+  let lineIndex = 0;
+  let onComplete = null;
+  let choiceCallback = null;
+
+  function show(textLines, callback) {
+    if (!textLines || textLines.length === 0) return;
+    lines = textLines;
+    lineIndex = 0;
+    onComplete = callback || null;
+    choiceCallback = null;
+    active = true;
+    renderLine();
+    showOverlay();
+  }
+
+  function showChoice(prompt, options, onSelect) {
+    active = true;
+    choiceCallback = onSelect;
+    const overlay = getOverlay();
+    overlay.classList.remove('hidden');
+    overlay.innerHTML = '';
+
+    const promptEl = document.createElement('div');
+    promptEl.className = 'dialogue-text';
+    promptEl.textContent = prompt;
+    overlay.appendChild(promptEl);
+
+    const choicesEl = document.createElement('div');
+    choicesEl.className = 'dialogue-choices';
+    options.forEach((opt, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'dialogue-choice-btn';
+      btn.textContent = opt;
+      btn.onclick = () => {
+        close();
+        if (choiceCallback) choiceCallback(idx);
+      };
+      choicesEl.appendChild(btn);
+    });
+    overlay.appendChild(choicesEl);
+  }
+
+  function advance() {
+    if (!active || choiceCallback) return; // choices handled by buttons
+    lineIndex++;
+    if (lineIndex >= lines.length) {
+      close();
+      if (onComplete) onComplete();
+    } else {
+      renderLine();
+    }
+  }
+
+  function renderLine() {
+    const overlay = getOverlay();
+    overlay.innerHTML = '';
+
+    const textEl = document.createElement('div');
+    textEl.className = 'dialogue-text';
+    textEl.textContent = lines[lineIndex];
+    overlay.appendChild(textEl);
+
+    const hint = document.createElement('div');
+    hint.className = 'dialogue-hint';
+    hint.textContent = lineIndex < lines.length - 1 ? 'tap to continue...' : 'tap to close';
+    overlay.appendChild(hint);
+  }
+
+  function showOverlay() {
+    getOverlay().classList.remove('hidden');
+  }
+
+  function close() {
+    active = false;
+    lines = [];
+    lineIndex = 0;
+    choiceCallback = null;
+    getOverlay().classList.add('hidden');
+  }
+
+  function getOverlay() {
+    let el = document.getElementById('dialogue-overlay');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'dialogue-overlay';
+      el.className = 'dialogue-overlay hidden';
+      el.addEventListener('pointerdown', (e) => {
+        e.stopPropagation();
+        advance();
+      });
+      document.getElementById('app').appendChild(el);
+    }
+    return el;
+  }
+
+  function isActive() { return active; }
+
+  return { show, showChoice, advance, close, isActive };
+})();
+
+
+// --- js/game.js ---
+// ============================================================
+//  GAME — Core game state manager
+// ============================================================
+
+const Game = (() => {
+  let state = null;
+
+  function init(session) {
+    const isKnight = session.character === 'knight';
+    const currentArea = session.currentArea || 'demo';
+
+    // Generate and load map
+    const areaDef = (typeof Data !== 'undefined' && Data.areas && Data.areas[currentArea])
+      ? Data.areas[currentArea] : null;
+    const mapData = MapGen.generate(currentArea, session.sharedSeed || 'DEMO', areaDef);
+    Map.load(mapData);
+
+    state = {
+      character: session.character,
+      timeline: isKnight ? 'past' : 'present',
+      sharedSeed: session.sharedSeed || 'DEMO',
+      demo: session.demo || false,
+      currentArea,
+      player: session.player || { x: mapData.spawn.x, y: mapData.spawn.y },
+      explored: session.explored || createExploredArray(),
+      interactedObjects: session.interactedObjects || [],
+      appliedGlyphs: session.appliedGlyphs || [],
+      discoveredGlyphs: session.discoveredGlyphs || [],
+      lastDir: session.lastDir || { x: 0, y: -1 },
+      storyFlags: session.storyFlags || {},
+      echoChoices: session.echoChoices || [],
+      // Stats and bond initialized by their modules if available
+      stats: session.stats || null,
+      bond: session.bond || null,
+    };
+
+    // Init sub-systems if available
+    if (typeof Stats !== 'undefined' && !state.stats) {
+      state.stats = Stats.init(state.character);
+    }
+    if (typeof Bond !== 'undefined' && !state.bond) {
+      state.bond = Bond.init(0);
+    }
+
+    revealAround(state.player.x, state.player.y);
+    save();
+    return state;
+  }
+
+  function initDemo(character) {
+    return init({
+      character: character || 'knight',
+      demo: true,
+      sharedSeed: 'DEMO',
+      currentArea: 'demo',
+    });
+  }
+
+  function createExploredArray() {
+    const arr = [];
+    for (let y = 0; y < Map.H; y++) {
+      arr[y] = [];
+      for (let x = 0; x < Map.W; x++) arr[y][x] = false;
+    }
+    return arr;
+  }
+
+  function revealAround(px, py) {
+    const radius = 5;
+    for (let dy = -radius; dy <= radius; dy++) {
+      for (let dx = -radius; dx <= radius; dx++) {
+        const x = px + dx, y = py + dy;
+        if (x >= 0 && x < Map.W && y >= 0 && y < Map.H) {
+          if (dx * dx + dy * dy <= radius * radius) {
+            state.explored[y][x] = true;
+          }
         }
       }
     }
   }
 
-  // Draw player character
-  const pos = { x: 10, y: 10 };
-  drawCharacter(ctx, pos.x * TILE, pos.y * TILE, TILE, pal.player, pal.playerLight);
+  function movePlayer(dx, dy) {
+    if (!state) return false;
+    const nx = state.player.x + dx;
+    const ny = state.player.y + dy;
+    if (!Map.isWalkable(nx, ny, state)) return false;
 
-  // Fog of war
-  for (let y = 0; y < ROWS; y++) {
-    for (let x = 0; x < COLS; x++) {
-      const dist = Math.hypot(x - pos.x, y - pos.y);
-      if (dist > 3) {
-        ctx.fillStyle = pal.fog;
-        ctx.globalAlpha = Math.min(0.85, (dist - 3) * 0.15);
-        ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
-        ctx.globalAlpha = 1;
+    state.player.x = nx;
+    state.player.y = ny;
+    if (dx !== 0 || dy !== 0) state.lastDir = { x: dx, y: dy };
+    revealAround(nx, ny);
+
+    // Check for exit tile
+    const exit = Map.getExits().find(e => e.x === nx && e.y === ny);
+    if (exit && typeof transitionArea === 'function') {
+      // Defer transition to next frame to let rendering catch up
+      setTimeout(() => transitionArea(exit.targetArea, exit.targetSpawn), 50);
+    }
+
+    save();
+    return true;
+  }
+
+  function getAdjacentObject() {
+    if (!state) return null;
+    const px = state.player.x, py = state.player.y;
+
+    const onTile = Map.getObjectAt(px, py);
+    if (onTile) return onTile;
+
+    const fx = px + state.lastDir.x, fy = py + state.lastDir.y;
+    const facing = Map.getObjectAt(fx, fy);
+    if (facing) return facing;
+
+    const near = Map.getObjectsNear(px, py);
+    return near.length > 0 ? near[0] : null;
+  }
+
+  function interact() {
+    if (!state) return null;
+    const obj = getAdjacentObject();
+    if (!obj) return { type: 'none', message: 'Nothing to interact with here.' };
+
+    const label = obj.label ? (obj.label[state.timeline] || obj.label.past || 'Something is here.') : 'Something is here.';
+
+    switch (obj.type) {
+      case 'discovery': {
+        if (state.interactedObjects.includes(obj.id)) {
+          return { type: 'already', message: label + ' (already examined)' };
+        }
+        const glyph = Crypto.generateGlyph(state.sharedSeed, obj.eventId);
+        state.interactedObjects.push(obj.id);
+        state.discoveredGlyphs.push(obj.eventId);
+        save();
+        return { type: 'glyph', message: label, glyph, eventId: obj.eventId };
       }
+
+      case 'chest': {
+        if (obj.unlockedBy && !state.appliedGlyphs.includes(obj.unlockedBy)) {
+          return { type: 'locked', message: label + ' — It won\'t budge. Perhaps something from the other side could help.' };
+        }
+        if (state.interactedObjects.includes(obj.id)) {
+          return { type: 'already', message: 'The chest is empty.' };
+        }
+        state.interactedObjects.push(obj.id);
+        // Give item if defined
+        if (obj.item && state.stats && typeof Stats !== 'undefined') {
+          Stats.addItem(state.stats, obj.item);
+        }
+        save();
+        return { type: 'opened', message: obj.item ? 'The chest opens! Found: ' + obj.item.name : 'The chest opens! Inside: a weathered journal.' };
+      }
+
+      case 'gate': {
+        if (state.appliedGlyphs.includes(obj.unlockedBy)) {
+          return { type: 'opened', message: 'The gate stands open.' };
+        }
+        return { type: 'locked', message: label + ' — Sealed. A glyph from elsewhere might break the ward.' };
+      }
+
+      case 'combined': {
+        const isFirstHalf = state.timeline === 'past';
+        const half = Crypto.generateHalfGlyph(state.sharedSeed, obj.eventId, isFirstHalf);
+        if (state.interactedObjects.includes(obj.id)) {
+          return { type: 'already', message: label + ` (your half: ${half}-????)` };
+        }
+        state.interactedObjects.push(obj.id);
+        save();
+        return { type: 'half-glyph', message: label, glyph: half + '-????', half, eventId: obj.eventId };
+      }
+
+      case 'npc': {
+        const dialogue = obj.dialogue ? (obj.dialogue[state.timeline] || obj.dialogue.past || []) : [];
+        if (dialogue.length > 0 && typeof Dialogue !== 'undefined') {
+          Dialogue.show(dialogue);
+        }
+        return { type: 'npc', message: label };
+      }
+
+      case 'echo_choice': {
+        if (state.interactedObjects.includes(obj.id)) {
+          return { type: 'already', message: label + ' (already chosen)' };
+        }
+        if (obj.choices && typeof Dialogue !== 'undefined') {
+          Dialogue.showChoice(label, obj.choices.map(c => c.label), (idx) => {
+            const choice = obj.choices[idx];
+            state.interactedObjects.push(obj.id);
+            state.echoChoices.push(choice.eventId);
+            const glyph = Crypto.generateGlyph(state.sharedSeed, choice.eventId);
+            save();
+            showGeneratedGlyph(glyph, choice.message || 'Your choice echoes across time...');
+          });
+          return { type: 'echo_choice', message: label };
+        }
+        return { type: 'examine', message: label };
+      }
+
+      case 'exit': {
+        if (obj.targetArea) {
+          transitionArea(obj.targetArea, obj.targetSpawn);
+        }
+        return { type: 'exit', message: 'You move onward...' };
+      }
+
+      case 'sync_ritual': {
+        if (state.interactedObjects.includes(obj.id)) {
+          return { type: 'already', message: 'The circle is quiet now. The resonance has passed.' };
+        }
+        // Show sync ritual UI
+        if (typeof showSyncRitual === 'function') {
+          showSyncRitual(obj.eventId, label);
+        }
+        return { type: 'sync_ritual', message: label };
+      }
+
+      case 'examine':
+      default:
+        return { type: 'examine', message: label };
     }
   }
 
-  // Atmosphere label
-  ctx.fillStyle = pal.fog;
-  ctx.globalAlpha = 0.7;
-  ctx.fillRect(0, H - 40, W, 40);
-  ctx.globalAlpha = 1;
-  ctx.fillStyle = pal.textDim;
-  ctx.font = '11px "Courier New", monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText(pal.label, W / 2, H - 16);
-}
+  function tryApplyGlyph(code) {
+    if (!state) return null;
 
-function drawCharacter(ctx, x, y, size, dark, light) {
-  const cx = x + size / 2, cy = y + size / 2, r = size * 0.35;
-  const grad = ctx.createRadialGradient(cx, cy, r * 0.5, cx, cy, r * 2);
-  grad.addColorStop(0, dark + '40');
-  grad.addColorStop(1, 'transparent');
-  ctx.fillStyle = grad;
-  ctx.fillRect(x - size, y - size, size * 3, size * 3);
-  ctx.fillStyle = dark;
-  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = light;
-  ctx.beginPath(); ctx.arc(cx - r * 0.2, cy - r * 0.2, r * 0.4, 0, Math.PI * 2); ctx.fill();
-}
+    const possibleIds = Map.getObjects()
+      .filter(o => o.eventId && (
+        o.forTimeline === state.timeline ||
+        o.forTimeline === null ||
+        state.demo
+      ))
+      .map(o => o.eventId);
 
-function generateTestRoom(cols, rows) {
-  const room = [];
-  for (let y = 0; y < rows; y++) {
-    room[y] = [];
-    for (let x = 0; x < cols; x++) {
-      if (x === 0 || x === cols - 1 || y === 0 || y === rows - 1) { room[y][x] = 1; }
-      else if (x >= 4 && x <= 15 && y >= 4 && y <= 15) {
-        if (x === 4 || x === 15 || y === 4 || y === 15) {
-          room[y][x] = ((x === 10 && (y === 4 || y === 15)) || ((x === 4 || x === 15) && y === 10)) ? 0 : 1;
-        } else { room[y][x] = 0; }
-        if ((x === 7 || x === 12) && (y === 7 || y === 12)) room[y][x] = 1;
-      }
-      else {
-        if ((x === 10 && y < 4) || (x === 10 && y > 15)) room[y][x] = 0;
-        else if ((y === 10 && x < 4) || (y === 10 && x > 15)) room[y][x] = 0;
-        else if (x >= 2 && x <= 3 && y >= 9 && y <= 11) room[y][x] = 0;
-        else if (x >= 16 && x <= 17 && y >= 9 && y <= 11) room[y][x] = 0;
-        else if (y >= 2 && y <= 3 && x >= 9 && x <= 11) room[y][x] = 0;
-        else if (y >= 16 && y <= 17 && x >= 9 && x <= 11) room[y][x] = 0;
-        else room[y][x] = 1;
+    // Also check echo choice event IDs
+    Map.getObjects().forEach(o => {
+      if (o.choices) o.choices.forEach(c => {
+        if (c.eventId) possibleIds.push(c.eventId);
+      });
+    });
+
+    const matchedId = Crypto.validateGlyph(state.sharedSeed, code, possibleIds);
+    if (!matchedId) return null;
+
+    if (state.appliedGlyphs.includes(matchedId)) {
+      return { eventId: matchedId, description: 'This glyph has already been applied.' };
+    }
+
+    state.appliedGlyphs.push(matchedId);
+
+    // Increase bond if available
+    if (state.bond && typeof Bond !== 'undefined') {
+      const vision = Bond.increase(state.bond, 5, state.character);
+      if (vision && typeof Dialogue !== 'undefined') {
+        setTimeout(() => Dialogue.show(vision.lines), 500);
       }
     }
+
+    save();
+
+    const obj = Map.getObjects().find(o => o.eventId === matchedId);
+    if (obj && obj.type === 'gate') {
+      return { eventId: matchedId, description: 'A distant gate grinds open...' };
+    }
+    if (obj && (obj.type === 'chest' || obj.unlockedBy)) {
+      return { eventId: matchedId, description: 'Something clicks. A lock yields.' };
+    }
+    return { eventId: matchedId, description: 'The glyph resonates through the stone.' };
   }
-  return room;
-}
+
+  function transitionArea(areaId, spawnPoint) {
+    if (!state) return;
+
+    // Save current area's explored state
+    const session = Persist.loadSession() || {};
+    session.exploredAreas = session.exploredAreas || {};
+    session.exploredAreas[state.currentArea] = state.explored;
+
+    // Load new area
+    state.currentArea = areaId;
+    const areaDef = (typeof Data !== 'undefined' && Data.areas && Data.areas[areaId])
+      ? Data.areas[areaId] : null;
+    const mapData = MapGen.generate(areaId, state.sharedSeed, areaDef);
+    Map.load(mapData);
+
+    // Restore or create explored array
+    state.explored = (session.exploredAreas && session.exploredAreas[areaId])
+      ? session.exploredAreas[areaId]
+      : createExploredArray();
+
+    state.player = spawnPoint || { x: mapData.spawn.x, y: mapData.spawn.y };
+    revealAround(state.player.x, state.player.y);
+    save();
+
+    // Update camera and render
+    if (typeof Input !== 'undefined') Input.updateCamera();
+    if (typeof Renderer !== 'undefined') Renderer.draw(state, state.timeline);
+  }
+
+  function setTimeline(tl) {
+    if (!state) return;
+    state.timeline = tl;
+    state.character = tl === 'past' ? 'knight' : 'whisper';
+    save();
+  }
+
+  function setStoryFlag(flag, value) {
+    if (!state) return;
+    state.storyFlags[flag] = value;
+    save();
+  }
+
+  function getStoryFlag(flag) {
+    return state ? state.storyFlags[flag] : undefined;
+  }
+
+  function isExplored(x, y) {
+    if (!state || y < 0 || y >= Map.H || x < 0 || x >= Map.W) return false;
+    return state.explored[y][x];
+  }
+
+  function isVisible(x, y) {
+    if (!state) return false;
+    const dx = x - state.player.x, dy = y - state.player.y;
+    return dx * dx + dy * dy <= 25;
+  }
+
+  function save() {
+    if (!state) return;
+    const session = Persist.loadSession() || {};
+    session.player = state.player;
+    session.explored = state.explored;
+    session.interactedObjects = state.interactedObjects;
+    session.appliedGlyphs = state.appliedGlyphs;
+    session.discoveredGlyphs = state.discoveredGlyphs;
+    session.lastDir = state.lastDir;
+    session.demo = state.demo;
+    session.currentArea = state.currentArea;
+    session.storyFlags = state.storyFlags;
+    session.echoChoices = state.echoChoices;
+    session.stats = state.stats;
+    session.bond = state.bond;
+    Persist.saveSession(session);
+  }
+
+  function getState() { return state; }
+
+  return {
+    init, initDemo, movePlayer, interact, tryApplyGlyph, getAdjacentObject,
+    setTimeline, setStoryFlag, getStoryFlag, transitionArea,
+    isExplored, isVisible, getState, save,
+  };
+})();
+
+
+// --- js/input.js ---
+// ============================================================
+//  INPUT — Touch-first input with BFS pathfinding
+// ============================================================
+
+const Input = (() => {
+  let canvas = null;
+  let camera = { x: 0, y: 0 };
+  const TILE = 24;
+  const VIEW = 20;
+  let walkPath = null;  // queued path tiles [{x,y}, ...]
+  let walkTimer = null;
+
+  function init(canvasEl) {
+    canvas = canvasEl;
+    canvas.addEventListener('pointerdown', onPointer);
+    document.addEventListener('keydown', onKey); // dev convenience, hidden from UI
+    updateCamera();
+  }
+
+  function updateCamera() {
+    const state = Game.getState();
+    if (!state) return;
+    camera.x = Math.max(0, Math.min(state.player.x - Math.floor(VIEW / 2), Map.W - VIEW));
+    camera.y = Math.max(0, Math.min(state.player.y - Math.floor(VIEW / 2), Map.H - VIEW));
+  }
+
+  function getCamera() { return camera; }
+
+  // --- BFS pathfinding ---
+  function findPath(fromX, fromY, toX, toY) {
+    const state = Game.getState();
+    // Allow walking TO an object tile even if it's not normally walkable (for interaction)
+    const targetObj = Map.getObjectAt(toX, toY);
+    const queue = [{ x: fromX, y: fromY, path: [] }];
+    const visited = new Set();
+    visited.add(fromY * Map.W + fromX);
+
+    while (queue.length > 0) {
+      const { x, y, path } = queue.shift();
+
+      for (const [dx, dy] of [[0,-1],[0,1],[-1,0],[1,0]]) {
+        const nx = x + dx, ny = y + dy;
+        const key = ny * Map.W + nx;
+        if (visited.has(key)) continue;
+        visited.add(key);
+
+        const newPath = [...path, { x: nx, y: ny }];
+
+        if (nx === toX && ny === toY) return newPath;
+
+        if (Map.isWalkable(nx, ny, state)) {
+          queue.push({ x: nx, y: ny, path: newPath });
+        }
+      }
+
+      // Limit search depth
+      if (queue.length > 800) return null;
+    }
+    return null;
+  }
+
+  // --- Walk along path with animation ---
+  function startWalking(path, interactAtEnd) {
+    cancelWalk();
+    walkPath = path;
+    walkStep(interactAtEnd);
+  }
+
+  function walkStep(interactAtEnd) {
+    if (!walkPath || walkPath.length === 0) {
+      walkPath = null;
+      if (interactAtEnd) doInteract();
+      return;
+    }
+
+    const next = walkPath.shift();
+    const state = Game.getState();
+    const dx = next.x - state.player.x;
+    const dy = next.y - state.player.y;
+
+    if (Game.movePlayer(dx, dy)) {
+      updateCamera();
+      render();
+      // Next step after a short delay (animated walk feel)
+      walkTimer = setTimeout(() => walkStep(interactAtEnd), 120);
+    } else {
+      // Path blocked (door closed, etc.) — stop
+      walkPath = null;
+    }
+  }
+
+  function cancelWalk() {
+    walkPath = null;
+    if (walkTimer) { clearTimeout(walkTimer); walkTimer = null; }
+  }
+
+  // --- Pointer (touch/mouse) ---
+  function onPointer(e) {
+    const state = Game.getState();
+    if (!state) return;
+    if (typeof Dialogue !== 'undefined' && Dialogue.isActive()) return;
+
+    cancelWalk();
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const tileX = Math.floor((e.clientX - rect.left) * scaleX / TILE) + camera.x;
+    const tileY = Math.floor((e.clientY - rect.top) * scaleY / TILE) + camera.y;
+
+    // Out of bounds
+    if (tileX < 0 || tileX >= Map.W || tileY < 0 || tileY >= Map.H) return;
+
+    // Not explored — can't tap there
+    if (!Game.isExplored(tileX, tileY)) return;
+
+    const dx = tileX - state.player.x;
+    const dy = tileY - state.player.y;
+
+    // Tap on self = interact with object here
+    if (dx === 0 && dy === 0) {
+      doInteract();
+      return;
+    }
+
+    // Check if tapped tile has an object
+    const tappedObj = Map.getObjectAt(tileX, tileY);
+
+    if (tappedObj) {
+      // Walk to an adjacent tile and interact
+      const adjTiles = [
+        { x: tileX, y: tileY - 1 }, { x: tileX, y: tileY + 1 },
+        { x: tileX - 1, y: tileY }, { x: tileX + 1, y: tileY },
+      ].filter(t => Map.isWalkable(t.x, t.y, state));
+
+      // Find shortest path to any adjacent tile
+      let bestPath = null;
+      for (const adj of adjTiles) {
+        // Already adjacent?
+        if (adj.x === state.player.x && adj.y === state.player.y) {
+          // Set facing direction toward object
+          Game.getState().lastDir = { x: tileX - state.player.x, y: tileY - state.player.y };
+          doInteract();
+          render();
+          return;
+        }
+        const path = findPath(state.player.x, state.player.y, adj.x, adj.y);
+        if (path && (!bestPath || path.length < bestPath.length)) bestPath = path;
+      }
+      if (bestPath) {
+        // Face the object at the end
+        const lastStep = bestPath[bestPath.length - 1];
+        startWalking(bestPath, true);
+        // Set facing toward object after walk
+        Game.getState().lastDir = { x: tileX - lastStep.x, y: tileY - lastStep.y };
+      }
+      return;
+    }
+
+    // Tap walkable tile — pathfind there
+    if (Map.isWalkable(tileX, tileY, state)) {
+      const path = findPath(state.player.x, state.player.y, tileX, tileY);
+      if (path) startWalking(path, false);
+    }
+  }
+
+  // --- Keyboard (dev convenience) ---
+  function onKey(e) {
+    const state = Game.getState();
+    if (!state) return;
+    if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+    if (typeof Dialogue !== 'undefined' && Dialogue.isActive()) return;
+
+    cancelWalk();
+
+    let dx = 0, dy = 0;
+    switch (e.key) {
+      case 'ArrowUp':    case 'w': case 'W': dy = -1; break;
+      case 'ArrowDown':  case 's': case 'S': dy = 1;  break;
+      case 'ArrowLeft':  case 'a': case 'A': dx = -1; break;
+      case 'ArrowRight': case 'd': case 'D': dx = 1;  break;
+      case 'e': case 'E':
+        doInteract(); e.preventDefault(); return;
+      default: return;
+    }
+
+    e.preventDefault();
+    if (Game.movePlayer(dx, dy)) { updateCamera(); render(); }
+  }
+
+  // --- Interact ---
+  function doInteract() {
+    const result = Game.interact();
+    if (!result) return;
+
+    switch (result.type) {
+      case 'glyph':
+        showGeneratedGlyph(result.glyph, result.message);
+        break;
+      case 'half-glyph':
+        showGeneratedGlyph(result.glyph, result.message + ' (your half — ask your partner for theirs)');
+        break;
+      case 'opened':
+      case 'locked':
+      case 'examine':
+      case 'already':
+        document.getElementById('glyph-panel').classList.remove('hidden');
+        addGlyphLogEntry(result.message, 'system');
+        break;
+      case 'none':
+        break;
+    }
+    render();
+  }
+
+  function render() {
+    const state = Game.getState();
+    if (state) Renderer.draw(state, state.timeline);
+  }
+
+  return { init, getCamera, updateCamera };
+})();
+
+
+// --- js/renderer.js ---
+// ============================================================
+//  RENDERER — Camera-based tile map with dual-timeline visuals
+// ============================================================
+
+const Palette = {
+  past: {
+    bg: '#1a1510', floor: '#1e1a12', floorAlt: '#242014',
+    wall: '#2a2218', wallStroke: '#3d3428', wallDetail: '#4a3c2e',
+    player: '#b8860b', playerLight: '#d4a024',
+    fog: '#1a1510', fogExplored: 'rgba(26,21,16,0.5)',
+    objDiscovery: '#d4a024', objGate: '#8a6a2a', objChest: '#c49030', objExamine: '#6b5a30',
+    textColor: '#b8860b', textDim: '#6b5a30', textBg: 'rgba(26,21,16,0.85)',
+    label: 'The world that was...',
+    detailColor: '#3d3428',
+  },
+  present: {
+    bg: '#0a0a14', floor: '#0e0e18', floorAlt: '#111120',
+    wall: '#141428', wallStroke: '#222240', wallDetail: '#2a2850',
+    player: '#2a7a7a', playerLight: '#4ac0c0',
+    fog: '#0a0a14', fogExplored: 'rgba(10,10,20,0.5)',
+    objDiscovery: '#4ac0c0', objGate: '#2a5a6a', objChest: '#3a8a8a', objExamine: '#30506b',
+    textColor: '#2a7a7a', textDim: '#30506b', textBg: 'rgba(10,10,20,0.85)',
+    label: 'The world that remains...',
+    detailColor: '#222240',
+  }
+};
+
+const Renderer = (() => {
+  const TILE = 24;
+  const VIEW = 20;
+
+  // Simple hash for procedural tile details
+  function tileHash(x, y) {
+    let h = x * 374761393 + y * 668265263;
+    h = (h ^ (h >> 13)) * 1274126177;
+    return (h ^ (h >> 16)) >>> 0;
+  }
+
+  function draw(state, timeline) {
+    const canvas = document.getElementById('game-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const pal = timeline === 'past' ? Palette.past : Palette.present;
+    const cam = Input.getCamera();
+
+    // Clear
+    ctx.fillStyle = pal.bg;
+    ctx.fillRect(0, 0, W, H);
+
+    const px = state.player.x, py = state.player.y;
+
+    // Draw tiles
+    for (let vy = 0; vy < VIEW; vy++) {
+      for (let vx = 0; vx < VIEW; vx++) {
+        const tx = cam.x + vx, ty = cam.y + vy;
+        const sx = vx * TILE, sy = vy * TILE;
+        const tile = Map.get(tx, ty);
+
+        if (!Game.isExplored(tx, ty)) {
+          ctx.fillStyle = pal.fog;
+          ctx.fillRect(sx, sy, TILE, TILE);
+          continue;
+        }
+
+        // Floor
+        if (tile === Map.FLOOR || tile === Map.DOOR) {
+          ctx.fillStyle = (tileHash(tx, ty) % 5 === 0) ? pal.floorAlt : pal.floor;
+          ctx.fillRect(sx, sy, TILE, TILE);
+
+          // Floor details
+          if (timeline === 'past') {
+            // Subtle warm floor pattern
+            if (tileHash(tx, ty) % 7 === 0) {
+              ctx.fillStyle = pal.detailColor;
+              ctx.globalAlpha = 0.3;
+              ctx.fillRect(sx + 4, sy + 10, TILE - 8, 1);
+              ctx.globalAlpha = 1;
+            }
+          } else {
+            // Debris/cracks on floor
+            if (tileHash(tx, ty) % 4 === 0) {
+              ctx.fillStyle = pal.detailColor;
+              ctx.globalAlpha = 0.4;
+              const cx = sx + (tileHash(tx, ty + 1) % 16) + 2;
+              const cy = sy + (tileHash(tx + 1, ty) % 16) + 2;
+              ctx.fillRect(cx, cy, 2, 2);
+              ctx.globalAlpha = 1;
+            }
+          }
+        }
+
+        // Wall
+        if (tile === Map.WALL) {
+          ctx.fillStyle = pal.wall;
+          ctx.fillRect(sx, sy, TILE, TILE);
+          ctx.strokeStyle = pal.wallStroke;
+          ctx.strokeRect(sx + 0.5, sy + 0.5, TILE - 1, TILE - 1);
+
+          // Wall details
+          if (timeline === 'past') {
+            // Intact stonework lines
+            ctx.fillStyle = pal.wallDetail;
+            ctx.globalAlpha = 0.3;
+            ctx.fillRect(sx, sy + 8, TILE, 1);
+            ctx.fillRect(sx + ((tileHash(tx, ty) % 2) ? 8 : 16), sy, 1, 8);
+            ctx.globalAlpha = 1;
+          } else {
+            // Cracks
+            if (tileHash(tx, ty) % 3 === 0) {
+              ctx.strokeStyle = pal.wallDetail;
+              ctx.globalAlpha = 0.5;
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(sx + 4, sy + 4);
+              ctx.lineTo(sx + 12 + (tileHash(tx, ty) % 8), sy + 18);
+              ctx.stroke();
+              ctx.globalAlpha = 1;
+            }
+          }
+        }
+
+        // Door tile
+        if (tile === Map.DOOR) {
+          const obj = Map.getObjectAt(tx, ty);
+          const isOpen = obj && obj.unlockedBy && state.appliedGlyphs.includes(obj.unlockedBy);
+          if (!isOpen) {
+            ctx.fillStyle = pal.objGate;
+            ctx.fillRect(sx + 2, sy + TILE / 2 - 2, TILE - 4, 4);
+            ctx.fillStyle = pal.wallStroke;
+            ctx.fillRect(sx + 4, sy + TILE / 2 - 1, TILE - 8, 2);
+          }
+        }
+      }
+    }
+
+    // Draw objects
+    for (const obj of Map.getObjects()) {
+      const vx = obj.x - cam.x, vy = obj.y - cam.y;
+      if (vx < 0 || vx >= VIEW || vy < 0 || vy >= VIEW) continue;
+      if (!Game.isExplored(obj.x, obj.y)) continue;
+      if (obj.type === 'gate') continue; // gates drawn as door tiles
+
+      const sx = vx * TILE + TILE / 2, sy = vy * TILE + TILE / 2;
+      const used = state.interactedObjects.includes(obj.id);
+
+      ctx.globalAlpha = used ? 0.4 : 1;
+
+      switch (obj.type) {
+        case 'discovery':
+          // Diamond
+          ctx.fillStyle = pal.objDiscovery;
+          ctx.beginPath();
+          ctx.moveTo(sx, sy - 6); ctx.lineTo(sx + 5, sy);
+          ctx.lineTo(sx, sy + 6); ctx.lineTo(sx - 5, sy);
+          ctx.closePath(); ctx.fill();
+          break;
+
+        case 'chest':
+          // Rectangle
+          ctx.fillStyle = pal.objChest;
+          ctx.fillRect(sx - 5, sy - 3, 10, 7);
+          ctx.fillStyle = pal.textColor;
+          ctx.fillRect(sx - 4, sy - 3, 8, 2);
+          break;
+
+        case 'combined':
+          // Two half diamonds
+          ctx.fillStyle = pal.objDiscovery;
+          ctx.beginPath();
+          ctx.moveTo(sx - 2, sy - 5); ctx.lineTo(sx + 3, sy);
+          ctx.lineTo(sx - 2, sy + 5); ctx.closePath(); ctx.fill();
+          ctx.globalAlpha *= 0.5;
+          ctx.beginPath();
+          ctx.moveTo(sx + 2, sy - 5); ctx.lineTo(sx - 3, sy);
+          ctx.lineTo(sx + 2, sy + 5); ctx.closePath(); ctx.fill();
+          break;
+
+        case 'npc':
+          // Small colored figure
+          ctx.fillStyle = pal.textColor;
+          ctx.beginPath(); ctx.arc(sx, sy - 2, 4, 0, Math.PI * 2); ctx.fill();
+          ctx.fillRect(sx - 2, sy + 2, 4, 5);
+          break;
+
+        case 'echo_choice':
+          // Dual diamond (choice marker)
+          ctx.fillStyle = pal.objDiscovery;
+          ctx.beginPath();
+          ctx.moveTo(sx - 4, sy); ctx.lineTo(sx, sy - 6); ctx.lineTo(sx + 4, sy); ctx.lineTo(sx, sy + 6);
+          ctx.closePath(); ctx.fill();
+          ctx.fillStyle = pal.textBg;
+          ctx.fillRect(sx - 1, sy - 1, 2, 2);
+          break;
+
+        case 'sync_ritual':
+          // Pulsing circle
+          ctx.strokeStyle = pal.objDiscovery;
+          ctx.lineWidth = 1.5;
+          ctx.globalAlpha = 0.5 + 0.3 * Math.sin(Date.now() / 400);
+          ctx.beginPath(); ctx.arc(sx, sy, 8, 0, Math.PI * 2); ctx.stroke();
+          ctx.beginPath(); ctx.arc(sx, sy, 4, 0, Math.PI * 2); ctx.stroke();
+          ctx.globalAlpha = 1; ctx.lineWidth = 1;
+          break;
+
+        case 'exit':
+          // Subtle directional arrow
+          ctx.fillStyle = pal.textColor;
+          ctx.globalAlpha = 0.5;
+          ctx.beginPath();
+          ctx.moveTo(sx, sy - 6); ctx.lineTo(sx + 5, sy + 2); ctx.lineTo(sx - 5, sy + 2);
+          ctx.closePath(); ctx.fill();
+          ctx.globalAlpha = 1;
+          break;
+
+        case 'examine':
+        default:
+          // Sparkle dots
+          ctx.fillStyle = pal.objExamine;
+          const t = (Date.now() / 500) | 0;
+          ctx.fillRect(sx - 2 + (t % 2), sy - 2, 2, 2);
+          ctx.fillRect(sx + 1 - (t % 2), sy + 1, 2, 2);
+          break;
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // Draw player
+    drawCharacter(ctx, (px - cam.x) * TILE, (py - cam.y) * TILE, TILE, pal.player, pal.playerLight);
+
+    // Fog of war overlay (explored but not visible = dimmed)
+    for (let vy = 0; vy < VIEW; vy++) {
+      for (let vx = 0; vx < VIEW; vx++) {
+        const tx = cam.x + vx, ty = cam.y + vy;
+        if (!Game.isExplored(tx, ty)) continue; // already drawn as solid fog
+
+        if (!Game.isVisible(tx, ty)) {
+          ctx.fillStyle = pal.fogExplored;
+          ctx.fillRect(vx * TILE, vy * TILE, TILE, TILE);
+        }
+      }
+    }
+
+    // Interaction prompt
+    const adjObj = Game.getAdjacentObject();
+    if (adjObj) {
+      const ovx = adjObj.x - cam.x, ovy = adjObj.y - cam.y;
+      if (ovx >= 0 && ovx < VIEW && ovy >= 0 && ovy < VIEW) {
+        const promptLabels = { examine: 'Examine', gate: 'Inspect', npc: 'Talk', chest: 'Open', discovery: 'Investigate', echo_choice: 'Decide', combined: 'Touch', sync_ritual: 'Begin Ritual', exit: 'Leave' };
+        const promptText = promptLabels[adjObj.type] || 'Interact';
+        ctx.fillStyle = pal.textBg;
+        const tw = ctx.measureText(promptText).width + 12;
+        const tx = ovx * TILE + TILE / 2 - tw / 2;
+        const ty = ovy * TILE - 8;
+        ctx.fillRect(tx, ty - 10, tw, 16);
+        ctx.fillStyle = pal.textColor;
+        ctx.font = '10px "Courier New", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(promptText, ovx * TILE + TILE / 2, ty);
+        ctx.textAlign = 'start';
+      }
+    }
+
+    // --- HUD ---
+
+    // HP/MP bars at top
+    if (state.stats) {
+      const barW = 100, barH = 4, barY = 6, barGap = 3;
+      // HP bar
+      ctx.fillStyle = 'rgba(10,10,15,0.6)';
+      ctx.fillRect(6, barY, barW + 2, barH + 2);
+      ctx.fillStyle = '#8a2a2a';
+      ctx.fillRect(7, barY + 1, barW * (state.stats.hp / state.stats.maxHp), barH);
+      ctx.fillStyle = '#cc4444';
+      ctx.fillRect(7, barY + 1, barW * (state.stats.hp / state.stats.maxHp), 1);
+      // MP bar
+      const mpY = barY + barH + barGap;
+      ctx.fillStyle = 'rgba(10,10,15,0.6)';
+      ctx.fillRect(6, mpY, barW + 2, barH + 2);
+      ctx.fillStyle = '#2a3a8a';
+      ctx.fillRect(7, mpY + 1, barW * (state.stats.mp / state.stats.maxMp), barH);
+      ctx.fillStyle = '#4466cc';
+      ctx.fillRect(7, mpY + 1, barW * (state.stats.mp / state.stats.maxMp), 1);
+      // Level label
+      ctx.fillStyle = pal.textDim;
+      ctx.font = '9px "Courier New", monospace';
+      ctx.fillText('Lv' + state.stats.level, barW + 12, barY + barH);
+    }
+
+    // Bond bar (right side)
+    if (state.bond) {
+      const bx = W - 108, by = 6, bw = 100, bh = 4;
+      ctx.fillStyle = 'rgba(10,10,15,0.6)';
+      ctx.fillRect(bx, by, bw + 2, bh + 2);
+      ctx.fillStyle = pal.player;
+      ctx.globalAlpha = 0.7;
+      ctx.fillRect(bx + 1, by + 1, bw * (state.bond.level / 100), bh);
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = pal.textDim;
+      ctx.font = '9px "Courier New", monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText(Bond.getLabel(state.bond), bx - 2, by + bh);
+      ctx.textAlign = 'start';
+    }
+
+    // Atmosphere label
+    ctx.fillStyle = pal.textBg;
+    ctx.fillRect(0, H - 28, W, 28);
+    ctx.fillStyle = pal.textDim;
+    ctx.font = '11px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(pal.label, W / 2, H - 10);
+    ctx.textAlign = 'start';
+  }
+
+  function drawCharacter(ctx, x, y, size, dark, light) {
+    const cx = x + size / 2, cy = y + size / 2, r = size * 0.35;
+    // Glow
+    const grad = ctx.createRadialGradient(cx, cy, r * 0.5, cx, cy, r * 3);
+    grad.addColorStop(0, dark + '30');
+    grad.addColorStop(1, 'transparent');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x - size, y - size, size * 3, size * 3);
+    // Body
+    ctx.fillStyle = dark;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+    // Highlight
+    ctx.fillStyle = light;
+    ctx.beginPath(); ctx.arc(cx - r * 0.2, cy - r * 0.2, r * 0.35, 0, Math.PI * 2); ctx.fill();
+  }
+
+  return { draw };
+})();
 
 
 // --- js/ui.js ---
@@ -596,7 +2288,6 @@ function selectCharacter(character) {
   session.character = character;
   Persist.saveSession(session);
 
-  // Update UI to show selected
   document.querySelectorAll('.char-option').forEach(el => el.classList.remove('selected'));
   document.getElementById('char-' + character).classList.add('selected');
   document.getElementById('btn-confirm-char').classList.remove('hidden');
@@ -606,12 +2297,43 @@ function confirmCharacter() {
   const session = Persist.loadSession();
   if (!session || !session.character) return;
 
-  // If we already have a shared seed, go straight to game
   if (session.sharedSeed) {
     enterGame();
   } else {
     showSeedExchange();
   }
+}
+
+// --- DEMO MODE ---
+
+function enterDemoMode() {
+  const selected = document.querySelector('.char-option.selected');
+  const character = selected ? selected.id.replace('char-', '') : 'knight';
+
+  const session = {
+    character,
+    demo: true,
+    mySeed: 'DEMO01',
+    partnerSeed: 'DEMO02',
+    sharedSeed: Crypto.combineSeeds('DEMO01', 'DEMO02'),
+  };
+  Persist.saveSession(session);
+  enterGame();
+}
+
+function toggleTimeline() {
+  const state = Game.getState();
+  if (!state) return;
+
+  const newTimeline = state.timeline === 'past' ? 'present' : 'past';
+  Game.setTimeline(newTimeline);
+
+  document.body.setAttribute('data-timeline', newTimeline);
+  const label = newTimeline === 'past' ? 'The Hollow Knight — Past' : 'The Pale Whisper — Present';
+  document.getElementById('game-role-label').textContent = label;
+
+  Input.updateCamera();
+  Renderer.draw(Game.getState(), newTimeline);
 }
 
 // --- SEED EXCHANGE ---
@@ -620,7 +2342,6 @@ function showSeedExchange() {
   showScreen('screen-seed');
   const session = Persist.loadSession();
 
-  // Generate our seed if we don't have one
   if (!session.mySeed) {
     session.mySeed = Crypto.generateSeed();
     Persist.saveSession(session);
@@ -643,6 +2364,10 @@ function confirmSeedExchange() {
   session.sharedSeed = Crypto.combineSeeds(session.mySeed, partnerSeed);
   Persist.saveSession(session);
 
+  // Real game starts in Act 1
+  session.currentArea = 'act1_athenaeum';
+  Persist.saveSession(session);
+
   document.getElementById('seed-status').textContent = 'Bond established.';
   setTimeout(() => enterGame(), 800);
 }
@@ -655,15 +2380,76 @@ function enterGame() {
 
   showScreen('screen-game');
 
-  // Apply timeline theme
-  const isKnight = session.character === 'knight';
-  document.body.setAttribute('data-timeline', isKnight ? 'past' : 'present');
+  // Init game state
+  Game.init(session);
+  const state = Game.getState();
 
-  const label = isKnight ? 'The Hollow Knight — Past' : 'The Pale Whisper — Present';
+  // Apply timeline theme
+  document.body.setAttribute('data-timeline', state.timeline);
+  const label = state.timeline === 'past' ? 'The Hollow Knight — Past' : 'The Pale Whisper — Present';
   document.getElementById('game-role-label').textContent = label;
 
+  // Show timeline toggle in demo mode
+  const toggleBtn = document.getElementById('btn-toggle-timeline');
+  if (toggleBtn) toggleBtn.classList.toggle('hidden', !state.demo);
+
+  // Init input and render
+  const canvas = document.getElementById('game-canvas');
+  Input.init(canvas);
   WakeLock.request();
-  drawTestScene(session.character);
+  updateBondLabel();
+  Renderer.draw(state, state.timeline);
+}
+
+// --- INVENTORY ---
+
+function toggleInventory() {
+  const drawer = document.getElementById('inventory-drawer');
+  drawer.classList.toggle('hidden');
+  if (!drawer.classList.contains('hidden')) renderInventory();
+}
+
+function renderInventory() {
+  const state = Game.getState();
+  if (!state || !state.stats) return;
+  const grid = document.getElementById('inventory-grid');
+  grid.innerHTML = '';
+  for (let i = 0; i < 8; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'inventory-slot';
+    const item = state.stats.items[i];
+    if (item) {
+      slot.className += ' filled';
+      slot.textContent = item.name || item.id;
+      slot.onclick = () => useItemFromInventory(item.id);
+    } else {
+      slot.textContent = '—';
+    }
+    grid.appendChild(slot);
+  }
+}
+
+function useItemFromInventory(itemId) {
+  const state = Game.getState();
+  if (!state || !state.stats) return;
+  const item = Stats.useItem(state.stats, itemId);
+  if (item) {
+    addGlyphLogEntry('Used: ' + (item.name || item.id), 'system');
+    document.getElementById('glyph-panel').classList.remove('hidden');
+    Game.save();
+    renderInventory();
+    Renderer.draw(state, state.timeline);
+  }
+}
+
+// --- BOND ---
+
+function updateBondLabel() {
+  const state = Game.getState();
+  const el = document.getElementById('bond-label');
+  if (el && state && state.bond) {
+    el.textContent = Bond.getLabel(state.bond);
+  }
 }
 
 // --- GLYPH EXCHANGE ---
@@ -677,25 +2463,20 @@ function enterGlyph() {
   const code = input.value.trim().toUpperCase();
   if (!code) return;
 
-  const session = Persist.loadSession();
-  if (!session || !session.sharedSeed) return;
-
-  // Try to validate against known event IDs
-  // For now, just log it (real validation comes with game events)
-  const glyphLog = session.glyphLog || [];
-  glyphLog.push({
-    code,
-    time: Date.now(),
-    direction: 'received'
-  });
-  session.glyphLog = glyphLog;
-  Persist.saveSession(session);
-
-  addGlyphLogEntry('Received: ' + code, 'received');
   input.value = '';
 
-  // TODO: validate and trigger game events
-  addGlyphLogEntry('The glyph resonates...', 'system');
+  // Try sync ritual first
+  if (tryCompleteSyncRitual(code)) return;
+
+  const result = Game.tryApplyGlyph(code);
+  if (result) {
+    addGlyphLogEntry(result.description, 'system');
+    updateBondLabel();
+    const state = Game.getState();
+    Renderer.draw(state, state.timeline);
+  } else {
+    addGlyphLogEntry('The glyph fades to nothing...', 'error');
+  }
 }
 
 function addGlyphLogEntry(text, type) {
@@ -707,23 +2488,65 @@ function addGlyphLogEntry(text, type) {
   log.scrollTop = log.scrollHeight;
 }
 
-// Show a glyph that was generated by a game event
 function showGeneratedGlyph(code, description) {
-  const session = Persist.loadSession();
-  const glyphLog = session.glyphLog || [];
-  glyphLog.push({
-    code,
-    time: Date.now(),
-    direction: 'generated',
-    description
-  });
-  session.glyphLog = glyphLog;
-  Persist.saveSession(session);
-
-  // Show in UI
   document.getElementById('glyph-panel').classList.remove('hidden');
+  addGlyphLogEntry(description, 'system');
   addGlyphLogEntry('A glyph appears: ' + code, 'generated');
-  if (description) addGlyphLogEntry(description, 'system');
+  addGlyphLogEntry('Share this with your partner.', 'system');
+}
+
+// --- SYNC RITUAL ---
+
+function showSyncRitual(ritualId, description) {
+  const state = Game.getState();
+  if (!state) return;
+
+  const code = Crypto.generateSyncCode(state.sharedSeed, ritualId);
+
+  Dialogue.show([
+    description,
+    'A resonance builds in the stone beneath your feet.',
+    'When you are both ready, speak the word together.',
+    'Your ritual code: ' + code,
+    'Enter your partner\'s code when ready.',
+  ], () => {
+    // After reading, open glyph panel for partner code entry
+    document.getElementById('glyph-panel').classList.remove('hidden');
+    addGlyphLogEntry('Ritual active: ' + ritualId, 'system');
+    addGlyphLogEntry('Your code: ' + code + ' — Share this.', 'generated');
+    addGlyphLogEntry('Enter your partner\'s ritual code below.', 'system');
+
+    // Set a flag so enterGlyph knows to validate as sync
+    state._pendingSyncRitual = ritualId;
+  });
+}
+
+function tryCompleteSyncRitual(code) {
+  const state = Game.getState();
+  if (!state || !state._pendingSyncRitual) return false;
+
+  const ritualId = state._pendingSyncRitual;
+  const valid = Crypto.validateSyncCode(state.sharedSeed, code, ritualId);
+
+  if (valid) {
+    delete state._pendingSyncRitual;
+    state.interactedObjects.push('ritual_' + ritualId);
+
+    // Bond increase for sync ritual
+    if (state.bond) {
+      const vision = Bond.increase(state.bond, 10, state.character);
+      if (vision) {
+        setTimeout(() => Dialogue.show(vision.lines), 500);
+      }
+    }
+
+    Game.save();
+    updateBondLabel();
+    addGlyphLogEntry('The ritual resonates! The bond deepens.', 'success');
+    Renderer.draw(state, state.timeline);
+    return true;
+  }
+  return false;
 }
 
 // --- RESET ---
@@ -769,10 +2592,9 @@ if ('serviceWorker' in navigator) {
   const session = Persist.loadSession();
   if (session && session.character && session.sharedSeed) {
     enterGame();
-  } else if (session && session.character) {
+  } else if (session && session.character && !session.sharedSeed && !session.demo) {
     showSeedExchange();
   }
-  // Otherwise stays on character select (default visible screen)
 })();
 
 </script>
