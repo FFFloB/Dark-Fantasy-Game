@@ -19,7 +19,9 @@
       "Bash(sed -i 's/\\\\bMap\\\\b\\\\./GameMap./g; s/const Map = /const GameMap = /; s/Map\\\\.FLOOR/GameMap.FLOOR/g; s/Map\\\\.WALL/GameMap.WALL/g; s/Map\\\\.DOOR/GameMap.DOOR/g' src/js/map.js)",
       "Bash(sed -i 's/\\\\bMap\\\\./GameMap./g' src/js/game.js src/js/input.js src/js/renderer.js)",
       "Bash(node test/debug_combat.js)",
-      "Bash(grep -n \"page[AB].*evaluate.*\\\\$\\\\{.*\\\\}.*\\\\$\\\\{\" \"C:/Users/Florian.Block/Code/Dark Fantasy Game/test/playtest.js\")"
+      "Bash(grep -n \"page[AB].*evaluate.*\\\\$\\\\{.*\\\\}.*\\\\$\\\\{\" \"C:/Users/Florian.Block/Code/Dark Fantasy Game/test/playtest.js\")",
+      "Bash(node test/playtest-edge.js)",
+      "Bash(node test/playtest-full.js)"
     ]
   }
 }
