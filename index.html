@@ -324,7 +324,7 @@ input:focus { border-color: var(--accent); }
 
 </div>
 
-<div class="version-tag">v6b47044 @ 2026-04-09 15:47</div>
+<div class="version-tag">vcb5dc54 @ 2026-04-09 16:59</div>
 
 <script>
 // --- js/crypto.js ---
@@ -1786,7 +1786,7 @@ const MapGen = (() => {
 //  MAP — Loadable tile map with spatial queries
 // ============================================================
 
-const Map = (() => {
+const GameMap = (() => {
   let W = 0, H = 0;
   let tiles = null;
   let objects = [];
@@ -2689,7 +2689,7 @@ const Combat = (() => {
   function isActive() { return state && state.active; }
   function getState() { return state; }
 
-  return { start, isActive, getState, draw, handleTap };
+  return { start, isActive, getState, draw, handleTap, doAttack, doDefend, doItem, doMercy };
 })();
 
 
@@ -3100,7 +3100,7 @@ const Game = (() => {
     const areaDef = (typeof Data !== 'undefined' && Data.areas && Data.areas[currentArea])
       ? Data.areas[currentArea] : null;
     const mapData = MapGen.generate(currentArea, session.sharedSeed || 'DEMO', areaDef);
-    Map.load(mapData);
+    GameMap.load(mapData);
 
     state = {
       character: session.character,
@@ -3145,9 +3145,9 @@ const Game = (() => {
 
   function createExploredArray() {
     const arr = [];
-    for (let y = 0; y < Map.H; y++) {
+    for (let y = 0; y < GameMap.H; y++) {
       arr[y] = [];
-      for (let x = 0; x < Map.W; x++) arr[y][x] = false;
+      for (let x = 0; x < GameMap.W; x++) arr[y][x] = false;
     }
     return arr;
   }
@@ -3157,7 +3157,7 @@ const Game = (() => {
     for (let dy = -radius; dy <= radius; dy++) {
       for (let dx = -radius; dx <= radius; dx++) {
         const x = px + dx, y = py + dy;
-        if (x >= 0 && x < Map.W && y >= 0 && y < Map.H) {
+        if (x >= 0 && x < GameMap.W && y >= 0 && y < GameMap.H) {
           if (dx * dx + dy * dy <= radius * radius) {
             state.explored[y][x] = true;
           }
@@ -3170,7 +3170,7 @@ const Game = (() => {
     if (!state) return false;
     const nx = state.player.x + dx;
     const ny = state.player.y + dy;
-    if (!Map.isWalkable(nx, ny, state)) return false;
+    if (!GameMap.isWalkable(nx, ny, state)) return false;
 
     state.player.x = nx;
     state.player.y = ny;
@@ -3178,7 +3178,7 @@ const Game = (() => {
     revealAround(nx, ny);
 
     // Check for exit tile
-    const exit = Map.getExits().find(e => e.x === nx && e.y === ny);
+    const exit = GameMap.getExits().find(e => e.x === nx && e.y === ny);
     if (exit && typeof transitionArea === 'function') {
       // Defer transition to next frame to let rendering catch up
       setTimeout(() => transitionArea(exit.targetArea, exit.targetSpawn), 50);
@@ -3192,14 +3192,14 @@ const Game = (() => {
     if (!state) return null;
     const px = state.player.x, py = state.player.y;
 
-    const onTile = Map.getObjectAt(px, py);
+    const onTile = GameMap.getObjectAt(px, py);
     if (onTile) return onTile;
 
     const fx = px + state.lastDir.x, fy = py + state.lastDir.y;
-    const facing = Map.getObjectAt(fx, fy);
+    const facing = GameMap.getObjectAt(fx, fy);
     if (facing) return facing;
 
-    const near = Map.getObjectsNear(px, py);
+    const near = GameMap.getObjectsNear(px, py);
     return near.length > 0 ? near[0] : null;
   }
 
@@ -3404,7 +3404,7 @@ const Game = (() => {
   function tryApplyGlyph(code) {
     if (!state) return null;
 
-    const possibleIds = Map.getObjects()
+    const possibleIds = GameMap.getObjects()
       .filter(o => o.eventId && (
         o.forTimeline === state.timeline ||
         o.forTimeline === null ||
@@ -3413,7 +3413,7 @@ const Game = (() => {
       .map(o => o.eventId);
 
     // Also check echo choice event IDs
-    Map.getObjects().forEach(o => {
+    GameMap.getObjects().forEach(o => {
       if (o.choices) o.choices.forEach(c => {
         if (c.eventId) possibleIds.push(c.eventId);
       });
@@ -3454,7 +3454,7 @@ const Game = (() => {
 
     save();
 
-    const obj = Map.getObjects().find(o => o.eventId === matchedId);
+    const obj = GameMap.getObjects().find(o => o.eventId === matchedId);
     if (obj && obj.type === 'gate') {
       return { eventId: matchedId, description: 'A distant gate grinds open...' };
     }
@@ -3477,7 +3477,7 @@ const Game = (() => {
     const areaDef = (typeof Data !== 'undefined' && Data.areas && Data.areas[areaId])
       ? Data.areas[areaId] : null;
     const mapData = MapGen.generate(areaId, state.sharedSeed, areaDef);
-    Map.load(mapData);
+    GameMap.load(mapData);
 
     // Restore or create explored array
     state.explored = (session.exploredAreas && session.exploredAreas[areaId])
@@ -3511,7 +3511,7 @@ const Game = (() => {
   }
 
   function isExplored(x, y) {
-    if (!state || y < 0 || y >= Map.H || x < 0 || x >= Map.W) return false;
+    if (!state || y < 0 || y >= GameMap.H || x < 0 || x >= GameMap.W) return false;
     return state.explored[y][x];
   }
 
@@ -3581,8 +3581,8 @@ const Input = (() => {
   function snapCamera() {
     const state = Game.getState();
     if (!state) return;
-    cameraTarget.x = Math.max(0, Math.min(state.player.x - Math.floor(VIEW / 2), Map.W - VIEW));
-    cameraTarget.y = Math.max(0, Math.min(state.player.y - Math.floor(VIEW / 2), Map.H - VIEW));
+    cameraTarget.x = Math.max(0, Math.min(state.player.x - Math.floor(VIEW / 2), GameMap.W - VIEW));
+    cameraTarget.y = Math.max(0, Math.min(state.player.y - Math.floor(VIEW / 2), GameMap.H - VIEW));
     camera.x = cameraTarget.x;
     camera.y = cameraTarget.y;
     playerDisplay.x = state.player.x;
@@ -3592,8 +3592,8 @@ const Input = (() => {
   function updateCameraTarget() {
     const state = Game.getState();
     if (!state) return;
-    cameraTarget.x = Math.max(0, Math.min(state.player.x - Math.floor(VIEW / 2), Map.W - VIEW));
-    cameraTarget.y = Math.max(0, Math.min(state.player.y - Math.floor(VIEW / 2), Map.H - VIEW));
+    cameraTarget.x = Math.max(0, Math.min(state.player.x - Math.floor(VIEW / 2), GameMap.W - VIEW));
+    cameraTarget.y = Math.max(0, Math.min(state.player.y - Math.floor(VIEW / 2), GameMap.H - VIEW));
   }
 
   function getCamera() { return camera; }
@@ -3628,8 +3628,8 @@ const Input = (() => {
     }
 
     // Camera follows player display smoothly
-    const camTargetX = Math.max(0, Math.min(playerDisplay.x - Math.floor(VIEW / 2), Map.W - VIEW));
-    const camTargetY = Math.max(0, Math.min(playerDisplay.y - Math.floor(VIEW / 2), Map.H - VIEW));
+    const camTargetX = Math.max(0, Math.min(playerDisplay.x - Math.floor(VIEW / 2), GameMap.W - VIEW));
+    const camTargetY = Math.max(0, Math.min(playerDisplay.y - Math.floor(VIEW / 2), GameMap.H - VIEW));
     const cdx = camTargetX - camera.x;
     const cdy = camTargetY - camera.y;
     camera.x += cdx * 0.15;
@@ -3710,18 +3710,18 @@ const Input = (() => {
     const state = Game.getState();
     const queue = [{ x: fromX, y: fromY, path: [] }];
     const visited = new Set();
-    visited.add(fromY * Map.W + fromX);
+    visited.add(fromY * GameMap.W + fromX);
 
     while (queue.length > 0) {
       const { x, y, path } = queue.shift();
       for (const [ddx, ddy] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) {
         const nx = x + ddx, ny = y + ddy;
-        const key = ny * Map.W + nx;
+        const key = ny * GameMap.W + nx;
         if (visited.has(key)) continue;
         visited.add(key);
         const newPath = [...path, { x: nx, y: ny }];
         if (nx === toX && ny === toY) return newPath;
-        if (Map.isWalkable(nx, ny, state)) {
+        if (GameMap.isWalkable(nx, ny, state)) {
           queue.push({ x: nx, y: ny, path: newPath });
         }
       }
@@ -3749,7 +3749,7 @@ const Input = (() => {
     const tileX = Math.floor(((e.clientX - rect.left) * scaleX / TILE) + camera.x);
     const tileY = Math.floor(((e.clientY - rect.top) * scaleY / TILE) + camera.y);
 
-    if (tileX < 0 || tileX >= Map.W || tileY < 0 || tileY >= Map.H) return;
+    if (tileX < 0 || tileX >= GameMap.W || tileY < 0 || tileY >= GameMap.H) return;
     if (!Game.isExplored(tileX, tileY)) return;
 
     const dx = tileX - state.player.x;
@@ -3763,12 +3763,12 @@ const Input = (() => {
     }
 
     // Tap on object = walk to adjacent + interact
-    const tappedObj = Map.getObjectAt(tileX, tileY);
+    const tappedObj = GameMap.getObjectAt(tileX, tileY);
     if (tappedObj) {
       const adjTiles = [
         { x: tileX, y: tileY - 1 }, { x: tileX, y: tileY + 1 },
         { x: tileX - 1, y: tileY }, { x: tileX + 1, y: tileY },
-      ].filter(t => Map.isWalkable(t.x, t.y, state));
+      ].filter(t => GameMap.isWalkable(t.x, t.y, state));
 
       // Already adjacent?
       for (const adj of adjTiles) {
@@ -3795,7 +3795,7 @@ const Input = (() => {
     }
 
     // Tap walkable tile = walk there
-    if (Map.isWalkable(tileX, tileY, state)) {
+    if (GameMap.isWalkable(tileX, tileY, state)) {
       const path = findPath(state.player.x, state.player.y, tileX, tileY);
       if (path) startWalking(path, false);
     }
@@ -3936,7 +3936,7 @@ const Renderer = (() => {
         const tx = camIX + vx, ty = camIY + vy;
         const sx = vx * TILE - offX, sy = vy * TILE - offY;
         if (sx + TILE < 0 || sx > W || sy + TILE < 0 || sy > H) continue;
-        const tile = Map.get(tx, ty);
+        const tile = GameMap.get(tx, ty);
 
         if (!Game.isExplored(tx, ty)) {
           ctx.fillStyle = pal.fog;
@@ -3945,7 +3945,7 @@ const Renderer = (() => {
         }
 
         // Floor
-        if (tile === Map.FLOOR || tile === Map.DOOR) {
+        if (tile === GameMap.FLOOR || tile === GameMap.DOOR) {
           ctx.fillStyle = (tileHash(tx, ty) % 5 === 0) ? pal.floorAlt : pal.floor;
           ctx.fillRect(sx, sy, TILE, TILE);
 
@@ -3972,7 +3972,7 @@ const Renderer = (() => {
         }
 
         // Wall
-        if (tile === Map.WALL) {
+        if (tile === GameMap.WALL) {
           ctx.fillStyle = pal.wall;
           ctx.fillRect(sx, sy, TILE, TILE);
           ctx.strokeStyle = pal.wallStroke;
@@ -4002,8 +4002,8 @@ const Renderer = (() => {
         }
 
         // Door tile
-        if (tile === Map.DOOR) {
-          const obj = Map.getObjectAt(tx, ty);
+        if (tile === GameMap.DOOR) {
+          const obj = GameMap.getObjectAt(tx, ty);
           const isOpen = obj && obj.unlockedBy && state.appliedGlyphs.includes(obj.unlockedBy);
           if (!isOpen) {
             ctx.fillStyle = pal.objGate;
@@ -4016,7 +4016,7 @@ const Renderer = (() => {
     }
 
     // Draw objects
-    for (const obj of Map.getObjects()) {
+    for (const obj of GameMap.getObjects()) {
       const screenX = (obj.x - cam.x) * TILE;
       const screenY = (obj.y - cam.y) * TILE;
       if (screenX + TILE < 0 || screenX > W || screenY + TILE < 0 || screenY > H) continue;
@@ -4194,7 +4194,7 @@ const Renderer = (() => {
         if (!Game.isExplored(tx, ty) || !Game.isVisible(tx, ty)) continue;
         const sx = vx * TILE - offX, sy = vy * TILE - offY;
         const h = tileHash(tx, ty);
-        if (Map.get(tx, ty) !== Map.FLOOR) continue;
+        if (GameMap.get(tx, ty) !== GameMap.FLOOR) continue;
 
         if (timeline === 'past' && h % 19 === 0) {
           // Torchlight flicker — warm glow on specific floor tiles
